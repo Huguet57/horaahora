@@ -61,7 +61,7 @@ def main():
         title = latest.title
         body = latest.excerpt if latest.excerpt else latest.date
 
-    notifier.send(title=title, body=body)
+    notifier.send(title=title, body=body, url=latest.url)
     print("Notificació enviada.")
 
     save_state({"last_hash": current_hash, "last_title": latest.title})

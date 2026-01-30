@@ -52,4 +52,20 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     ) {
         completionHandler([.banner, .badge, .sound])
     }
+
+    // Open URL when user taps a notification
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let urlString = userInfo["url"] as? String,
+           let url = URL(string: urlString) {
+            DispatchQueue.main.async {
+                UIApplication.shared.open(url)
+            }
+        }
+        completionHandler()
+    }
 }

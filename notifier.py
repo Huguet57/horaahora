@@ -9,7 +9,7 @@ import jwt
 
 class Notifier(ABC):
     @abstractmethod
-    def send(self, title: str, body: str) -> None: ...
+    def send(self, title: str, body: str, url: str = "") -> None: ...
 
 
 class APNsNotifier(Notifier):
@@ -42,9 +42,9 @@ class APNsNotifier(Notifier):
         }
         return jwt.encode(payload, self.key_p8, algorithm="ES256", headers={"kid": self.key_id})
 
-    def send(self, title: str, body: str) -> None:
+    def send(self, title: str, body: str, url: str = "") -> None:
         token = self._make_token()
-        url = f"{self.host}/3/device/{self.device_token}"
+        endpoint = f"{self.host}/3/device/{self.device_token}"
 
         headers = {
             "authorization": f"bearer {token}",
@@ -60,11 +60,13 @@ class APNsNotifier(Notifier):
                     "body": body,
                 },
                 "content-available": 1,
-            }
+            },
         }
+        if url:
+            payload["url"] = url
 
         with httpx.Client(http2=True) as client:
-            resp = client.post(url, headers=headers, json=payload, timeout=10)
+            resp = client.post(endpoint, headers=headers, json=payload, timeout=10)
 
         if resp.status_code != 200:
             raise RuntimeError(
