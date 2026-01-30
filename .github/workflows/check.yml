@@ -1,0 +1,38 @@
+name: Check Castells Hora a Hora
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # permet executar manualment
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check for updates
+        env:
+          APNS_KEY_P8: ${{ secrets.APNS_KEY_P8 }}
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
+          APNS_TEAM_ID: ${{ secrets.APNS_TEAM_ID }}
+          BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+          DEVICE_TOKEN: ${{ secrets.DEVICE_TOKEN }}
+          APNS_SANDBOX: ${{ secrets.APNS_SANDBOX }}
+        run: python main.py
+
+      - name: Commit state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add last_seen.json
+          git diff --cached --quiet || git commit -m "Update last_seen state"
+          git push
