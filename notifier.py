@@ -3,8 +3,8 @@ import os
 import time
 from abc import ABC, abstractmethod
 
+import httpx
 import jwt
-import requests
 
 
 class Notifier(ABC):
@@ -50,7 +50,7 @@ class APNsNotifier(Notifier):
             "authorization": f"bearer {token}",
             "apns-topic": self.bundle_id,
             "apns-push-type": "alert",
-            "apns-priority": "10",
+            "apns-priority": "5",
         }
 
         payload = {
@@ -59,11 +59,12 @@ class APNsNotifier(Notifier):
                     "title": title,
                     "body": body,
                 },
-                "sound": "default",
+                "content-available": 1,
             }
         }
 
-        resp = requests.post(url, headers=headers, json=payload, timeout=10)
+        with httpx.Client(http2=True) as client:
+            resp = client.post(url, headers=headers, json=payload, timeout=10)
 
         if resp.status_code != 200:
             raise RuntimeError(
