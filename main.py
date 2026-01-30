@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import re
 import sys
 
 from scraper import fetch_entries
@@ -47,8 +48,20 @@ def main():
         return
 
     notifier = create_notifier()
-    body = latest.excerpt if latest.excerpt else latest.date
-    notifier.send(title=latest.title, body=body)
+
+    # Split "Divendres 30, 11h. La Nit de Castells..." into prefix + rest
+    match = re.match(r"^(\w+ \d+,\s*\d+h\.)\s*(.+)$", latest.title)
+    if match:
+        time_prefix = match.group(1)  # "Divendres 30, 11h."
+        title = match.group(2)         # "La Nit de Castells..."
+        body = time_prefix
+        if latest.excerpt:
+            body += " " + latest.excerpt
+    else:
+        title = latest.title
+        body = latest.excerpt if latest.excerpt else latest.date
+
+    notifier.send(title=title, body=body)
     print("Notificació enviada.")
 
     save_state({"last_hash": current_hash, "last_title": latest.title})
