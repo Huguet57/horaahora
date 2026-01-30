@@ -12,6 +12,7 @@ class Entry:
     excerpt: str
     url: str
     date: str
+    embedded_url: str = ""
 
 
 def fetch_entries() -> list[Entry]:
@@ -34,11 +35,13 @@ def fetch_entries() -> list[Entry]:
         if not title_el:
             continue
 
+        embedded_link = excerpt_el.select_one("a") if excerpt_el else None
         entries.append(Entry(
             title=title_el.get_text(strip=True),
             excerpt=excerpt_el.get_text(strip=True) if excerpt_el else "",
             url=title_el.get("href", ""),
             date=date_el.get_text(strip=True) if date_el else "",
+            embedded_url=embedded_link.get("href", "") if embedded_link else "",
         ))
 
     return entries
