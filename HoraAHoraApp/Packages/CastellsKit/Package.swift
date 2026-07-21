@@ -24,5 +24,6 @@ let package = Package(
         .testTarget(name: "CastellsDomainTests", dependencies: ["CastellsDomain"]),
         .testTarget(name: "CastellsDataTests", dependencies: ["CastellsData", "CastellsDomain"]),
         .testTarget(name: "FeatureAgendaTests", dependencies: ["FeatureAgenda", "CastellsDomain"]),
+        .testTarget(name: "FeatureCalculatorTests", dependencies: ["FeatureCalculator", "CastellsDomain"]),
     ]
 )

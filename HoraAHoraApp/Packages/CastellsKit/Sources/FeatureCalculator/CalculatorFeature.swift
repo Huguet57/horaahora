@@ -270,6 +270,80 @@ private extension View {
     }
 }
 
+struct ComparisonPresentation {
+    struct Castell: Identifiable {
+        let id: Int
+        let notation: String
+        let result: String
+        let points: Int
+        let counted: Bool
+    }
+
+    struct Column: Identifiable {
+        let id: Int
+        let label: String
+        let total: Int
+        let castells: [Castell]
+        let isWinner: Bool
+    }
+
+    let columns: [Column]
+    let winnerLabel: String?
+    let margin: Int?
+    let summary: String
+    let maximumCastellCount: Int
+
+    init?(response: ChatResponse) {
+        guard
+            response.intent == "comparison",
+            response.performances.count >= 2,
+            !response.needsClarification
+        else {
+            return nil
+        }
+
+        winnerLabel = response.winnerLabel
+        columns = response.performances.enumerated().map { columnIndex, performance in
+            Column(
+                id: columnIndex,
+                label: performance.label,
+                total: performance.total,
+                castells: performance.castells.enumerated().map { castellIndex, castell in
+                    Castell(
+                        id: castellIndex,
+                        notation: castell.canonical ?? castell.input,
+                        result: Self.resultLabel(castell.outcome),
+                        points: castell.points,
+                        counted: castell.counted
+                    )
+                },
+                isWinner: performance.label == response.winnerLabel
+            )
+        }
+        maximumCastellCount = columns.map(\.castells.count).max() ?? 0
+
+        if let winner = response.winnerLabel {
+            let totals = response.performances.map(\.total).sorted(by: >)
+            let winningMargin = totals[0] - totals[1]
+            margin = winningMargin
+            summary = "Guanya \(winner) per \(winningMargin.formatted(.number.grouping(.automatic))) punts."
+        } else {
+            margin = nil
+            let total = response.performances.first?.total ?? 0
+            summary = "Empat a \(total.formatted(.number.grouping(.automatic))) punts."
+        }
+    }
+
+    private static func resultLabel(_ outcome: String) -> String {
+        switch outcome {
+        case "loaded": "Carregat"
+        case "unloaded": "Descarregat"
+        case "attempt": "Intent"
+        default: outcome.capitalized
+        }
+    }
+}
+
 private struct MessageBubble: View {
     let message: ChatMessage
     let retry: () -> Void
@@ -278,17 +352,23 @@ private struct MessageBubble: View {
         HStack {
             if message.role == .user { Spacer(minLength: 44) }
             VStack(alignment: .leading, spacing: 8) {
-                Text(message.content).textSelection(.enabled)
-                if let calculation = message.calculation, !calculation.performances.isEmpty {
+                if let comparison {
+                    Text(comparison.summary).textSelection(.enabled)
                     Divider()
-                    ForEach(calculation.performances, id: \.label) { performance in
-                        HStack {
-                            Text(performance.label).fontWeight(.semibold)
-                            Spacer()
-                            Text(performance.total.formatted(.number.grouping(.automatic)))
-                                .monospacedDigit()
+                    ComparisonTable(presentation: comparison)
+                } else {
+                    Text(message.content).textSelection(.enabled)
+                    if let calculation = message.calculation, !calculation.performances.isEmpty {
+                        Divider()
+                        ForEach(calculation.performances, id: \.label) { performance in
+                            HStack {
+                                Text(performance.label).fontWeight(.semibold)
+                                Spacer()
+                                Text(performance.total.formatted(.number.grouping(.automatic)))
+                                    .monospacedDigit()
+                            }
+                            .font(.caption)
                         }
-                        .font(.caption)
                     }
                 }
                 if message.deliveryState == .failed {
@@ -301,6 +381,114 @@ private struct MessageBubble: View {
             .clipShape(RoundedRectangle(cornerRadius: 16))
             if message.role == .assistant { Spacer(minLength: 44) }
         }
+    }
+
+    private var comparison: ComparisonPresentation? {
+        message.calculation.flatMap(ComparisonPresentation.init(response:))
+    }
+}
+
+private struct ComparisonTable: View {
+    let presentation: ComparisonPresentation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Label("Comparativa", systemImage: "tablecells")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 8) {
+                    GridRow {
+                        Text("Castell")
+                            .foregroundStyle(.secondary)
+                        ForEach(presentation.columns) { column in
+                            HStack(spacing: 4) {
+                                if column.isWinner {
+                                    Image(systemName: "trophy.fill")
+                                        .foregroundStyle(.yellow)
+                                }
+                                Text(column.label)
+                                    .fontWeight(.semibold)
+                                    .lineLimit(1)
+                            }
+                            .frame(minWidth: 112, alignment: .trailing)
+                        }
+                    }
+                    .font(.caption)
+
+                    Divider()
+                        .gridCellColumns(presentation.columns.count + 1)
+
+                    ForEach(0..<presentation.maximumCastellCount, id: \.self) { index in
+                        GridRow {
+                            Text("\(index + 1)")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                            ForEach(presentation.columns) { column in
+                                castellCell(column, at: index)
+                            }
+                        }
+                    }
+
+                    Divider()
+                        .gridCellColumns(presentation.columns.count + 1)
+
+                    GridRow {
+                        Text("Total")
+                            .fontWeight(.semibold)
+                        ForEach(presentation.columns) { column in
+                            Text(column.total.formatted(.number.grouping(.automatic)))
+                                .fontWeight(.bold)
+                                .monospacedDigit()
+                                .frame(minWidth: 112, alignment: .trailing)
+                        }
+                    }
+                    .font(.caption)
+                }
+                .padding(10)
+            }
+            .background(Color.primary.opacity(0.045))
+            .clipShape(RoundedRectangle(cornerRadius: 11))
+
+            if let winner = presentation.winnerLabel, let margin = presentation.margin {
+                Label(
+                    "\(winner), +\(margin.formatted(.number.grouping(.automatic))) punts",
+                    systemImage: "trophy.fill"
+                )
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+            } else {
+                Label("Empat", systemImage: "equal.circle.fill")
+                    .font(.caption.weight(.semibold))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func castellCell(_ column: ComparisonPresentation.Column, at index: Int) -> some View {
+        if column.castells.indices.contains(index) {
+            let castell = column.castells[index]
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(castell.notation)
+                    .font(.caption.monospaced().weight(.semibold))
+                Text(detail(for: castell))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(minWidth: 112, alignment: .trailing)
+            .opacity(castell.counted ? 1 : 0.55)
+        } else {
+            Text("—")
+                .foregroundStyle(.tertiary)
+                .frame(minWidth: 112, alignment: .trailing)
+        }
+    }
+
+    private func detail(for castell: ComparisonPresentation.Castell) -> String {
+        let points = castell.points.formatted(.number.grouping(.automatic))
+        let suffix = castell.counted ? "" : " · no compta"
+        return "\(castell.result) · \(points)\(suffix)"
     }
 }
 

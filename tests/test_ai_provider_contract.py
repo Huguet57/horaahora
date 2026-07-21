@@ -5,7 +5,7 @@ import httpx
 
 from backend.adapters.ai.anthropic import AnthropicQueryInterpreter
 from backend.adapters.ai.openai import OpenAIQueryInterpreter
-from backend.adapters.ai.schema import ParsedQueryPayload
+from backend.adapters.ai.schema import ParsedQueryPayload, SYSTEM_PROMPT
 
 
 EXPECTED = {
@@ -33,6 +33,14 @@ def test_openai_schema_is_strict_at_every_object_level() -> None:
                 assert_strict_object(value)
 
     assert_strict_object(schema)
+
+
+def test_model_prompt_accepts_natural_catalan_without_inventing_data() -> None:
+    assert "errors tipogràfics lleus" in SYSTEM_PROMPT
+    assert "denominacions verbals" in SYSTEM_PROMPT
+    assert "No inventis" in SYSTEM_PROMPT
+    assert "context de la conversa" in SYSTEM_PROMPT
+    assert "només demana un aclariment" in SYSTEM_PROMPT
 
 
 def test_openai_adapter_repairs_invalid_structured_output_once() -> None:
