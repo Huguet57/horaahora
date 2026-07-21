@@ -19,6 +19,22 @@ final class AgendaViewModelTests: XCTestCase {
         XCTAssertEqual(repository.requestedFrom, "2026-07-01")
         XCTAssertEqual(repository.requestedTo, "2026-07-31")
     }
+
+    func testGoogleMapsURLSearchesForVenueAndMunicipality() throws {
+        let url = try XCTUnwrap(
+            googleMapsSearchURL(venue: "Plaça Vella", municipality: "El Vendrell")
+        )
+        let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+
+        XCTAssertEqual(components.scheme, "https")
+        XCTAssertEqual(components.host, "www.google.com")
+        XCTAssertEqual(components.path, "/maps/search/")
+        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "api" })?.value, "1")
+        XCTAssertEqual(
+            components.queryItems?.first(where: { $0.name == "query" })?.value,
+            "Plaça Vella, El Vendrell"
+        )
+    }
 }
 
 @MainActor

@@ -2,6 +2,9 @@ import Foundation
 import Observation
 import SwiftUI
 import CastellsDomain
+#if os(iOS)
+import WebKit
+#endif
 
 @MainActor
 @Observable
@@ -125,36 +128,24 @@ public struct AgendaRootView: View {
                     if model.isLoading && model.events.isEmpty {
                         ProgressView()
                     } else if !model.events.isEmpty {
-                        if model.isFromCache {
-                            Label("Mostrant la còpia desada", systemImage: "internaldrive")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
                         LazyVStack(alignment: .leading, spacing: 12) {
                             ForEach(model.events) { event in
                                 AgendaEventCard(event: event)
                             }
                         }
                     } else if let error = model.errorMessage {
-                        ContentUnavailableView {
-                            Label("No s'ha pogut carregar", systemImage: "wifi.exclamationmark")
-                        } description: {
-                            Text(error)
-                        } actions: {
-                            Button("Torna-ho a provar") {
-                                Task { await model.load(forceRefresh: true) }
-                            }
-                            Link("Obre l'agenda oficial", destination: model.officialURL)
+                        OfficialAgendaFallback(
+                            officialURL: model.officialURL,
+                            message: "La còpia nativa no s'ha pogut actualitzar (\(error)). Mentrestant, mostrem l'agenda oficial."
+                        ) {
+                            Task { await model.load(forceRefresh: true) }
                         }
                     } else if model.sourceStatus == .unavailable {
-                        ContentUnavailableView {
-                            Label("Integració en preparació", systemImage: "calendar.badge.clock")
-                        } description: {
-                            Text("Estem preparant la integració nativa amb la Coordinadora de Colles Castelleres de Catalunya.")
-                        } actions: {
-                            Link("Obre l'agenda oficial", destination: model.officialURL)
-                                .buttonStyle(.borderedProminent)
+                        OfficialAgendaFallback(
+                            officialURL: model.officialURL,
+                            message: "Agenda publicada per la Coordinadora de Colles Castelleres de Catalunya."
+                        ) {
+                            Task { await model.load(forceRefresh: true) }
                         }
                     } else {
                         ContentUnavailableView {
@@ -174,6 +165,59 @@ public struct AgendaRootView: View {
         }
     }
 }
+
+private struct OfficialAgendaFallback: View {
+    let officialURL: URL
+    let message: String
+    let retry: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Agenda oficial de la CCCC", systemImage: "building.columns")
+                .font(.headline)
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                Button("Actualitza la còpia", action: retry)
+                    .buttonStyle(.bordered)
+                Link("Obre-la al navegador", destination: officialURL)
+            }
+
+#if os(iOS)
+            OfficialAgendaWebView(url: officialURL)
+                .frame(minHeight: 680)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(.quaternary)
+                }
+#endif
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+#if os(iOS)
+private struct OfficialAgendaWebView: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = .default()
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.allowsBackForwardNavigationGestures = true
+        webView.load(URLRequest(url: url))
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        guard webView.url == nil else { return }
+        webView.load(URLRequest(url: url))
+    }
+}
+#endif
 
 private struct AgendaCalendarView: View {
     let selectedDate: Date
@@ -224,6 +268,8 @@ private struct AgendaCalendarView: View {
 
     private func dayButton(_ date: Date) -> some View {
         let selected = calendar.isDate(date, inSameDayAs: selectedDate)
+        let today = calendar.isDateInToday(date)
+        let isPast = calendar.compare(date, to: Date(), toGranularity: .day) == .orderedAscending
         let hasEvents = eventDateKeys.contains(localDateKey(date))
         return Button { onSelect(date) } label: {
             ZStack {
@@ -233,7 +279,7 @@ private struct AgendaCalendarView: View {
                 VStack(spacing: 1) {
                     Text(String(calendar.component(.day, from: date)))
                         .font(.body.monospacedDigit())
-                        .foregroundStyle(selected ? .white : .primary)
+                        .foregroundStyle(selected ? Color.white : today ? Color.accentColor : Color.primary)
                     Circle()
                         .fill(hasEvents ? (selected ? Color.white : Color.accentColor) : .clear)
                         .frame(width: 5, height: 5)
@@ -242,6 +288,7 @@ private struct AgendaCalendarView: View {
             .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.plain)
+        .opacity(isPast && !selected ? 0.35 : 1)
         .accessibilityLabel(accessibilityDate(date))
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityHint(hasEvents ? "Té actuacions" : "")
@@ -313,10 +360,16 @@ private struct AgendaEventCard: View {
             Text(event.title)
                 .font(.headline)
 
-            if !event.venue.isEmpty {
-                Label(event.venue, systemImage: "mappin.and.ellipse")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            if !event.venue.isEmpty,
+               let mapsURL = googleMapsSearchURL(
+                   venue: event.venue,
+                   municipality: event.municipality
+               ) {
+                Link(destination: mapsURL) {
+                    Label(event.venue, systemImage: "mappin.and.ellipse")
+                        .font(.subheadline)
+                }
+                .accessibilityLabel("Obre \(event.venue) a Google Maps")
             }
 
             if !event.participatingGroups.isEmpty {
@@ -351,4 +404,16 @@ private struct AgendaEventCard: View {
         .padding()
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
     }
+}
+
+func googleMapsSearchURL(venue: String, municipality: String) -> URL? {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "www.google.com"
+    components.path = "/maps/search/"
+    components.queryItems = [
+        URLQueryItem(name: "api", value: "1"),
+        URLQueryItem(name: "query", value: "\(venue), \(municipality)"),
+    ]
+    return components.url
 }

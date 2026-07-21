@@ -111,11 +111,6 @@ public struct HourByHourRootView: View {
                     ContentUnavailableView("Encara no hi ha entrades", systemImage: "clock")
                 } else {
                     List {
-                        if model.isFromCache {
-                            Label("Mostrant la còpia desada", systemImage: "internaldrive")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
                         ForEach(model.dayGroups) { group in
                             Section(group.day?.formatted(date: .complete, time: .omitted) ?? "Sense data") {
                                 ForEach(group.items) { item in
