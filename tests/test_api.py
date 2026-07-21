@@ -52,6 +52,19 @@ def test_hour_by_hour_contract_is_paginated() -> None:
     assert response.json() == {"items": [], "next_cursor": None, "from_cache": True}
 
 
+def test_privacy_page_is_localized_and_explains_prefilled_support_email() -> None:
+    response = make_client().get("/privacy")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    assert 'lang="ca"' in response.text
+    assert 'data-language="es"' in response.text
+    assert 'data-language="en"' in response.text
+    assert "només s’envia quan prems manualment el botó d’enviament" in response.text
+    assert "solo se envía cuando pulsas manualmente el botón de envío" in response.text
+    assert "is only sent when you manually tap the send button" in response.text
+
+
 def test_disabled_agenda_has_a_neutral_unavailable_contract() -> None:
     response = make_client().get("/v1/events?from=2026-07-21&to=2026-07-21")
 

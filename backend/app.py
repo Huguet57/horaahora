@@ -5,6 +5,7 @@ from datetime import date
 from typing import Annotated
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
+from fastapi.responses import HTMLResponse
 
 from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
 from backend.api.schemas import (
@@ -26,6 +27,7 @@ from backend.config import Settings
 from backend.domain.models import ChatTurn
 from backend.domain.ports import AgendaSource, ContentRepository, HourByHourSource, QueryInterpreter, RateLimiter
 from backend.domain.scoring import ScoreTable, ScoringEngine
+from backend.privacy import PRIVACY_PAGE_HTML
 
 
 @dataclass(slots=True)
@@ -78,6 +80,10 @@ def create_app(
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/privacy", response_class=HTMLResponse, include_in_schema=False)
+    def privacy() -> HTMLResponse:
+        return HTMLResponse(PRIVACY_PAGE_HTML)
 
     @app.get("/v1/hour-by-hour", response_model=HourByHourPageSchema)
     def hour_by_hour(

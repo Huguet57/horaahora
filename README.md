@@ -1,6 +1,6 @@
 # Super-app castellera
 
-Primera fase d'una app iOS modular amb tres seccions natives: Hora a Hora, Agenda i una calculadora conversacional. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura concreta al domini o al contracte HTTP.
+Primera fase d'una app iOS modular amb quatre seccions natives: Hora a Hora, Agenda, una calculadora conversacional i Ajustos. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura concreta al domini o al contracte HTTP.
 
 ## Estructura
 
@@ -79,7 +79,9 @@ simulador, defineix `CASTELLS_API_BASE_URL=http://127.0.0.1:8000` a l'esquema d'
 
 En un iPhone físic cal indicar una URL accessible des del dispositiu. Les converses i les còpies de l'Hora a Hora i l'Agenda es desen només amb SwiftData al dispositiu; el backend rep com a màxim els darrers 12 missatges i no persisteix cap conversa.
 
-Les notificacions de l'Hora a Hora no demanen permís en arrencar l'app. En una instal·lació nova, la secció mostra un onboarding descartable i manté un botó de configuració a la capçalera. Des d'allà es poden activar o desactivar els avisos; si el permís s'havia denegat a iOS, l'app obre directament els ajustos del sistema per recuperar-lo.
+Les notificacions de l'Hora a Hora no demanen permís en arrencar l'app. En una instal·lació nova, la secció mostra un onboarding descartable; «Configura-ho» obre la pestanya Ajustos. Des d'allà es poden activar o desactivar els avisos; si el permís s'havia denegat a iOS, l'app obre directament els ajustos del sistema per recuperar-lo.
+
+La política de privacitat es publica a `/privacy` en català, castellà i anglès. Ajustos també concentra el correu de suport revisable, l'identificador tècnic de la instal·lació, les fonts i els crèdits, i la versió de l'app.
 
 ### Desplegament POC a Vercel
 

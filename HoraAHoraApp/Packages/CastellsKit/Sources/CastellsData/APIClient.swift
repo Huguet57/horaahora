@@ -61,14 +61,3 @@ public actor APIClient {
 private struct ErrorEnvelope: Decodable {
     let detail: String
 }
-
-public enum InstallationIdentifier {
-    private static let key = "castells.installation-id"
-
-    public static var current: String {
-        if let existing = UserDefaults.standard.string(forKey: key) { return existing }
-        let value = UUID().uuidString
-        UserDefaults.standard.set(value, forKey: key)
-        return value
-    }
-}

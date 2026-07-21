@@ -4,18 +4,38 @@ import CastellsDomain
 import FeatureAgenda
 import FeatureCalculator
 import FeatureHourByHour
+import FeatureSettings
 
 struct ContentView: View {
     let dependencies: AppDependencies
 
     @State private var selectedSection = AppSection.hourByHour
     @State private var presentedLink: PresentedLink?
+    @State private var settingsModel: SettingsModel
+    @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
+
+    init(dependencies: AppDependencies) {
+        self.dependencies = dependencies
+        _settingsModel = State(initialValue: dependencies.settingsModel)
+    }
 
     var body: some View {
         TabView(selection: $selectedSection) {
             HourByHourRootView(
                 repository: dependencies.hourByHourRepository,
-                notificationManager: dependencies.hourByHourNotificationManager
+                showsNotificationOnboarding: settingsModel.showsNotificationOnboarding,
+                onConfigureNotifications: {
+                    settingsModel.handleNotificationOnboarding(.configure) {
+                        Task { @MainActor in
+                            await Task.yield()
+                            selectedSection = .settings
+                        }
+                    }
+                },
+                onDismissNotificationOnboarding: {
+                    settingsModel.handleNotificationOnboarding(.dismiss)
+                }
             ) { url in
                 presentedLink = PresentedLink(url: url)
             }
@@ -29,7 +49,24 @@ struct ContentView: View {
             CalculatorRootView(repository: dependencies.chatRepository)
                 .tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }
                 .tag(AppSection.calculator)
+
+            SettingsRootView(
+                model: settingsModel,
+                configuration: dependencies.settingsConfiguration,
+                onOpenURL: { url in
+                    presentedLink = PresentedLink(url: url)
+                },
+                onContactSupport: { url in
+                    openURL(url)
+                },
+                onCopyIdentifier: { identifier in
+                    UIPasteboard.general.string = identifier
+                }
+            )
+            .tabItem { Label("Ajustos", systemImage: "gearshape") }
+            .tag(AppSection.settings)
         }
+        .task { await settingsModel.refreshNotificationStatus() }
         .onAppear {
             if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {
                 openHourByHourLink(pendingURL)
@@ -39,6 +76,10 @@ struct ContentView: View {
             guard let url = notification.userInfo?[AppDelegate.deepLinkURLKey] as? URL else { return }
             _ = AppDelegate.shared?.consumePendingDeepLinkURL()
             openHourByHourLink(url)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { await settingsModel.refreshNotificationStatus() }
         }
         .sheet(item: $presentedLink) { link in
             InAppBrowser(url: link.url)
@@ -56,6 +97,7 @@ private enum AppSection: Hashable {
     case hourByHour
     case agenda
     case calculator
+    case settings
 }
 
 private struct PresentedLink: Identifiable {

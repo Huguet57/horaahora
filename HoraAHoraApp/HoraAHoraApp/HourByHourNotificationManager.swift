@@ -1,6 +1,6 @@
 import UIKit
 import UserNotifications
-import FeatureHourByHour
+import FeatureSettings
 
 @MainActor
 final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
