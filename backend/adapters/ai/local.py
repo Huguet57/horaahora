@@ -12,7 +12,10 @@ from backend.domain.models import (
 from backend.domain.labels import meaningful_performance_labels
 
 
-CASTELL_PATTERN = re.compile(r"\b(?:p(?:d|de)?\d{1,2}[a-z]*|\d+(?:d|de)\d{1,2}[a-z]*)\b", re.IGNORECASE)
+CASTELL_PATTERN = re.compile(
+    r"\b(?:[pt](?:d|de)?\d{1,2}[a-z]*|\d+(?:d|de)\d{1,2}[a-z]*)\b",
+    re.IGNORECASE,
+)
 SIDE_SEPARATOR = re.compile(r"\s+(?:vs\.?|contra)\s+", re.IGNORECASE)
 LABEL_PATTERN = re.compile(
     r"\b(?:la|els|les)\s+([A-ZÀ-Ü][A-Za-zÀ-ÿ'·-]*(?:\s+[A-ZÀ-Ü][A-Za-zÀ-ÿ'·-]*){0,3})"
@@ -59,7 +62,7 @@ class RegexQueryInterpreter:
             )
         return ParsedCastellQuery(
             intent="clarification",
-            clarification="No he pogut identificar cap castell. Escriu, per exemple, «5d9f o 4d9fa?». ",
+            clarification="Quin castell vols calcular?",
         )
 
     def _parse_named_performances(self, text: str) -> list[ParsedPerformance]:
@@ -128,6 +131,6 @@ class RegexQueryInterpreter:
         if any(not performance.castells for performance in performances):
             return ParsedCastellQuery(
                 intent="clarification",
-                clarification="Em falta algun castell en una de les opcions de la comparació.",
+                clarification="Quin castell vols posar a l’altra opció?",
             )
         return ParsedCastellQuery(intent=intent, performances=performances)  # type: ignore[arg-type]

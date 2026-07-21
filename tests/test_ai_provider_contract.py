@@ -58,6 +58,15 @@ def test_model_prompt_contains_casteller_jargon_and_conventional_omissions() -> 
         "pd7f",
         "4d10sm",
         "variants rares",
+        "`4d9fp`",
+        "`4d9pf`",
+        "`4d8p`",
+        "`4d7p`",
+        "`5d8p`",
+        "`3d9fp`",
+        "`td8sf`",
+        "`t8n`",
+        "`d`, `de`, `/`, `x` i `×`",
     ]
 
     for guidance in expected_guidance:

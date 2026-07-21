@@ -35,6 +35,55 @@ def test_normalizes_conventional_omissions_but_preserves_explicit_rare_variants(
     assert normalizer.normalize("4d10sm") == "4de10sm"
 
 
+def test_normalizes_pilar_and_agulla_suffixes_for_every_scored_structure() -> None:
+    table = ScoreTable.default()
+    normalizer = CastellNormalizer(table)
+
+    for canonical in table.scores:
+        lower = canonical.lower()
+        if lower.endswith("fa"):
+            stem = lower[:-2]
+            for suffix in ("fp", "af", "pf"):
+                assert normalizer.normalize(stem + suffix) == canonical
+        elif lower.endswith("a"):
+            assert normalizer.normalize(lower[:-1] + "p") == canonical
+
+
+def test_normalizes_torre_net_and_common_separator_aliases() -> None:
+    normalizer = CastellNormalizer(ScoreTable.default())
+
+    assert normalizer.normalize("td8sf") == "2de8sf"
+    assert normalizer.normalize("t8n") == "2de8sf"
+    assert normalizer.normalize("4/9fp") == "4de9fa"
+    assert normalizer.normalize("3x9pf") == "3de9fa"
+    assert normalizer.normalize("4×8p") == "4de8a"
+
+
+def test_common_notation_families_cover_every_scored_castell() -> None:
+    table = ScoreTable.default()
+    normalizer = CastellNormalizer(table)
+
+    for canonical in table.scores:
+        lower = canonical.lower()
+        if lower.startswith("pde"):
+            tail = lower[3:]
+            assert normalizer.normalize("pd" + tail) == canonical
+            assert normalizer.normalize("p" + tail) == canonical
+        else:
+            width, height_and_suffix = lower.split("de", maxsplit=1)
+            for separator in ("d", "/", "x", "×"):
+                assert normalizer.normalize(width + separator + height_and_suffix) == canonical
+
+            if width == "2":
+                assert normalizer.normalize("td" + height_and_suffix) == canonical
+                assert normalizer.normalize("t" + height_and_suffix) == canonical
+
+        if lower.endswith("sf"):
+            stem = lower[:-2]
+            assert normalizer.normalize(stem + "net") == canonical
+            assert normalizer.normalize(stem + "n") == canonical
+
+
 def test_compares_two_unloaded_castells() -> None:
     result = make_engine().calculate(
         ParsedCastellQuery(
@@ -164,6 +213,29 @@ def test_attempt_scores_zero_and_unknown_prevents_a_winner() -> None:
     assert result.winner_label is None
     assert result.needs_clarification
     assert any("10d10" in warning for warning in result.warnings)
+    assert result.performances == []
+    assert result.reply == "Quan dius «10d10», a quin castell et refereixes?"
+    assert "0 punts" not in result.reply
+    assert "cap castell computable" not in result.reply
+
+
+def test_multiple_unknown_castells_ask_one_short_natural_follow_up() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("A", ("10d10", Outcome.UNLOADED)),
+                performance("B", ("torrevolada", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert result.needs_clarification
+    assert result.performances == []
+    assert result.reply == (
+        "No acabo d’identificar «10d10» ni «torrevolada». "
+        "A quins castells et refereixes?"
+    )
 
 
 def test_equal_performances_are_reported_as_a_tie() -> None:

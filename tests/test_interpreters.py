@@ -34,3 +34,12 @@ def test_interprets_vs_lists() -> None:
 
     assert [len(performance.castells) for performance in query.performances] == [3, 3]
     assert [performance.label for performance in query.performances] == ["Amb 5d9f", "Amb 4d10fm"]
+
+
+def test_interprets_t_as_torre_notation() -> None:
+    query = asyncio.run(RegexQueryInterpreter().interpret([], "td8sf o 4d9fp?"))
+
+    assert [performance.castells[0].notation for performance in query.performances] == [
+        "td8sf",
+        "4d9fp",
+    ]

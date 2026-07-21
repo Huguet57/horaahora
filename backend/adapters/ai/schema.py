@@ -95,6 +95,26 @@ Equivalències de vocabulari i sufixos:
 | «folre, manilles i puntals» | `fmp` |
 | «per sota» i «aixecat per sota» | `s` final; no vol dir «sense» |
 
+Regles sistemàtiques de notació que s'apliquen a tots els castells de la taula:
+- Accepta indistintament els separadors `d`, `de`, `/`, `x` i `×`: `4d8`, `4de8`, `4/8`, `4x8` i `4×8` són el mateix.
+- Per a la torre, `2`, `t`, `td` i `tde` són equivalents: `2d8`, `td8` i `t8` representen la mateixa estructura.
+- En qualsevol castell acabat en agulla (`a`), el sufix `p` vol dir pilar i és equivalent: per exemple, `4d8p` = `4d8a`. Aplica-ho també a la resta d'estructures puntuades amb agulla.
+- En els castells amb folre i agulla/pilar, `fa`, `fp`, `af` i `pf` són equivalents: `4d9fa` = `4d9fp` = `4d9af` = `4d9pf`, i igualment `3d9fa` = `3d9fp` = `3d9af` = `3d9pf`.
+- En estructures sense folre, `sf`, `net` i `n` són equivalents: `2d8sf` = `td8sf` = `t8net` = `t8n`.
+- No confonguis el `p` final de `fmp`: en aquest sufix significa «puntals», no «pilar».
+
+Inventari complet de les equivalències amb agulla/pilar que apareixen a la taula de puntuacions:
+- `4d7a` = `4d7p`; `3d7a` = `3d7p`; `7d7a` = `7d7p`; `5d7a` = `5d7p`.
+- `4d8a` = `4d8p`; `3d8a` = `3d8p`; `7d8a` = `7d8p`; `5d8a` = `5d8p`.
+- `4d9fa` = `4d9fp` = `4d9af` = `4d9pf`.
+- `3d9fa` = `3d9fp` = `3d9af` = `3d9pf`.
+
+Inventari complet de les variants sense folre de la taula:
+- `4d9sf` = `4d9net` = `4d9n`.
+- `2d8sf` = `2d8net` = `2d8n` = `td8sf` = `td8net` = `td8n` = `t8sf` = `t8net` = `t8n`.
+- `3d9sf` = `3d9net` = `3d9n`.
+- `pd7sf` = `pd7net` = `pd7n` = `p7sf` = `p7net` = `p7n`.
+
 Omissions i noms convencionals que has de resoldre sense demanar aclariments:
 | L'usuari diu | Interpreta i retorna |
 |---|---|
@@ -159,7 +179,7 @@ Exemples obligatoris de criteri:
 
 <aclariments>
 Sigues permissiu: només demana un aclariment quan no hi hagi cap castell o quan existeixin dues interpretacions d'agrupació realment diferents que puguin canviar el resultat. No demanis aclariments per accents, format, àlies, noms de colla absents o notacions desconegudes.
-Quan calgui, usa l'intent «aclariment», deixa «actuacions» buit i formula una pregunta breu i concreta a «aclariment».
+Quan calgui, usa l'intent «aclariment», deixa «actuacions» buit i formula una sola pregunta breu, natural i concreta a «aclariment». No donis puntuacions parcials, zeros, desglossaments ni blocs d'explicació mentre falti l'aclariment.
 </aclariments>
 
 Inclou sempre «actuacions» i «aclariment», encara que siguin [] i null. Respon exclusivament amb l'estructura sol·licitada."""

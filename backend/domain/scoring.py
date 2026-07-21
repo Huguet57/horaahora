@@ -79,9 +79,31 @@ class CastellNormalizer:
 
     def __init__(self, table: ScoreTable) -> None:
         self.table = table
+        self.aliases = dict(self.EXPLICIT_ALIASES)
+        for canonical in table.scores:
+            lower = canonical.lower()
+            if lower.endswith("fa"):
+                stem = lower[:-2]
+                for suffix in ("fp", "af", "pf"):
+                    self.aliases[stem + suffix] = canonical
+            elif lower.endswith("a"):
+                self.aliases[lower[:-1] + "p"] = canonical
+
+            if lower.endswith("sf"):
+                stem = lower[:-2]
+                self.aliases[stem + "net"] = canonical
+                self.aliases[stem + "n"] = canonical
 
     def normalize(self, notation: str) -> str | None:
-        value = notation.strip().lower().replace(" ", "").replace("/", "de")
+        value = notation.strip().lower().replace(" ", "")
+        value = value.replace("/", "d").replace("x", "d").replace("×", "d")
+        if value.startswith("tde"):
+            value = "2de" + value[3:]
+        elif value.startswith("td"):
+            value = "2d" + value[2:]
+        elif value.startswith("t") and len(value) > 1 and value[1].isdigit():
+            value = "2d" + value[1:]
+
         if value.startswith("pd") and not value.startswith("pde"):
             value = "pde" + value[2:]
         elif value.startswith("p") and len(value) > 1 and value[1].isdigit():
@@ -91,7 +113,7 @@ class CastellNormalizer:
             if separator and not value.startswith("p") and not value.startswith(f"{head}de"):
                 value = f"{head}de{tail}"
 
-        value = self.EXPLICIT_ALIASES.get(value, value)
+        value = self.aliases.get(value, value)
         canonical = "P" + value[1:] if value.startswith("pde") else value
         canonical = self.CONVENTIONAL_OMISSIONS.get(canonical, canonical)
         if self.table.contains(canonical):
@@ -126,7 +148,7 @@ class ScoringEngine:
 
     def calculate(self, query: ParsedCastellQuery) -> CalculationResult:
         if query.intent in {"clarification", "unsupported"} or not query.performances:
-            reply = query.clarification or "No he pogut identificar cap castell. Me'l pots escriure amb una notació com 5d9f?"
+            reply = query.clarification or "Quin castell vols calcular?"
             return CalculationResult(
                 reply=reply,
                 intent=query.intent,
@@ -137,6 +159,7 @@ class ScoringEngine:
             )
 
         warnings: list[str] = []
+        unknown_notations: list[str] = []
         performance_results: list[PerformanceResult] = []
         has_unknown = False
 
@@ -147,6 +170,8 @@ class ScoringEngine:
                 canonical = self.normalizer.normalize(parsed.notation)
                 if canonical is None:
                     has_unknown = True
+                    if parsed.notation not in unknown_notations:
+                        unknown_notations.append(parsed.notation)
                     warning = f"No reconec el castell «{parsed.notation}»."
                     warnings.append(warning)
                     scored.append(
@@ -179,22 +204,44 @@ class ScoringEngine:
                 )
             )
 
+        if has_unknown:
+            return CalculationResult(
+                reply=self._clarification_for_unknown(unknown_notations),
+                intent=query.intent,
+                performances=[],
+                winner_label=None,
+                warnings=warnings,
+                needs_clarification=True,
+            )
+
         winner_label: str | None = None
-        if not has_unknown and len(performance_results) > 1:
+        if len(performance_results) > 1:
             best = max(result.total for result in performance_results)
             winners = [result.label for result in performance_results if result.total == best]
             if len(winners) == 1:
                 winner_label = winners[0]
 
-        reply = self._render_reply(performance_results, winner_label, warnings, has_unknown)
+        reply = self._render_reply(performance_results, winner_label)
         return CalculationResult(
             reply=reply,
             intent=query.intent,
             performances=performance_results,
             winner_label=winner_label,
             warnings=warnings,
-            needs_clarification=has_unknown,
+            needs_clarification=False,
         )
+
+    @staticmethod
+    def _clarification_for_unknown(notations: list[str]) -> str:
+        if len(notations) == 1:
+            return f"Quan dius «{notations[0]}», a quin castell et refereixes?"
+
+        quoted = [f"«{notation}»" for notation in notations]
+        if len(quoted) == 2:
+            names = " ni ".join(quoted)
+        else:
+            names = ", ".join(quoted[:-1]) + f" ni {quoted[-1]}"
+        return f"No acabo d’identificar {names}. A quins castells et refereixes?"
 
     def _select_counted(self, scored: list[ScoredCastell]) -> None:
         eligible = [item for item in scored if item.canonical is not None and item.outcome is not Outcome.ATTEMPT]
@@ -241,8 +288,6 @@ class ScoringEngine:
         self,
         performances: list[PerformanceResult],
         winner_label: str | None,
-        warnings: list[str],
-        has_unknown: bool,
     ) -> str:
         parts: list[str] = []
         for performance in performances:
@@ -259,10 +304,7 @@ class ScoringEngine:
                     f"{performance.label}: {details or 'cap castell computable'}. Total: {self._format_points(performance.total)} punts."
                 )
 
-        if has_unknown:
-            parts.extend(warnings)
-            parts.append("Aclareix aquesta notació i tornaré a fer el càlcul complet.")
-        elif len(performances) > 1:
+        if len(performances) > 1:
             totals = [performance.total for performance in performances]
             if len(set(totals)) == 1:
                 parts.append(f"Hi ha un empat a {self._format_points(totals[0])} punts.")
