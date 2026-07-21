@@ -88,19 +88,36 @@ public struct HourByHourDayGroup: Identifiable {
 public struct HourByHourRootView: View {
     @State private var model: HourByHourViewModel
     @State private var detailItem: HourByHourItem?
+    @State private var notificationSettingsModel: HourByHourNotificationSettingsModel?
+    @State private var showsNotificationSettings = false
+    @AppStorage("castells.hour-by-hour.notification-onboarding-dismissed")
+    private var notificationOnboardingDismissed = false
     private let onOpen: ((URL) -> Void)?
 
     public init(
         repository: any HourByHourRepository,
+        notificationManager: (any HourByHourNotificationManaging)? = nil,
         onOpen: ((URL) -> Void)? = nil
     ) {
         _model = State(initialValue: HourByHourViewModel(repository: repository))
+        _notificationSettingsModel = State(
+            initialValue: notificationManager.map(HourByHourNotificationSettingsModel.init)
+        )
         self.onOpen = onOpen
     }
 
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                if shouldShowNotificationOnboarding {
+                    HourByHourNotificationOnboardingCard(
+                        onConfigure: { showsNotificationSettings = true },
+                        onDismiss: { notificationOnboardingDismissed = true }
+                    )
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+
                 if model.items.isEmpty {
                     Group {
                         if model.isLoading {
@@ -144,15 +161,48 @@ public struct HourByHourRootView: View {
                     .refreshable { await model.refresh() }
                 }
             }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if notificationSettingsModel != nil {
+                    HStack {
+                        Text("Hora a Hora")
+                            .font(.title3.bold())
+                        Spacer()
+                        Button { showsNotificationSettings = true } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.body.weight(.semibold))
+                                .frame(width: 34, height: 34)
+                                .background(.thinMaterial, in: Circle())
+                        }
+                        .accessibilityLabel("Configura les notificacions")
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(.bar)
+                }
+            }
             .hourByHourNavigationBarHidden()
             .task { await model.loadIfNeeded() }
+            .task { await notificationSettingsModel?.refresh() }
             .sheet(item: $detailItem) { item in
                 HourByHourDetailView(item: item)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
                     .hourByHourOpaquePresentation()
             }
+            .sheet(isPresented: $showsNotificationSettings) {
+                if let notificationSettingsModel {
+                    HourByHourNotificationSettingsView(model: notificationSettingsModel)
+                        .presentationDetents([.medium, .large])
+                        .presentationDragIndicator(.visible)
+                        .hourByHourOpaquePresentation()
+                }
+            }
         }
+    }
+
+    private var shouldShowNotificationOnboarding: Bool {
+        notificationSettingsModel?.status == .notDetermined
+            && !notificationOnboardingDismissed
     }
 }
 
