@@ -24,7 +24,7 @@ struct ContentView: View {
                 .tag(AppSection.agenda)
 
             CalculatorRootView(repository: dependencies.chatRepository)
-                .tabItem { Label("Calculadora", systemImage: "function") }
+                .tabItem { Label("Calculadora", systemImage: "rectangle.grid.3x2.fill") }
                 .tag(AppSection.calculator)
         }
         .onAppear {

@@ -130,6 +130,7 @@ public struct CalculatorRootView: View {
 public final class ChatViewModel {
     public var draft = ""
     public private(set) var conversation: ChatConversation?
+    public private(set) var pendingUserMessage: ChatMessage?
     public private(set) var isSending = false
     public var errorMessage: String?
     private var conversationID: UUID?
@@ -138,6 +139,14 @@ public final class ChatViewModel {
     public init(repository: any ChatRepository, conversationID: UUID?) {
         self.repository = repository
         self.conversationID = conversationID
+    }
+
+    public var displayedMessages: [ChatMessage] {
+        (conversation?.messages ?? []) + [pendingUserMessage].compactMap { $0 }
+    }
+
+    public var showsPromptSuggestions: Bool {
+        displayedMessages.isEmpty && !isSending
     }
 
     public func load() {
@@ -153,6 +162,13 @@ public final class ChatViewModel {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !isSending else { return }
         draft = ""
+        pendingUserMessage = ChatMessage(
+            id: UUID(),
+            role: .user,
+            content: text,
+            createdAt: .now,
+            deliveryState: .sending
+        )
         isSending = true
         errorMessage = nil
         do {
@@ -163,8 +179,11 @@ public final class ChatViewModel {
                 id = try repository.createConversation(title: text)
                 conversationID = id
             }
-            conversation = try await repository.send(message: text, in: id)
+            let updatedConversation = try await repository.send(message: text, in: id)
+            pendingUserMessage = nil
+            conversation = updatedConversation
         } catch {
+            pendingUserMessage = nil
             errorMessage = error.localizedDescription
             load()
         }
@@ -198,13 +217,13 @@ public struct ChatView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        if model.conversation?.messages.isEmpty ?? true {
+                        if model.showsPromptSuggestions {
                             PromptSuggestions { suggestion in
                                 model.draft = suggestion
                                 Task { await model.send() }
                             }
                         }
-                        ForEach(model.conversation?.messages ?? []) { message in
+                        ForEach(model.displayedMessages) { message in
                             MessageBubble(message: message) {
                                 Task { await model.retry(message.id) }
                             }
@@ -217,8 +236,8 @@ public struct ChatView: View {
                     }
                     .padding()
                 }
-                .onChange(of: model.conversation?.messages.count ?? 0) { _, _ in
-                    if let last = model.conversation?.messages.last?.id {
+                .onChange(of: model.displayedMessages.count) { _, _ in
+                    if let last = model.displayedMessages.last?.id {
                         withAnimation { proxy.scrollTo(last, anchor: .bottom) }
                     }
                 }
@@ -253,10 +272,14 @@ public struct ChatView: View {
         }
         .navigationTitle(model.conversation?.title ?? "Conversa nova")
         .calculatorInlineNavigationTitle()
+        .calculatorChatHidesTabBar()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 if model.conversation == nil {
-                    Button("Tanca") { dismiss() }
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .accessibilityLabel("Tanca")
                 }
             }
         }
@@ -337,6 +360,15 @@ private extension View {
     func calculatorInlineNavigationTitle() -> some View {
         #if os(iOS)
         navigationBarTitleDisplayMode(.inline)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func calculatorChatHidesTabBar() -> some View {
+        #if os(iOS)
+        toolbar(.hidden, for: .tabBar)
         #else
         self
         #endif
@@ -679,7 +711,7 @@ private struct CalculatorWelcomeView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label("Calculadora castellera", systemImage: "function")
+            Label("Calculadora castellera", systemImage: "rectangle.grid.3x2.fill")
         } description: {
             Text("Compara castells o actuacions amb la taula oficial del Concurs 2026.")
         } actions: {

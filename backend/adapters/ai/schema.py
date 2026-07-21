@@ -73,11 +73,68 @@ Extreu els participants, els castells i el resultat de cada castell. No calculis
 </interpretació>
 
 <castells>
-- Si l'usuari escriu una notació, conserva-la sense corregir-la ni normalitzar-ne els àlies; el motor determinista ja ho farà.
+- Si l'usuari escriu una notació completa i inequívoca, conserva-la. Si omet reforços que convencionalment es donen per entesos, expandeix-la segons la taula de jerga següent; el motor determinista també ho validarà.
 - Converteix denominacions verbals inequívoces a notació convencional: per exemple, «cinc de nou amb folre» és «5d9f» i «quatre de nou sense folre» és «4d9sf».
 - No inventis castells, colles ni resultats que l'usuari no hagi indicat o implicat clarament.
 - No rebutgis una notació només perquè no la reconeguis. Conserva-la perquè el motor determinista pugui validar-la i demanar l'aclariment adequat.
 </castells>
+
+<jerga_castellera>
+Aplica primer qualsevol modificador explícit de l'usuari. Només després aplica les omissions convencionals. En la parla castellera, el reforç habitual sovint no es diu perquè és implícit; no interpretis el nom nu com una estructura exòtica que no es veu habitualment.
+
+Equivalències de vocabulari i sufixos:
+| Expressió habitual | Significat o notació |
+|---|---|
+| «torre» i «dos» | són equivalents; tots dos representen `2` |
+| «pilar» i «espadat» | són equivalents; representen `p`/`P` |
+| «net», «neta» i «sense folre» | `sf` |
+| «sense manilles» | `sm` |
+| «amb agulla», «amb el pilar» i «amb pilar» | `a` |
+| «folre i agulla», «folre i pilar» i «folre i el pilar» | `fa` |
+| «folre i manilles» | `fm` |
+| «folre, manilles i puntals» | `fmp` |
+| «per sota» i «aixecat per sota» | `s` final; no vol dir «sense» |
+
+Omissions i noms convencionals que has de resoldre sense demanar aclariments:
+| L'usuari diu | Interpreta i retorna |
+|---|---|
+| «quatre de 10», «quatre de deu» o `4d10` sense més modificadors | `4d10fm` |
+| «tres de 10», «tres de deu» o `3d10` sense més modificadors | `3d10fm` |
+| «dos de nou», «torre de nou» o `2d9` sense més modificadors | `2d9fm` |
+| «pilar de vuit» o `pd8` sense més modificadors | `pd8fm` |
+| «dos/torre de deu» o `2d10` sense més modificadors | `2d10fmp` |
+| «pilar de nou» o `pd9` sense més modificadors | `pd9fmp` |
+| «tres de nou» o `3d9` sense modificadors | `3d9f` |
+| «quatre de nou» o `4d9` sense modificadors | `4d9f` |
+| «cinc/set/nou de nou» sense modificadors | `5d9f` / `7d9f` / `9d9f` |
+| «torre/dos de vuit» o `2d8` sense modificadors | `2d8f` |
+| «pilar de set» o `pd7` sense modificadors | `pd7f` |
+| «torre neta», «dos de vuit net/neta» o «dos de vuit sense folre» | `2d8sf` |
+| «quatre de nou net/sense folre» | `4d9sf` |
+| «tres de nou net/sense folre» | `3d9sf` |
+| «pilar de set net/sense folre» | `pd7sf` |
+| «quatre de nou amb folre i agulla/pilar» | `4d9fa` |
+| «tres de nou amb folre i agulla/pilar» | `3d9fa` |
+| «quatre de deu sense manilles», «quatre de deu amb folre», `4d10f` o `4d10sm` | `4d10sm` |
+| «tres de deu sense manilles», «tres de deu amb folre», `3d10f` o `3d10sm` | `3d10sm` |
+| «dos de nou sense manilles», «torre de nou amb folre», `2d9f` o `2d9sm` | `2d9sm` |
+
+Sobrenoms habituals inequívocs:
+| Sobrenom | Notació |
+|---|---|
+| «carro gros» | `4d8` |
+| «catedral» | `5d8` |
+| «supercatedral» | `5d9f` |
+| «castell total» | `4d9fa` |
+| «bèstia indomable» | `2d8sf` |
+
+Exemples obligatoris de criteri:
+- «Què val més un quatre de 10 o una torre neta?» = comparació entre `4d10fm` i `2d8sf`.
+- «Quatre de 10 amb folre» = `4d10sm`, perquè l'usuari ha explicitat folre però no manilles.
+- «Quatre de 10 amb folre i manilles» = `4d10fm`.
+- Si l'usuari explicita una de les variants rares (`sm`, «sense manilles», només «amb folre», `sf` o «sense folre»), respecta-la i no hi afegeixis el reforç habitual.
+- En etiquetes d'actuacions sense nom, usa la notació ja interpretada: «Amb 4d10fm» i «Amb 2d8sf», no «Amb 4d10» ni «Amb torre neta».
+</jerga_castellera>
 
 <resultats>
 - Interpreta «descarrega», «descarregat», «fet», «completat», «assolit» i expressions equivalents com «descarregat».

@@ -53,6 +53,28 @@ class CastellNormalizer:
         "pde7net": "Pde7sf",
         "4de9af": "4de9fa",
         "3de9af": "3de9fa",
+        # En aquestes estructures, escriure només «f» explicita que no hi ha
+        # manilles; la taula oficial les anomena «sense manilles».
+        "2de9f": "2de9sm",
+        "3de10f": "3de10sm",
+        "4de10f": "4de10sm",
+    }
+    CONVENTIONAL_OMISSIONS = {
+        # Reforços que la parla castellera dona per entesos quan no s'explicita
+        # una variant com «net» o «sense manilles».
+        "2de8": "2de8f",
+        "3de9": "3de9f",
+        "4de9": "4de9f",
+        "5de9": "5de9f",
+        "7de9": "7de9f",
+        "9de9": "9de9f",
+        "Pde7": "Pde7f",
+        "2de9": "2de9fm",
+        "Pde8": "Pde8fm",
+        "3de10": "3de10fm",
+        "4de10": "4de10fm",
+        "2de10": "2de10fmp",
+        "Pde9": "Pde9fmp",
     }
 
     def __init__(self, table: ScoreTable) -> None:
@@ -71,6 +93,7 @@ class CastellNormalizer:
 
         value = self.EXPLICIT_ALIASES.get(value, value)
         canonical = "P" + value[1:] if value.startswith("pde") else value
+        canonical = self.CONVENTIONAL_OMISSIONS.get(canonical, canonical)
         if self.table.contains(canonical):
             return canonical
         return None

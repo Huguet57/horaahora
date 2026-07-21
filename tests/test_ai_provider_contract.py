@@ -43,6 +43,27 @@ def test_model_prompt_accepts_natural_catalan_without_inventing_data() -> None:
     assert "només demana un aclariment" in SYSTEM_PROMPT
 
 
+def test_model_prompt_contains_casteller_jargon_and_conventional_omissions() -> None:
+    expected_guidance = [
+        "«torre» i «dos»",
+        "«net», «neta» i «sense folre»",
+        "«folre i pilar»",
+        "«quatre de 10»",
+        "4d10fm",
+        "«torre neta»",
+        "2d8sf",
+        "«dos de nou»",
+        "2d9fm",
+        "«pilar de set»",
+        "pd7f",
+        "4d10sm",
+        "variants rares",
+    ]
+
+    for guidance in expected_guidance:
+        assert guidance in SYSTEM_PROMPT
+
+
 def test_openai_adapter_repairs_invalid_structured_output_once() -> None:
     calls = 0
 

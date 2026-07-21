@@ -22,6 +22,19 @@ def test_normalizes_common_notation_and_explicit_net_alias() -> None:
     assert normalizer.normalize("4de9af") == "4de9fa"
 
 
+def test_normalizes_conventional_omissions_but_preserves_explicit_rare_variants() -> None:
+    normalizer = CastellNormalizer(ScoreTable.default())
+
+    assert normalizer.normalize("4d10") == "4de10fm"
+    assert normalizer.normalize("3d10") == "3de10fm"
+    assert normalizer.normalize("2d9") == "2de9fm"
+    assert normalizer.normalize("pd8") == "Pde8fm"
+    assert normalizer.normalize("2d8") == "2de8f"
+    assert normalizer.normalize("pd7") == "Pde7f"
+    assert normalizer.normalize("4d10f") == "4de10sm"
+    assert normalizer.normalize("4d10sm") == "4de10sm"
+
+
 def test_compares_two_unloaded_castells() -> None:
     result = make_engine().calculate(
         ParsedCastellQuery(
