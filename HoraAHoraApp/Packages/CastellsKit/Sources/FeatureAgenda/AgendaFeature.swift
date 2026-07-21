@@ -2,9 +2,6 @@ import Foundation
 import Observation
 import SwiftUI
 import CastellsDomain
-#if os(iOS)
-import WebKit
-#endif
 
 @MainActor
 @Observable
@@ -133,17 +130,17 @@ public struct AgendaRootView: View {
                                 AgendaEventCard(event: event)
                             }
                         }
-                    } else if let error = model.errorMessage {
+                    } else if model.errorMessage != nil {
                         OfficialAgendaFallback(
                             officialURL: model.officialURL,
-                            message: "La còpia nativa no s'ha pogut actualitzar (\(error)). Mentrestant, mostrem l'agenda oficial."
+                            message: "No s'ha pogut connectar al servidor."
                         ) {
                             Task { await model.load(forceRefresh: true) }
                         }
                     } else if model.sourceStatus == .unavailable {
                         OfficialAgendaFallback(
                             officialURL: model.officialURL,
-                            message: "Agenda publicada per la Coordinadora de Colles Castelleres de Catalunya."
+                            message: "Les dades natives no estan disponibles ara mateix."
                         ) {
                             Task { await model.load(forceRefresh: true) }
                         }
@@ -172,52 +169,38 @@ private struct OfficialAgendaFallback: View {
     let retry: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Agenda oficial de la CCCC", systemImage: "building.columns")
-                .font(.headline)
-            Text(message)
-                .font(.subheadline)
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
+                .frame(width: 24, height: 24)
 
-            HStack {
-                Button("Actualitza la còpia", action: retry)
-                    .buttonStyle(.bordered)
-                Link("Obre-la al navegador", destination: officialURL)
-            }
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Agenda temporalment no disponible")
+                    .font(.subheadline.weight(.semibold))
 
-#if os(iOS)
-            OfficialAgendaWebView(url: officialURL)
-                .frame(minHeight: 680)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(.quaternary)
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 16) {
+                    Button(action: retry) {
+                        Label("Torna-ho a provar", systemImage: "arrow.clockwise")
+                    }
+
+                    Link(destination: officialURL) {
+                        Label("Agenda oficial", systemImage: "arrow.up.right")
+                    }
                 }
-#endif
+                .font(.caption.weight(.medium))
+                .buttonStyle(.plain)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
     }
 }
-
-#if os(iOS)
-private struct OfficialAgendaWebView: UIViewRepresentable {
-    let url: URL
-
-    func makeUIView(context: Context) -> WKWebView {
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .default()
-        let webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.allowsBackForwardNavigationGestures = true
-        webView.load(URLRequest(url: url))
-        return webView
-    }
-
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        guard webView.url == nil else { return }
-        webView.load(URLRequest(url: url))
-    }
-}
-#endif
 
 private struct AgendaCalendarView: View {
     let selectedDate: Date
