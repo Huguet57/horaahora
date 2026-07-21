@@ -67,9 +67,11 @@ class AgendaSyncRecord(Base):
 
 class SQLAlchemyContentRepository:
     def __init__(self, database_url: str) -> None:
-        connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+        uses_sqlite = database_url.startswith("sqlite")
+        connect_args = {"check_same_thread": False} if uses_sqlite else {}
         self.engine = create_engine(database_url, pool_pre_ping=True, connect_args=connect_args)
-        Base.metadata.create_all(self.engine)
+        if uses_sqlite:
+            Base.metadata.create_all(self.engine)
 
     def upsert_hour_by_hour(self, items: list[HourByHourItem]) -> None:
         with Session(self.engine) as session:
@@ -193,6 +195,24 @@ class SQLAlchemyContentRepository:
         offset: int,
         limit: int,
     ) -> list[CastellEvent]:
+        if group is None and municipality is None:
+            with Session(self.engine) as session:
+                records = session.scalars(
+                    select(AgendaEventRecord)
+                    .where(
+                        AgendaEventRecord.local_date >= date_from,
+                        AgendaEventRecord.local_date <= date_to,
+                    )
+                    .order_by(
+                        AgendaEventRecord.local_date.asc(),
+                        AgendaEventRecord.source_order.asc(),
+                        AgendaEventRecord.title.asc(),
+                    )
+                    .offset(offset)
+                    .limit(limit)
+                ).all()
+            return [self._agenda_to_domain(record) for record in records]
+
         records = self._agenda_records(date_from, date_to, group, municipality)
         return [self._agenda_to_domain(record) for record in records[offset : offset + limit]]
 
@@ -203,6 +223,20 @@ class SQLAlchemyContentRepository:
         group: str | None,
         municipality: str | None,
     ) -> int:
+        if group is None and municipality is None:
+            with Session(self.engine) as session:
+                return int(
+                    session.scalar(
+                        select(func.count())
+                        .select_from(AgendaEventRecord)
+                        .where(
+                            AgendaEventRecord.local_date >= date_from,
+                            AgendaEventRecord.local_date <= date_to,
+                        )
+                    )
+                    or 0
+                )
+
         return len(self._agenda_records(date_from, date_to, group, municipality))
 
     def latest_agenda_month_sync(self, source_id: str, year: int, month: int) -> datetime | None:

@@ -5,6 +5,24 @@ import CastellsDomain
 
 @MainActor
 final class AgendaCacheTests: XCTestCase {
+    func testReadsThePersistedSnapshotWithoutCallingTheRemoteServiceAgain() async throws {
+        let container = try DataStack.makeModelContainer(inMemory: true)
+        let remote = SequencedAgendaRemote()
+        let repository = CachedAgendaRepository(container: container, remoteService: remote)
+        let day = ISO8601DateFormatter().date(from: "2026-07-21T00:00:00Z")!
+
+        _ = try await repository.events(
+            from: day, to: day, group: nil, municipality: nil,
+            cursor: nil, limit: 50, forceRefresh: false
+        )
+        let cached = try repository.cachedEvents(
+            from: day, to: day, group: nil, municipality: nil
+        )
+
+        XCTAssertEqual(cached.map(\.title), ["Diada de prova"])
+        XCTAssertEqual(remote.calls, 1)
+    }
+
     func testReturnsNetworkEventsThenFallsBackToTheSelectedDayCache() async throws {
         let container = try DataStack.makeModelContainer(inMemory: true)
         let remote = SequencedAgendaRemote()
@@ -67,7 +85,7 @@ final class AgendaCacheTests: XCTestCase {
 }
 
 private final class SequencedAgendaRemote: AgendaRemoteService, @unchecked Sendable {
-    private var calls = 0
+    private(set) var calls = 0
 
     func events(
         from: Date, to: Date, group: String?, municipality: String?, cursor: String?,

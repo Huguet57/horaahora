@@ -99,6 +99,7 @@ def create_app(
 
     @app.get("/v1/events", response_model=AgendaPageSchema)
     def events(
+        response: Response,
         date_from: date | None = Query(default=None, alias="from"),
         date_to: date | None = Query(default=None, alias="to"),
         group: str | None = None,
@@ -121,6 +122,11 @@ def create_app(
             raise HTTPException(status_code=400, detail=str(error)) from error
         except Exception as error:
             raise HTTPException(status_code=502, detail="No s'ha pogut actualitzar l'agenda") from error
+        response.headers["Cache-Control"] = (
+            "no-store"
+            if refresh
+            else "public, s-maxage=300, stale-while-revalidate=86400"
+        )
         return AgendaPageSchema(
             items=[CastellEventSchema.from_domain(item) for item in page.items],
             next_cursor=page.next_cursor,

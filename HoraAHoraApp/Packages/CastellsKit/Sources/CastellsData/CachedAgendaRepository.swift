@@ -13,6 +13,21 @@ public final class CachedAgendaRepository: AgendaRepository {
         self.remoteService = remoteService
     }
 
+    public func cachedEvents(
+        from: Date,
+        to: Date,
+        group: String?,
+        municipality: String?
+    ) throws -> [CastellEvent] {
+        try cachedItems(
+            from: from,
+            to: to,
+            group: group,
+            municipality: municipality,
+            limit: .max
+        )
+    }
+
     public func events(
         from: Date,
         to: Date,
@@ -118,7 +133,8 @@ public final class CachedAgendaRepository: AgendaRepository {
         let municipalityKey = municipality.map(searchKey)
         return try context.fetch(FetchDescriptor<AgendaCacheRecord>())
             .filter { record in
-                lower <= record.localDate && record.localDate <= upper
+                !Self.isDemo(record)
+                    && lower <= record.localDate && record.localDate <= upper
                     && (groupKey == nil || record.participatingGroups.contains { searchKey($0) == groupKey })
                     && (municipalityKey == nil || searchKey(record.municipality) == municipalityKey)
             }

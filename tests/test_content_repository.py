@@ -106,3 +106,25 @@ def test_agenda_filters_names_without_case_or_accent_sensitivity() -> None:
 
     assert repository.count_agenda(day, day, "colla a", "vàlls") == 1
     assert repository.count_agenda(day, day, "Colla inexistent", None) == 0
+
+
+def test_agenda_unfiltered_pagination_is_applied_in_database_order() -> None:
+    repository = SQLAlchemyContentRepository("sqlite+pysqlite:///:memory:")
+    day = date(2026, 7, 21)
+    repository.replace_agenda_month(
+        "cccc",
+        2026,
+        7,
+        [
+            agenda_event("one", day),
+            agenda_event("two", day),
+            agenda_event("three", day),
+        ],
+    )
+
+    all_items = repository.list_agenda(day, day, None, None, 0, 3)
+    second_page = repository.list_agenda(day, day, None, None, 1, 1)
+
+    assert len(all_items) == 3
+    assert second_page == [all_items[1]]
+    assert repository.count_agenda(day, day, None, None) == 3

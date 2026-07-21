@@ -63,6 +63,16 @@ def test_disabled_agenda_has_a_neutral_unavailable_contract() -> None:
         "from_cache": True,
         "source_status": "unavailable",
     }
+    assert response.headers["cache-control"] == "public, s-maxage=300, stale-while-revalidate=86400"
+
+
+def test_forced_agenda_refresh_is_not_http_cached() -> None:
+    response = make_client().get(
+        "/v1/events?from=2026-07-21&to=2026-07-21&refresh=true"
+    )
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
 
 
 def test_agenda_rejects_ranges_longer_than_a_year() -> None:
