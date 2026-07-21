@@ -697,7 +697,12 @@ private struct PromptSuggestions: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Prova una comparació").font(.headline)
             ForEach(prompts, id: \.self) { prompt in
-                Button(prompt) { select(prompt) }
+                Button {
+                    select(prompt)
+                } label: {
+                    Text(prompt)
+                        .multilineTextAlignment(.leading)
+                }
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
