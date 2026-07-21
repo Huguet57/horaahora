@@ -53,6 +53,7 @@ def test_external_ids_are_stable() -> None:
 def test_display_title_handles_editorial_time_variants_without_changing_plain_titles() -> None:
     examples = {
         "Dilluns 20, 14h. El Concurs treu els números de tall.": "El Concurs treu els números de tall.",
+        "Dimarts, 21, 19h. ‘El Pom de Baix’ tracta fer castells.": "‘El Pom de Baix’ tracta fer castells.",
         "Diumenge 19, 20.30h. Els de Sant Vicenç recuperen el 3de7a.": "Els de Sant Vicenç recuperen el 3de7a.",
         "Dissabte 18, 20:30 h - Castells a la plaça.": "Castells a la plaça.",
         "Dilluns 19, 13h.Els Verds retallen distància.": "Els Verds retallen distància.",

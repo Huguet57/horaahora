@@ -14,7 +14,7 @@ from backend.domain.models import HourByHourItem
 
 _EDITORIAL_TITLE_PREFIX = re.compile(
     r"^\s*(?:dilluns|dimarts|dimecres|dijous|divendres|dissabte|diumenge)"
-    r"\s+\d{1,2}\s*,\s*\d{1,2}(?:[.:]\d{1,2})?\s*h(?:\s*[.·:–—-])?\s*",
+    r"\s*,?\s*\d{1,2}\s*,\s*\d{1,2}(?:[.:]\d{1,2})?\s*h(?:\s*[.·:–—-])?\s*",
     flags=re.IGNORECASE,
 )
 

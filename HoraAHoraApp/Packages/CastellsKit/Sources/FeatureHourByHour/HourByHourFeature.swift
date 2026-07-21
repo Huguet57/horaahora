@@ -2,6 +2,9 @@ import Foundation
 import Observation
 import SwiftUI
 import CastellsDomain
+#if os(iOS)
+import UIKit
+#endif
 
 @MainActor
 @Observable
@@ -84,6 +87,7 @@ public struct HourByHourDayGroup: Identifiable {
 
 public struct HourByHourRootView: View {
     @State private var model: HourByHourViewModel
+    @State private var detailItem: HourByHourItem?
     private let onOpen: ((URL) -> Void)?
 
     public init(
@@ -96,25 +100,37 @@ public struct HourByHourRootView: View {
 
     public var body: some View {
         NavigationStack {
-            Group {
-                if model.isLoading && model.items.isEmpty {
-                    ProgressView("Carregant l'Hora a Hora…")
-                } else if model.items.isEmpty, let error = model.errorMessage {
-                    ContentUnavailableView {
-                        Label("No s'ha pogut carregar", systemImage: "wifi.exclamationmark")
-                    } description: {
-                        Text(error)
-                    } actions: {
-                        Button("Torna-ho a provar") { Task { await model.refresh() } }
+            VStack(spacing: 0) {
+                if model.items.isEmpty {
+                    Group {
+                        if model.isLoading {
+                            ProgressView("Carregant l'Hora a Hora…")
+                        } else if let error = model.errorMessage {
+                            ContentUnavailableView {
+                                Label("No s'ha pogut carregar", systemImage: "wifi.exclamationmark")
+                            } description: {
+                                Text(error)
+                            } actions: {
+                                Button("Torna-ho a provar") { Task { await model.refresh() } }
+                            }
+                        } else {
+                            ContentUnavailableView(
+                                "Encara no hi ha entrades",
+                                systemImage: "clock"
+                            )
+                        }
                     }
-                } else if model.items.isEmpty {
-                    ContentUnavailableView("Encara no hi ha entrades", systemImage: "clock")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
                         ForEach(model.dayGroups) { group in
                             Section(group.day?.formatted(date: .complete, time: .omitted) ?? "Sense data") {
                                 ForEach(group.items) { item in
-                                    HourByHourRow(item: item, onOpen: onOpen)
+                                    HourByHourRow(
+                                        item: item,
+                                        onOpen: onOpen,
+                                        onShowDetails: { detailItem = item }
+                                    )
                                         .task { await model.loadNextIfNeeded(after: item) }
                                 }
                             }
@@ -124,11 +140,18 @@ public struct HourByHourRootView: View {
                         }
                     }
                     .hourByHourListStyle()
+                    .hourByHourRemovesTopContentMargin()
                     .refreshable { await model.refresh() }
                 }
             }
-            .navigationTitle("Hora a Hora")
+            .hourByHourNavigationBarHidden()
             .task { await model.loadIfNeeded() }
+            .sheet(item: $detailItem) { item in
+                HourByHourDetailView(item: item)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+                    .hourByHourOpaquePresentation()
+            }
         }
     }
 }
@@ -142,33 +165,82 @@ private extension View {
         self
         #endif
     }
+
+    @ViewBuilder
+    func hourByHourRemovesTopContentMargin() -> some View {
+        #if os(iOS)
+        contentMargins(.top, 0, for: .scrollContent)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func hourByHourNavigationBarHidden() -> some View {
+        #if os(iOS)
+        toolbar(.hidden, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func hourByHourInlineNavigationTitle() -> some View {
+        #if os(iOS)
+        navigationBarTitleDisplayMode(.inline)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func hourByHourOpaquePresentation() -> some View {
+        #if os(iOS)
+        presentationBackground(Color(uiColor: .systemBackground))
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func hourByHourSystemBackground() -> some View {
+        #if os(iOS)
+        background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        #else
+        self
+        #endif
+    }
 }
 
 private struct HourByHourRow: View {
     let item: HourByHourItem
     let onOpen: ((URL) -> Void)?
+    let onShowDetails: () -> Void
     @Environment(\.openURL) private var openURL
 
-    @ViewBuilder
     var body: some View {
-        if let associatedURL = item.associatedURL {
-            Button {
+        Button {
+            if let associatedURL = item.associatedURL {
                 if let onOpen {
                     onOpen(associatedURL)
                 } else {
                     openURL(associatedURL)
                 }
-            } label: {
-                rowContent(showsExternalLink: true)
+            } else {
+                onShowDetails()
             }
-            .buttonStyle(.plain)
-            .accessibilityHint("Obre el contingut de Revista Castells")
-        } else {
-            rowContent(showsExternalLink: false)
+        } label: {
+            rowContent(linkType: item.associatedURL == nil ? .details : .external)
         }
+        .buttonStyle(.plain)
+        .accessibilityHint(
+            item.associatedURL == nil
+                ? "Mostra el text complet dins l'app"
+                : "Obre el contingut de Revista Castells"
+        )
     }
 
-    private func rowContent(showsExternalLink: Bool) -> some View {
+    private func rowContent(linkType: LinkType) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(alignment: .firstTextBaseline) {
                 if let publishedAt = item.publishedAt {
@@ -180,11 +252,9 @@ private struct HourByHourRow: View {
                 Text(item.attribution)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                if showsExternalLink {
-                    Image(systemName: "arrow.up.right")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
+                Image(systemName: linkType.systemImage)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
             Text(item.displayTitle)
                 .font(.headline)
@@ -199,5 +269,76 @@ private struct HourByHourRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private enum LinkType {
+        case details
+        case external
+
+        var systemImage: String {
+            switch self {
+            case .details: "chevron.right"
+            case .external: "arrow.up.right"
+            }
+        }
+    }
+}
+
+private struct HourByHourDetailView: View {
+    let item: HourByHourItem
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    if let publishedAt = item.publishedAt {
+                        Text(publishedAt.formatted(date: .complete, time: .shortened))
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text(item.displayTitle)
+                        .font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if !item.summary.isEmpty {
+                        Divider()
+                        Text(item.summary)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                    }
+
+                    Divider()
+                    Text(sourceAttribution)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+            }
+            .navigationTitle("Hora a Hora")
+            .hourByHourInlineNavigationTitle()
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .accessibilityLabel("Tanca")
+                }
+            }
+        }
+        .hourByHourSystemBackground()
+        .accessibilityAction(.escape) { dismiss() }
+    }
+
+    private var sourceAttribution: String {
+        let attribution = item.attribution.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !attribution.lowercased().hasPrefix("font:") else {
+            return attribution
+        }
+        return "Font: \(attribution)"
     }
 }
