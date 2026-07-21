@@ -8,12 +8,22 @@ final class ChatPersistenceTests: XCTestCase {
     func testConversationPersistsCanBeRenamedAndDeleted() async throws {
         let container = try DataStack.makeModelContainer(inMemory: true)
         let remote = StubChatRemoteService()
-        let repository = SwiftDataChatRepository(container: container, remoteService: remote)
+        let repository = SwiftDataChatRepository(
+            container: container,
+            remoteService: remote,
+            installationID: "test-installation"
+        )
 
         let id = try repository.createConversation(title: "Primera conversa")
         _ = try await repository.send(message: "5d9f o 4d9fa?", in: id)
+        let sentRequest = await remote.lastRequest
+        XCTAssertEqual(sentRequest?.installationID, "test-installation")
 
-        let reopened = SwiftDataChatRepository(container: container, remoteService: remote)
+        let reopened = SwiftDataChatRepository(
+            container: container,
+            remoteService: remote,
+            installationID: "test-installation"
+        )
         let conversation = try reopened.loadConversation(id: id)
         XCTAssertEqual(conversation.messages.map(\.role), [.user, .assistant])
         XCTAssertEqual(conversation.messages.last?.content, "Guanya 4de9fa.")
@@ -26,9 +36,12 @@ final class ChatPersistenceTests: XCTestCase {
     }
 }
 
-private struct StubChatRemoteService: ChatRemoteService {
+private actor StubChatRemoteService: ChatRemoteService {
+    private(set) var lastRequest: ChatRequest?
+
     func send(request: ChatRequest) async throws -> ChatResponse {
-        ChatResponse(
+        lastRequest = request
+        return ChatResponse(
             reply: "Guanya 4de9fa.",
             intent: "comparison",
             performances: [],

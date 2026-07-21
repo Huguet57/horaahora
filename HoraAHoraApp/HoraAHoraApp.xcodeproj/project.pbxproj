@@ -16,6 +16,7 @@
 		A1000013 /* FeatureHourByHour in Frameworks */ = {isa = PBXBuildFile; productRef = A1100013 /* FeatureHourByHour */; };
 		A1000014 /* FeatureAgenda in Frameworks */ = {isa = PBXBuildFile; productRef = A1100014 /* FeatureAgenda */; };
 		A1000015 /* FeatureCalculator in Frameworks */ = {isa = PBXBuildFile; productRef = A1100015 /* FeatureCalculator */; };
+		A1000016 /* FeatureSettings in Frameworks */ = {isa = PBXBuildFile; productRef = A1100016 /* FeatureSettings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 				A1000013 /* FeatureHourByHour in Frameworks */,
 				A1000014 /* FeatureAgenda in Frameworks */,
 				A1000015 /* FeatureCalculator in Frameworks */,
+				A1000016 /* FeatureSettings in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +94,7 @@
 				A1100013 /* FeatureHourByHour */,
 				A1100014 /* FeatureAgenda */,
 				A1100015 /* FeatureCalculator */,
+				A1100016 /* FeatureSettings */,
 			);
 			productName = HoraAHoraApp;
 			productReference = A2000004 /* HoraAHoraApp.app */;
@@ -194,6 +197,7 @@
 				DEVELOPMENT_TEAM = B94LUNLMW9;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_CastellsAPIBaseURL = "https://castells-superapp-poc.vercel.app";
+				INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -219,6 +223,7 @@
 				DEVELOPMENT_TEAM = B94LUNLMW9;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_CastellsAPIBaseURL = "https://castells-superapp-poc.vercel.app";
+				INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -285,6 +290,10 @@
 		A1100015 /* FeatureCalculator */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FeatureCalculator;
+		};
+		A1100016 /* FeatureSettings */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FeatureSettings;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

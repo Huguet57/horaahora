@@ -14,6 +14,7 @@ let package = Package(
         .library(name: "FeatureHourByHour", targets: ["FeatureHourByHour"]),
         .library(name: "FeatureAgenda", targets: ["FeatureAgenda"]),
         .library(name: "FeatureCalculator", targets: ["FeatureCalculator"]),
+        .library(name: "FeatureSettings", targets: ["FeatureSettings"]),
     ],
     targets: [
         .target(name: "CastellsDomain"),
@@ -21,10 +22,11 @@ let package = Package(
         .target(name: "FeatureHourByHour", dependencies: ["CastellsDomain"]),
         .target(name: "FeatureAgenda", dependencies: ["CastellsDomain"]),
         .target(name: "FeatureCalculator", dependencies: ["CastellsDomain"]),
+        .target(name: "FeatureSettings"),
         .testTarget(name: "CastellsDomainTests", dependencies: ["CastellsDomain"]),
         .testTarget(name: "CastellsDataTests", dependencies: ["CastellsData", "CastellsDomain"]),
-        .testTarget(name: "FeatureHourByHourTests", dependencies: ["FeatureHourByHour"]),
         .testTarget(name: "FeatureAgendaTests", dependencies: ["FeatureAgenda", "CastellsDomain"]),
         .testTarget(name: "FeatureCalculatorTests", dependencies: ["FeatureCalculator", "CastellsDomain"]),
+        .testTarget(name: "FeatureSettingsTests", dependencies: ["FeatureSettings"]),
     ]
 )

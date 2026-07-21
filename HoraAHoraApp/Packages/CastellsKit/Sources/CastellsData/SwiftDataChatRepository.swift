@@ -6,10 +6,16 @@ import CastellsDomain
 public final class SwiftDataChatRepository: ChatRepository {
     private let context: ModelContext
     private let remoteService: any ChatRemoteService
+    private let installationID: String
 
-    public init(container: ModelContainer, remoteService: any ChatRemoteService) {
+    public init(
+        container: ModelContainer,
+        remoteService: any ChatRemoteService,
+        installationID: String
+    ) {
         self.context = ModelContext(container)
         self.remoteService = remoteService
+        self.installationID = installationID
     }
 
     public func listConversations() throws -> [ChatConversationSummary] {
@@ -69,7 +75,7 @@ public final class SwiftDataChatRepository: ChatRepository {
         let ordered = conversation.messages.sorted { $0.createdAt < $1.createdAt }
         let request = ChatRequest(
             conversationID: conversation.id,
-            installationID: InstallationIdentifier.current,
+            installationID: installationID,
             messages: ordered.suffix(12).compactMap { message in
                 guard let role = ChatRole(rawValue: message.roleRaw) else { return nil }
                 return ChatRequestMessage(role: role, content: message.content)
