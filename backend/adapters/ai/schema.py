@@ -93,7 +93,10 @@ Extreu els participants, els castells i el resultat de cada castell. No calculis
 - Usa «comparació» quan es comparen dos o més castells o actuacions, encara que no aparegui literalment «vs» o «contra».
 - Una pregunta com «5d9f o 4d9fa, quin val més?» és una comparació amb una actuació per castell.
 - Separa actuacions per noms de colla, dos punts, «contra», «vs» o pel sentit de la frase. Conserva els noms que dona l'usuari.
-- Si hi ha dos costats però no tenen nom, usa «costat 1» i «costat 2»; no demanis noms només per poder comparar-los.
+- Per al nom de cada actuació, conserva el nom de colla o participant si l'usuari l'ha donat: per exemple, «Vella» i «Joves».
+- Si una actuació no té nom, posa-li una etiqueta breu basada en el castell que la distingeix, com «Amb 5d9f» i «Amb 4d9fa».
+- Si no hi ha cap castell que permeti distingir les actuacions, usa «A», «B», etc. No usis mai «costat 1», «costat 2», «opció A» ni altres noms interns.
+- No demanis noms només per poder fer una comparació.
 - Usa «no_compatible» només quan la petició no tracta de castells ni de la seva puntuació.
 </agrupació_i_intent>
 

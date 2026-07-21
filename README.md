@@ -71,9 +71,22 @@ La URL del backend es resol en aquest ordre:
 
 1. variable de procés `CASTELLS_API_BASE_URL`;
 2. clau `CastellsAPIBaseURL` de l'Info.plist generat;
-3. `http://127.0.0.1:8000`.
+3. `https://castells-superapp-poc.vercel.app` com a fallback del codi.
+
+Les configuracions Debug i Release apunten per defecte al backend POC desplegat a
+`https://castells-superapp-poc.vercel.app`. Per treballar contra el backend local al
+simulador, defineix `CASTELLS_API_BASE_URL=http://127.0.0.1:8000` a l'esquema d'Xcode.
 
 En un iPhone físic cal indicar una URL accessible des del dispositiu. Les converses i les còpies de l'Hora a Hora i l'Agenda es desen només amb SwiftData al dispositiu; el backend rep com a màxim els darrers 12 missatges i no persisteix cap conversa.
+
+### Desplegament POC a Vercel
+
+`api/index.py` és un adaptador de lliurament prim que exposa la mateixa aplicació ASGI.
+La configuració de Vercel selecciona OpenAI amb `AI_PROVIDER` i `AI_MODEL`, però la clau
+només existeix com a variable sensible del projecte. La font HTML autoritzada de la CCCC
+es consulta amb refresc a demanda i cache en una base
+SQLite temporal. Aquesta configuració és adequada per a la prova de concepte; abans de
+producció cal substituir-la per PostgreSQL i una sincronització programada.
 
 ## Proves
 

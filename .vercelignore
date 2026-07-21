@@ -1,0 +1,7 @@
+HoraAHoraApp
+docs
+openapi
+tests
+__pycache__
+*.db
+*.pyc

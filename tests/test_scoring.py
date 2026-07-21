@@ -34,7 +34,8 @@ def test_compares_two_unloaded_castells() -> None:
     )
 
     assert [item.total for item in result.performances] == [3125, 3285]
-    assert result.winner_label == "4d9fa"
+    assert [item.label for item in result.performances] == ["Amb 5d9f", "Amb 4d9fa"]
+    assert result.winner_label == "Amb 4d9fa"
     assert "160 punts" in result.reply
 
 
@@ -75,8 +76,23 @@ def test_compares_three_castell_performances() -> None:
     )
 
     assert [item.total for item in result.performances] == [10935, 12900]
-    assert result.winner_label == "Opció B"
+    assert [item.label for item in result.performances] == ["Amb 5d9f", "Amb 4d10fm"]
+    assert result.winner_label == "Amb 4d10fm"
     assert "1.965 punts" in result.reply
+
+
+def test_falls_back_to_letters_when_unnamed_sides_have_no_distinctive_castell() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("costat 1", ("5d9f", Outcome.UNLOADED)),
+                performance("costat 2", ("5d9f", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert [item.label for item in result.performances] == ["A", "B"]
 
 
 def test_keeps_top_three_with_at_most_two_loaded() -> None:

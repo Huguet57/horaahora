@@ -51,10 +51,12 @@ final class AppDependencies {
 }
 
 enum AppConfiguration {
+    private static let productionAPIBaseURL = "https://castells-superapp-poc.vercel.app"
+
     static var apiBaseURL: URL {
         let configured = ProcessInfo.processInfo.environment["CASTELLS_API_BASE_URL"]
             ?? Bundle.main.object(forInfoDictionaryKey: "CastellsAPIBaseURL") as? String
-            ?? "http://127.0.0.1:8000"
+            ?? productionAPIBaseURL
         guard let url = URL(string: configured) else {
             preconditionFailure("CastellsAPIBaseURL no és una URL vàlida")
         }

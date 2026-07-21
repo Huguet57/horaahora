@@ -5,6 +5,7 @@ import itertools
 from dataclasses import replace
 from pathlib import Path
 
+from backend.domain.labels import meaningful_performance_labels
 from backend.domain.models import (
     CalculationResult,
     Outcome,
@@ -116,7 +117,8 @@ class ScoringEngine:
         performance_results: list[PerformanceResult] = []
         has_unknown = False
 
-        for performance in query.performances:
+        performance_labels = meaningful_performance_labels(query.performances)
+        for performance, performance_label in zip(query.performances, performance_labels):
             scored: list[ScoredCastell] = []
             for parsed in performance.castells:
                 canonical = self.normalizer.normalize(parsed.notation)
@@ -148,7 +150,7 @@ class ScoringEngine:
             self._select_counted(scored)
             performance_results.append(
                 PerformanceResult(
-                    label=performance.label,
+                    label=performance_label,
                     total=sum(item.points for item in scored if item.counted),
                     castells=scored,
                 )

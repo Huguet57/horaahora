@@ -9,6 +9,7 @@ from backend.domain.models import (
     ParsedCastellQuery,
     ParsedPerformance,
 )
+from backend.domain.labels import meaningful_performance_labels
 
 
 CASTELL_PATTERN = re.compile(r"\b(?:p(?:d|de)?\d{1,2}[a-z]*|\d+(?:d|de)\d{1,2}[a-z]*)\b", re.IGNORECASE)
@@ -28,9 +29,10 @@ class RegexQueryInterpreter:
         sides = SIDE_SEPARATOR.split(text, maxsplit=1)
         if len(sides) == 2:
             performances = [
-                ParsedPerformance(label="Opció A", castells=self._parse_castells(sides[0])),
-                ParsedPerformance(label="Opció B", castells=self._parse_castells(sides[1])),
+                ParsedPerformance(label="A", castells=self._parse_castells(sides[0])),
+                ParsedPerformance(label="B", castells=self._parse_castells(sides[1])),
             ]
+            performances = self._with_meaningful_labels(performances)
             return self._validated("comparison", performances)
 
         named = self._parse_named_performances(text)
@@ -41,7 +43,7 @@ class RegexQueryInterpreter:
         if len(matches) == 2 and re.search(r"\s+o\s+", text, re.IGNORECASE):
             performances = [
                 ParsedPerformance(
-                    label=match.group(0),
+                    label=f"Amb {match.group(0)}",
                     castells=[ParsedCastell(match.group(0), self._outcome(text[: match.start()]))],
                 )
                 for match in matches
@@ -82,6 +84,16 @@ class RegexQueryInterpreter:
             grouped[current_label].append(ParsedCastell(match.group(0), self._outcome(prefix)))
             previous_end = match.end()
         return [ParsedPerformance(label=label, castells=grouped[label]) for label in order]
+
+    @staticmethod
+    def _with_meaningful_labels(
+        performances: list[ParsedPerformance],
+    ) -> list[ParsedPerformance]:
+        labels = meaningful_performance_labels(performances)
+        return [
+            ParsedPerformance(label=label, castells=performance.castells)
+            for label, performance in zip(labels, performances)
+        ]
 
     def _parse_castells(self, text: str) -> list[ParsedCastell]:
         matches = list(CASTELL_PATTERN.finditer(text))

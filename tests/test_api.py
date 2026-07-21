@@ -40,7 +40,7 @@ def test_chat_contract_does_not_expose_provider() -> None:
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["winner_label"] == "4d9fa"
+    assert payload["winner_label"] == "Amb 4d9fa"
     assert "provider" not in payload
     assert "model" not in payload
 

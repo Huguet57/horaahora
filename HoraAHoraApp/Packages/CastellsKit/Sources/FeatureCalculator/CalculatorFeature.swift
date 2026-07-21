@@ -211,8 +211,8 @@ public struct ChatView: View {
                             .id(message.id)
                         }
                         if model.isSending {
-                            HStack { ProgressView(); Text("Calculant…").foregroundStyle(.secondary); Spacer() }
-                                .padding(.horizontal)
+                            AssistantResponseSkeleton()
+                                .id("assistant-response-skeleton")
                         }
                     }
                     .padding()
@@ -220,6 +220,11 @@ public struct ChatView: View {
                 .onChange(of: model.conversation?.messages.count ?? 0) { _, _ in
                     if let last = model.conversation?.messages.last?.id {
                         withAnimation { proxy.scrollTo(last, anchor: .bottom) }
+                    }
+                }
+                .onChange(of: model.isSending) { _, isSending in
+                    if isSending {
+                        withAnimation { proxy.scrollTo("assistant-response-skeleton", anchor: .bottom) }
                     }
                 }
             }
@@ -256,6 +261,74 @@ public struct ChatView: View {
             }
         }
         .task { model.load() }
+    }
+}
+
+private struct AssistantResponseSkeleton: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isPulsing = false
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 10) {
+                skeletonLine(width: 205, height: 17)
+                Divider()
+
+                HStack(spacing: 7) {
+                    skeletonLine(width: 18, height: 18)
+                    skeletonLine(width: 88, height: 13)
+                }
+
+                VStack(spacing: 9) {
+                    HStack {
+                        skeletonLine(width: 56, height: 12)
+                        Spacer()
+                        skeletonLine(width: 82, height: 12)
+                        skeletonLine(width: 82, height: 12)
+                    }
+                    Divider()
+                    HStack {
+                        skeletonLine(width: 14, height: 12)
+                        Spacer()
+                        skeletonLine(width: 76, height: 30)
+                        skeletonLine(width: 76, height: 30)
+                    }
+                    Divider()
+                    HStack {
+                        skeletonLine(width: 42, height: 13)
+                        Spacer()
+                        skeletonLine(width: 64, height: 13)
+                        skeletonLine(width: 64, height: 13)
+                    }
+                }
+                .padding(10)
+                .background(Color.primary.opacity(0.04))
+                .clipShape(RoundedRectangle(cornerRadius: 11))
+
+                skeletonLine(width: 150, height: 13)
+            }
+            .padding(11)
+            .frame(maxWidth: 360, alignment: .leading)
+            .background(Color.secondary.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .opacity(reduceMotion ? 0.68 : (isPulsing ? 0.44 : 0.78))
+
+            Spacer(minLength: 44)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Preparant la resposta")
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 0.85).repeatForever(autoreverses: true)) {
+                isPulsing = true
+            }
+        }
+    }
+
+    private func skeletonLine(width: CGFloat, height: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: min(height / 2, 6))
+            .fill(Color.secondary.opacity(0.38))
+            .frame(width: width, height: height)
     }
 }
 
@@ -302,11 +375,11 @@ struct ComparisonPresentation {
             return nil
         }
 
-        winnerLabel = response.winnerLabel
+        let displayLabels = Self.displayLabels(for: response.performances)
         columns = response.performances.enumerated().map { columnIndex, performance in
             Column(
                 id: columnIndex,
-                label: performance.label,
+                label: displayLabels[columnIndex],
                 total: performance.total,
                 castells: performance.castells.enumerated().map { castellIndex, castell in
                     Castell(
@@ -322,7 +395,14 @@ struct ComparisonPresentation {
         }
         maximumCastellCount = columns.map(\.castells.count).max() ?? 0
 
-        if let winner = response.winnerLabel {
+        if let sourceWinner = response.winnerLabel,
+           let winnerIndex = response.performances.firstIndex(where: { $0.label == sourceWinner }) {
+            winnerLabel = displayLabels[winnerIndex]
+        } else {
+            winnerLabel = nil
+        }
+
+        if let winner = winnerLabel {
             let totals = response.performances.map(\.total).sorted(by: >)
             let winningMargin = totals[0] - totals[1]
             margin = winningMargin
@@ -332,6 +412,87 @@ struct ComparisonPresentation {
             let total = response.performances.first?.total ?? 0
             summary = "Empat a \(total.formatted(.number.grouping(.automatic))) punts."
         }
+    }
+
+    private static func displayLabels(for performances: [PerformanceResponse]) -> [String] {
+        guard performances.count >= 2 else { return performances.map(\.label) }
+
+        let notationSets = performances.map { performance in
+            Set(performance.castells.map { compact($0.input) })
+        }
+        let generic = performances.map { isGenericLabel($0.label, performance: $0) }
+        var used = Set(
+            performances.enumerated().compactMap { index, performance in
+                generic[index] ? nil : compact(performance.label)
+            }
+        )
+        var labels: [String?] = []
+
+        for (index, performance) in performances.enumerated() {
+            guard generic[index] else {
+                labels.append(performance.label.trimmingCharacters(in: .whitespacesAndNewlines))
+                continue
+            }
+
+            let otherNotations = notationSets.enumerated().reduce(into: Set<String>()) { result, item in
+                if item.offset != index { result.formUnion(item.element) }
+            }
+            let distinctive = performance.castells.first {
+                !otherNotations.contains(compact($0.input))
+            }?.input.trimmingCharacters(in: .whitespacesAndNewlines)
+            let proposed = distinctive.map { "Amb \($0)" }
+            if let proposed, !used.contains(compact(proposed)) {
+                labels.append(proposed)
+                used.insert(compact(proposed))
+            } else {
+                labels.append(nil)
+            }
+        }
+
+        let alphabet = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        for index in labels.indices where labels[index] == nil {
+            var candidateIndex = index
+            var fallback: String
+            repeat {
+                fallback = candidateIndex < alphabet.count
+                    ? String(alphabet[candidateIndex])
+                    : "A\(candidateIndex + 1)"
+                candidateIndex += 1
+            } while used.contains(compact(fallback))
+            labels[index] = fallback
+            used.insert(compact(fallback))
+        }
+
+        return labels.compactMap { $0 }
+    }
+
+    private static func isGenericLabel(
+        _ label: String,
+        performance: PerformanceResponse
+    ) -> Bool {
+        let normalized = compact(label)
+        if normalized.count == 1, normalized.first?.isLetter == true { return true }
+
+        let parts = normalized.split(separator: " ").map(String.init)
+        let genericRoots = ["costat", "opció", "opcio", "actuació", "actuacio"]
+        if parts.count == 2,
+           genericRoots.contains(parts[0]),
+           (Int(parts[1]) != nil || (parts[1].count == 1 && parts[1].first?.isLetter == true)) {
+            return true
+        }
+
+        let compactWithoutSpaces = normalized.replacingOccurrences(of: " ", with: "")
+        return performance.castells.contains { castell in
+            compact(castell.input).replacingOccurrences(of: " ", with: "") == compactWithoutSpaces
+                || compact(castell.canonical ?? "").replacingOccurrences(of: " ", with: "") == compactWithoutSpaces
+        }
+    }
+
+    private static func compact(_ value: String) -> String {
+        value
+            .lowercased()
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
     }
 
     private static func resultLabel(_ outcome: String) -> String {

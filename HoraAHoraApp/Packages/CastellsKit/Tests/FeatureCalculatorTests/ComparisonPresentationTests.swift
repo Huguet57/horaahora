@@ -34,6 +34,43 @@ final class ComparisonPresentationTests: XCTestCase {
         XCTAssertNil(ComparisonPresentation(response: response))
     }
 
+    func testReplacesGenericSideNamesWithTheComparedCastells() throws {
+        let genericJSON = Self.responseJSON
+            .replacingOccurrences(of: #""Vella""#, with: #""costat 1""#)
+            .replacingOccurrences(of: #""Joves""#, with: #""costat 2""#)
+        let response = try JSONDecoder.castellsAPI.decode(
+            ChatResponse.self,
+            from: Data(genericJSON.utf8)
+        )
+
+        let presentation = try XCTUnwrap(ComparisonPresentation(response: response))
+
+        XCTAssertEqual(presentation.columns.map(\.label), ["Amb 4d10fm", "Amb 4d9net"])
+        XCTAssertEqual(presentation.winnerLabel, "Amb 4d10fm")
+        XCTAssertEqual(presentation.summary, "Guanya Amb 4d10fm per 825 punts.")
+    }
+
+    func testUsesLettersWhenThereIsNoDistinctiveCastell() throws {
+        let tiedJSON = Self.responseJSON
+            .replacingOccurrences(of: #""Vella""#, with: #""costat 1""#)
+            .replacingOccurrences(of: #""Joves""#, with: #""costat 2""#)
+            .replacingOccurrences(of: "4d10fm", with: "5d9f")
+            .replacingOccurrences(of: "4de10fm", with: "5de9f")
+            .replacingOccurrences(of: "4d9net", with: "5d9f")
+            .replacingOccurrences(of: "4de9sf", with: "5de9f")
+            .replacingOccurrences(of: "4930", with: "3125")
+            .replacingOccurrences(of: "4105", with: "3125")
+            .replacingOccurrences(of: #""winner_label": "costat 1""#, with: #""winner_label": null"#)
+        let response = try JSONDecoder.castellsAPI.decode(
+            ChatResponse.self,
+            from: Data(tiedJSON.utf8)
+        )
+
+        let presentation = try XCTUnwrap(ComparisonPresentation(response: response))
+
+        XCTAssertEqual(presentation.columns.map(\.label), ["A", "B"])
+    }
+
     private static let responseJSON = #"""
     {
       "reply": "Guanya Vella per 825 punts.",
