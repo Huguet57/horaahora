@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta, timezone
 
 from backend.adapters.persistence.sqlalchemy import SQLAlchemyContentRepository
@@ -46,6 +47,16 @@ def test_sqlite_repository_preserves_the_instant_of_offset_dates() -> None:
     assert stored is not None
     assert stored.tzinfo is not None
     assert stored.astimezone(UTC) == datetime(2026, 7, 20, 12, 45, tzinfo=UTC)
+
+
+def test_sql_repository_preserves_missing_associated_link() -> None:
+    repository = SQLAlchemyContentRepository("sqlite+pysqlite:///:memory:")
+    now = datetime.now(UTC)
+    value = replace(item("without-link", now, "Sense enllaç"), action_url=None)
+
+    repository.upsert_hour_by_hour([value])
+
+    assert repository.list_hour_by_hour(0, 1)[0].action_url is None
 
 
 def agenda_event(external_id: str, day: date, revision: str = "r1") -> CastellEvent:

@@ -19,8 +19,25 @@ def test_extracts_items_in_source_order_with_embedded_link() -> None:
     assert [item.source_order for item in items] == [0, 1]
     assert items[0].published_at.isoformat() == "2026-07-20T12:00:00+02:00"
     assert items[0].action_url == "https://video.example/directe"
-    assert items[1].action_url == items[1].article_url
+    assert items[1].action_url is None
     assert items[0].attribution == "Revista Castells"
+
+
+def test_normalizes_relative_article_and_action_urls() -> None:
+    source = RevistaCastellsHTMLSource("https://revista.example/castells-hora-a-hora/")
+    html = """
+    <section class="castells-hora-a-hora">
+      <article class="td_module_wrap">
+        <h3 class="entry-title"><a href="noticia/">Notícia</a></h3>
+        <div class="td-excerpt"><a href="/article-complet/">Entreu aquí</a></div>
+      </article>
+    </section>
+    """
+
+    item = source.parse(html)[0]
+
+    assert item.article_url == "https://revista.example/castells-hora-a-hora/noticia/"
+    assert item.action_url == "https://revista.example/article-complet/"
 
 
 def test_external_ids_are_stable() -> None:

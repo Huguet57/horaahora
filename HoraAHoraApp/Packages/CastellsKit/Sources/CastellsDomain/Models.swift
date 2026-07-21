@@ -10,7 +10,7 @@ public struct HourByHourItem: Identifiable, Codable, Hashable, Sendable {
     public let publishedAt: Date?
     public let sourceOrder: Int
     public let articleURL: URL
-    public let actionURL: URL
+    public let actionURL: URL?
     public let attribution: String
     public let createdAt: Date
     public let updatedAt: Date
@@ -25,7 +25,7 @@ public struct HourByHourItem: Identifiable, Codable, Hashable, Sendable {
         publishedAt: Date?,
         sourceOrder: Int,
         articleURL: URL,
-        actionURL: URL,
+        actionURL: URL?,
         attribution: String,
         createdAt: Date,
         updatedAt: Date
@@ -43,6 +43,11 @@ public struct HourByHourItem: Identifiable, Codable, Hashable, Sendable {
         self.attribution = attribution
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    public var associatedURL: URL? {
+        guard let actionURL, actionURL != articleURL else { return nil }
+        return actionURL
     }
 }
 

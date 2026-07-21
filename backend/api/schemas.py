@@ -88,7 +88,7 @@ class HourByHourItemSchema(BaseModel):
     published_at: datetime | None
     source_order: int
     article_url: str
-    action_url: str
+    action_url: str | None
     attribution: str
     created_at: datetime
     updated_at: datetime

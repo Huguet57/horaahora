@@ -15,7 +15,7 @@ final class ContractTests: XCTestCase {
             "published_at": "2026-07-20T12:45:22+00:00",
             "source_order": 0,
             "article_url": "https://example.com/article",
-            "action_url": "https://example.com/action",
+            "action_url": null,
             "attribution": "Revista Castells",
             "created_at": "2026-07-20T12:54:09.737320+00:00",
             "updated_at": "2026-07-20T12:54:09.737320+00:00"
@@ -29,7 +29,47 @@ final class ContractTests: XCTestCase {
 
         XCTAssertEqual(page.items.first?.externalID, "external-1")
         XCTAssertEqual(page.items.first?.displayTitle, "Entrada")
+        XCTAssertNil(page.items.first?.actionURL)
         XCTAssertNotNil(page.items.first?.createdAt)
+    }
+
+    func testHourByHourItemOnlyExposesADedicatedAssociatedLink() {
+        let articleURL = URL(string: "https://example.com/article")!
+        let actionURL = URL(string: "https://example.com/action")!
+        let now = Date()
+        let linked = HourByHourItem(
+            id: "linked",
+            sourceID: "source",
+            externalID: "linked",
+            title: "Amb enllaç",
+            displayTitle: "Amb enllaç",
+            summary: "",
+            publishedAt: now,
+            sourceOrder: 0,
+            articleURL: articleURL,
+            actionURL: actionURL,
+            attribution: "Font",
+            createdAt: now,
+            updatedAt: now
+        )
+        let legacyFallback = HourByHourItem(
+            id: "fallback",
+            sourceID: "source",
+            externalID: "fallback",
+            title: "Sense enllaç",
+            displayTitle: "Sense enllaç",
+            summary: "",
+            publishedAt: now,
+            sourceOrder: 1,
+            articleURL: articleURL,
+            actionURL: articleURL,
+            attribution: "Font",
+            createdAt: now,
+            updatedAt: now
+        )
+
+        XCTAssertEqual(linked.associatedURL, actionURL)
+        XCTAssertNil(legacyFallback.associatedURL)
     }
 
     func testChatResponseDecodesProviderNeutralContract() throws {

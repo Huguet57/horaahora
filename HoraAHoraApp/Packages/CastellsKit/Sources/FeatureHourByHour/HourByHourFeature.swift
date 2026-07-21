@@ -84,11 +84,11 @@ public struct HourByHourDayGroup: Identifiable {
 
 public struct HourByHourRootView: View {
     @State private var model: HourByHourViewModel
-    private let onOpen: ((HourByHourItem) -> Void)?
+    private let onOpen: ((URL) -> Void)?
 
     public init(
         repository: any HourByHourRepository,
-        onOpen: ((HourByHourItem) -> Void)? = nil
+        onOpen: ((URL) -> Void)? = nil
     ) {
         _model = State(initialValue: HourByHourViewModel(repository: repository))
         self.onOpen = onOpen
@@ -146,47 +146,58 @@ private extension View {
 
 private struct HourByHourRow: View {
     let item: HourByHourItem
-    let onOpen: ((HourByHourItem) -> Void)?
+    let onOpen: ((URL) -> Void)?
     @Environment(\.openURL) private var openURL
 
+    @ViewBuilder
     var body: some View {
-        Button {
-            if let onOpen {
-                onOpen(item)
-            } else {
-                openURL(item.actionURL)
+        if let associatedURL = item.associatedURL {
+            Button {
+                if let onOpen {
+                    onOpen(associatedURL)
+                } else {
+                    openURL(associatedURL)
+                }
+            } label: {
+                rowContent(showsExternalLink: true)
             }
-        } label: {
-            VStack(alignment: .leading, spacing: 7) {
-                HStack(alignment: .firstTextBaseline) {
-                    if let publishedAt = item.publishedAt {
-                        Text(publishedAt, style: .time)
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Text(item.attribution)
-                        .font(.caption2)
+            .buttonStyle(.plain)
+            .accessibilityHint("Obre el contingut de Revista Castells")
+        } else {
+            rowContent(showsExternalLink: false)
+        }
+    }
+
+    private func rowContent(showsExternalLink: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+                if let publishedAt = item.publishedAt {
+                    Text(publishedAt, style: .time)
+                        .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(item.attribution)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                if showsExternalLink {
                     Image(systemName: "arrow.up.right")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
-                Text(item.displayTitle)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.leading)
-                if !item.summary.isEmpty {
-                    Text(item.summary)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.leading)
-                }
             }
-            .padding(.vertical, 4)
+            Text(item.displayTitle)
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.leading)
+            if !item.summary.isEmpty {
+                Text(item.summary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityHint("Obre el contingut de Revista Castells")
+        .padding(.vertical, 4)
     }
 }

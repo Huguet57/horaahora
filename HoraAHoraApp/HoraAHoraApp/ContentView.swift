@@ -13,8 +13,8 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedSection) {
-            HourByHourRootView(repository: dependencies.hourByHourRepository) { item in
-                presentedLink = PresentedLink(url: item.actionURL)
+            HourByHourRootView(repository: dependencies.hourByHourRepository) { url in
+                presentedLink = PresentedLink(url: url)
             }
             .tabItem { Label("Hora a Hora", systemImage: "clock") }
             .tag(AppSection.hourByHour)

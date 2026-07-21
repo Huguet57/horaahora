@@ -96,7 +96,7 @@ class SQLAlchemyContentRepository:
                 )
                 record.source_order = item.source_order
                 record.article_url = item.article_url
-                record.action_url = item.action_url
+                record.action_url = item.action_url or ""
                 record.attribution = item.attribution
                 record.updated_at = self._database_datetime(item.updated_at)
             session.commit()
@@ -263,7 +263,7 @@ class SQLAlchemyContentRepository:
             ),
             source_order=record.source_order,
             article_url=record.article_url,
-            action_url=record.action_url,
+            action_url=record.action_url or None,
             attribution=record.attribution,
             created_at=SQLAlchemyContentRepository._domain_datetime(record.created_at),
             updated_at=SQLAlchemyContentRepository._domain_datetime(record.updated_at),
