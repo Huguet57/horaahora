@@ -14,6 +14,10 @@ class Entry:
     date: str
     embedded_url: str = ""
 
+    @property
+    def destination_url(self) -> str:
+        """Return linked content only when the excerpt provides a useful destination."""
+        return self.embedded_url
 
 def fetch_entries() -> list[Entry]:
     """Compatibility wrapper around the replaceable editorial-source adapter."""
