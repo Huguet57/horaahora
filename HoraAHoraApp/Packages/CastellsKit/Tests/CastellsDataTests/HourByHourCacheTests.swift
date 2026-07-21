@@ -12,10 +12,12 @@ final class HourByHourCacheTests: XCTestCase {
 
         let fresh = try await repository.page(cursor: nil, limit: 30, forceRefresh: false)
         XCTAssertEqual(fresh.items.map(\.title), ["Notícia nova"])
+        XCTAssertNil(fresh.items.first?.actionURL)
         XCTAssertFalse(fresh.fromCache)
 
         let cached = try await repository.page(cursor: nil, limit: 30, forceRefresh: false)
         XCTAssertEqual(cached.items.map(\.title), ["Notícia nova"])
+        XCTAssertNil(cached.items.first?.actionURL)
         XCTAssertTrue(cached.fromCache)
     }
 }
@@ -39,7 +41,7 @@ private final class SequencedHourByHourRemote: HourByHourRemoteService, @uncheck
                     publishedAt: now,
                     sourceOrder: 0,
                     articleURL: URL(string: "https://example.com/article")!,
-                    actionURL: URL(string: "https://example.com/action")!,
+                    actionURL: nil,
                     attribution: "Revista Castells",
                     createdAt: now,
                     updatedAt: now

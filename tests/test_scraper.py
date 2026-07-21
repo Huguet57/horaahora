@@ -3,7 +3,7 @@ import unittest
 from scraper import Entry
 
 
-class ParseEntriesTests(unittest.TestCase):
+class EntryDestinationTests(unittest.TestCase):
     def test_associated_link_is_the_entry_destination(self):
         entry = Entry(
             title="Notícia breu",

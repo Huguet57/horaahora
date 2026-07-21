@@ -4,6 +4,7 @@ import hashlib
 import re
 import uuid
 from datetime import UTC, datetime
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -56,9 +57,11 @@ class RevistaCastellsHTMLSource:
                 continue
             excerpt_element = module.select_one(".td-excerpt")
             time_element = module.select_one("time.entry-date")
-            article_url = str(title_element.get("href", "")).strip()
+            article_href = str(title_element.get("href", "")).strip()
+            article_url = urljoin(self.url, article_href) if article_href else ""
             embedded = excerpt_element.select_one("a[href]") if excerpt_element else None
-            action_url = str(embedded.get("href", "")).strip() if embedded else article_url
+            embedded_href = str(embedded.get("href", "")).strip() if embedded else ""
+            action_url = urljoin(self.url, embedded_href) if embedded_href else None
             title = title_element.get_text(" ", strip=True)
             published_at = self._parse_datetime(str(time_element.get("datetime", ""))) if time_element else None
             external_id = hashlib.sha256((article_url or title).encode("utf-8")).hexdigest()

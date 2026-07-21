@@ -107,7 +107,7 @@ components:
         published_at: { type: [string, 'null'], format: date-time }
         source_order: { type: integer }
         article_url: { type: string, format: uri }
-        action_url: { type: string, format: uri }
+        action_url: { type: [string, 'null'], format: uri }
         attribution: { type: string }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }

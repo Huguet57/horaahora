@@ -55,10 +55,8 @@ public final class CachedHourByHourRepository: HourByHourRepository {
     }
 
     private static func domainItem(_ record: HourByHourCacheRecord) -> HourByHourItem? {
-        guard
-            let articleURL = URL(string: record.articleURL),
-            let actionURL = URL(string: record.actionURL)
-        else { return nil }
+        guard let articleURL = URL(string: record.articleURL) else { return nil }
+        let actionURL = record.actionURL.flatMap(URL.init(string:))
         return HourByHourItem(
             id: record.id,
             sourceID: record.sourceID,

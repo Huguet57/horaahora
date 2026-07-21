@@ -60,7 +60,7 @@ final class HourByHourCacheRecord {
     var publishedAt: Date?
     var sourceOrder: Int
     var articleURL: String
-    var actionURL: String
+    var actionURL: String?
     var attribution: String
     var createdAt: Date
     var updatedAt: Date
@@ -75,7 +75,7 @@ final class HourByHourCacheRecord {
         self.publishedAt = item.publishedAt
         self.sourceOrder = item.sourceOrder
         self.articleURL = item.articleURL.absoluteString
-        self.actionURL = item.actionURL.absoluteString
+        self.actionURL = item.actionURL?.absoluteString
         self.attribution = item.attribution
         self.createdAt = item.createdAt
         self.updatedAt = item.updatedAt
@@ -88,7 +88,7 @@ final class HourByHourCacheRecord {
         publishedAt = item.publishedAt
         sourceOrder = item.sourceOrder
         articleURL = item.articleURL.absoluteString
-        actionURL = item.actionURL.absoluteString
+        actionURL = item.actionURL?.absoluteString
         attribution = item.attribution
         updatedAt = item.updatedAt
     }

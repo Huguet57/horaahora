@@ -28,7 +28,7 @@ def fetch_entries() -> list[Entry]:
             excerpt=item.summary,
             url=item.article_url,
             date=item.published_at.isoformat() if item.published_at else "",
-            embedded_url=item.action_url if item.action_url != item.article_url else "",
+            embedded_url=item.action_url or "",
         )
         for item in source.fetch()
     ]
