@@ -11,6 +11,8 @@
 		A1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* ContentView.swift */; };
 		A1000003 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppDelegate.swift */; };
 		A1000004 /* HourByHourNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000005 /* HourByHourNotificationManager.swift */; };
+		A1000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000005 /* Assets.xcassets */; };
+		A1000005 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A2000006 /* PrivacyInfo.xcprivacy */; };
 		A1000011 /* CastellsDomain in Frameworks */ = {isa = PBXBuildFile; productRef = A1100011 /* CastellsDomain */; };
 		A1000012 /* CastellsData in Frameworks */ = {isa = PBXBuildFile; productRef = A1100012 /* CastellsData */; };
 		A1000013 /* FeatureHourByHour in Frameworks */ = {isa = PBXBuildFile; productRef = A1100013 /* FeatureHourByHour */; };
@@ -26,6 +28,8 @@
 		A2000003 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A2000005 /* HourByHourNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourByHourNotificationManager.swift; sourceTree = "<group>"; };
 		A2000004 /* HoraAHoraApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HoraAHoraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000005 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A2000006 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				4DBB36832F2CC02F0080CD51 /* HoraAHoraApp.entitlements */,
+				A2000005 /* Assets.xcassets */,
+				A2000006 /* PrivacyInfo.xcprivacy */,
 				A2000001 /* HoraAHoraApp.swift */,
 				A2000002 /* ContentView.swift */,
 				A2000003 /* AppDelegate.swift */,
@@ -82,6 +88,7 @@
 			buildPhases = (
 				A6000001 /* Sources */,
 				A3000001 /* Frameworks */,
+				A6000002 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -130,6 +137,18 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A6000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000004 /* Assets.xcassets in Resources */,
+				A1000005 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A6000001 /* Sources */ = {
@@ -191,10 +210,12 @@
 		A9000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = HoraAHoraApp/HoraAHoraApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = B94LUNLMW9;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_CastellsAPIBaseURL = "https://castells-superapp-poc.vercel.app";
 				INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";
@@ -217,10 +238,12 @@
 		A9000004 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = HoraAHoraApp/HoraAHoraApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = B94LUNLMW9;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_CastellsAPIBaseURL = "https://castells-superapp-poc.vercel.app";
 				INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";
