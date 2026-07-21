@@ -3,8 +3,15 @@ import UserNotifications
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     static var shared: AppDelegate?
+    static let deepLinkURLKey = "url"
     var deviceToken: String = ""
     var onTokenUpdate: ((String) -> Void)?
+    private(set) var pendingDeepLinkURL: URL?
+
+    func consumePendingDeepLinkURL() -> URL? {
+        defer { pendingDeepLinkURL = nil }
+        return pendingDeepLinkURL
+    }
 
     func application(
         _ application: UIApplication,
@@ -44,7 +51,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         }
     }
 
-    // Show notifications even when app is in foreground
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
@@ -53,19 +59,27 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         completionHandler([.banner, .badge, .sound])
     }
 
-    // Open URL when user taps a notification
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
-        if let urlString = userInfo["url"] as? String,
+        if let urlString = userInfo[Self.deepLinkURLKey] as? String,
            let url = URL(string: urlString) {
             DispatchQueue.main.async {
-                UIApplication.shared.open(url)
+                self.pendingDeepLinkURL = url
+                NotificationCenter.default.post(
+                    name: .hourByHourDeepLink,
+                    object: nil,
+                    userInfo: [Self.deepLinkURLKey: url]
+                )
             }
         }
         completionHandler()
     }
+}
+
+extension Notification.Name {
+    static let hourByHourDeepLink = Notification.Name("castells.hour-by-hour.deep-link")
 }

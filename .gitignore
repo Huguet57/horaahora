@@ -3,3 +3,11 @@ __pycache__/
 *.p8
 .DS_Store
 *.xcuserdata
+.venv/
+*.db
+.swiftpm/
+.build/
+.vercel/
+.env
+.env.*
+!.env.example

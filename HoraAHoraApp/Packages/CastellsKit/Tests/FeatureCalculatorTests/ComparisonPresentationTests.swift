@@ -1,0 +1,114 @@
+import Foundation
+import XCTest
+import CastellsDomain
+@testable import FeatureCalculator
+
+final class ComparisonPresentationTests: XCTestCase {
+    func testBuildsAComparisonWithCastellsTotalsWinnerAndMargin() throws {
+        let response = try JSONDecoder.castellsAPI.decode(
+            ChatResponse.self,
+            from: Data(Self.responseJSON.utf8)
+        )
+
+        let presentation = try XCTUnwrap(ComparisonPresentation(response: response))
+
+        XCTAssertEqual(presentation.columns.map(\.label), ["Vella", "Joves"])
+        XCTAssertEqual(presentation.columns[0].castells[0].notation, "4de10fm")
+        XCTAssertEqual(presentation.columns[0].castells[0].result, "Descarregat")
+        XCTAssertEqual(presentation.columns.map(\.total), [4_930, 4_105])
+        XCTAssertEqual(presentation.winnerLabel, "Vella")
+        XCTAssertEqual(presentation.margin, 825)
+        XCTAssertEqual(presentation.summary, "Guanya Vella per 825 punts.")
+        XCTAssertEqual(presentation.maximumCastellCount, 1)
+    }
+
+    func testOnlyBuildsForComparisonsWithAtLeastTwoPerformances() throws {
+        let response = try JSONDecoder.castellsAPI.decode(
+            ChatResponse.self,
+            from: Data(Self.responseJSON.replacingOccurrences(
+                of: #""intent": "comparison""#,
+                with: #""intent": "total""#
+            ).utf8)
+        )
+
+        XCTAssertNil(ComparisonPresentation(response: response))
+    }
+
+    func testReplacesGenericSideNamesWithTheComparedCastells() throws {
+        let genericJSON = Self.responseJSON
+            .replacingOccurrences(of: #""Vella""#, with: #""costat 1""#)
+            .replacingOccurrences(of: #""Joves""#, with: #""costat 2""#)
+        let response = try JSONDecoder.castellsAPI.decode(
+            ChatResponse.self,
+            from: Data(genericJSON.utf8)
+        )
+
+        let presentation = try XCTUnwrap(ComparisonPresentation(response: response))
+
+        XCTAssertEqual(presentation.columns.map(\.label), ["Amb 4d10fm", "Amb 4d9net"])
+        XCTAssertEqual(presentation.winnerLabel, "Amb 4d10fm")
+        XCTAssertEqual(presentation.summary, "Guanya Amb 4d10fm per 825 punts.")
+    }
+
+    func testUsesLettersWhenThereIsNoDistinctiveCastell() throws {
+        let tiedJSON = Self.responseJSON
+            .replacingOccurrences(of: #""Vella""#, with: #""costat 1""#)
+            .replacingOccurrences(of: #""Joves""#, with: #""costat 2""#)
+            .replacingOccurrences(of: "4d10fm", with: "5d9f")
+            .replacingOccurrences(of: "4de10fm", with: "5de9f")
+            .replacingOccurrences(of: "4d9net", with: "5d9f")
+            .replacingOccurrences(of: "4de9sf", with: "5de9f")
+            .replacingOccurrences(of: "4930", with: "3125")
+            .replacingOccurrences(of: "4105", with: "3125")
+            .replacingOccurrences(of: #""winner_label": "costat 1""#, with: #""winner_label": null"#)
+        let response = try JSONDecoder.castellsAPI.decode(
+            ChatResponse.self,
+            from: Data(tiedJSON.utf8)
+        )
+
+        let presentation = try XCTUnwrap(ComparisonPresentation(response: response))
+
+        XCTAssertEqual(presentation.columns.map(\.label), ["A", "B"])
+    }
+
+    private static let responseJSON = #"""
+    {
+      "reply": "Guanya Vella per 825 punts.",
+      "intent": "comparison",
+      "performances": [
+        {
+          "label": "Vella",
+          "total": 4930,
+          "castells": [
+            {
+              "input": "4d10fm",
+              "canonical": "4de10fm",
+              "outcome": "unloaded",
+              "points": 4930,
+              "counted": true,
+              "reason": null
+            }
+          ]
+        },
+        {
+          "label": "Joves",
+          "total": 4105,
+          "castells": [
+            {
+              "input": "4d9net",
+              "canonical": "4de9sf",
+              "outcome": "unloaded",
+              "points": 4105,
+              "counted": true,
+              "reason": null
+            }
+          ]
+        }
+      ],
+      "winner_label": "Vella",
+      "warnings": [],
+      "ruleset_version": "concurs-2026",
+      "needs_clarification": false
+    }
+    """#
+}

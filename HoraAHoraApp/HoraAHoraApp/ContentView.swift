@@ -1,42 +1,71 @@
+import SafariServices
 import SwiftUI
+import CastellsDomain
+import FeatureAgenda
+import FeatureCalculator
+import FeatureHourByHour
 
 struct ContentView: View {
-    @State private var deviceToken: String = "Esperant token..."
+    let dependencies: AppDependencies
+
+    @State private var selectedSection = AppSection.hourByHour
+    @State private var presentedLink: PresentedLink?
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Castells Hora a Hora")
-                .font(.title2)
-                .fontWeight(.bold)
-
-            VStack(spacing: 8) {
-                Text("Device Token")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text(deviceToken)
-                    .font(.system(.footnote, design: .monospaced))
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-                    .textSelection(.enabled)
+        TabView(selection: $selectedSection) {
+            HourByHourRootView(repository: dependencies.hourByHourRepository) { url in
+                presentedLink = PresentedLink(url: url)
             }
+            .tabItem { Label("Hora a Hora", systemImage: "clock") }
+            .tag(AppSection.hourByHour)
 
-            Button("Copiar token") {
-                UIPasteboard.general.string = deviceToken
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(deviceToken.starts(with: "Esperant") || deviceToken.starts(with: "Error"))
+            AgendaRootView(repository: dependencies.agendaRepository)
+                .tabItem { Label("Agenda", systemImage: "calendar") }
+                .tag(AppSection.agenda)
+
+            CalculatorRootView(repository: dependencies.chatRepository)
+                .tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }
+                .tag(AppSection.calculator)
         }
-        .padding()
         .onAppear {
-            AppDelegate.shared?.onTokenUpdate = { token in
-                deviceToken = token
+            if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {
+                openHourByHourLink(pendingURL)
             }
-            if let existing = AppDelegate.shared?.deviceToken, !existing.isEmpty {
-                deviceToken = existing
-            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .hourByHourDeepLink)) { notification in
+            guard let url = notification.userInfo?[AppDelegate.deepLinkURLKey] as? URL else { return }
+            _ = AppDelegate.shared?.consumePendingDeepLinkURL()
+            openHourByHourLink(url)
+        }
+        .sheet(item: $presentedLink) { link in
+            InAppBrowser(url: link.url)
+                .ignoresSafeArea()
         }
     }
+
+    private func openHourByHourLink(_ url: URL) {
+        selectedSection = .hourByHour
+        presentedLink = PresentedLink(url: url)
+    }
+}
+
+private enum AppSection: Hashable {
+    case hourByHour
+    case agenda
+    case calculator
+}
+
+private struct PresentedLink: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+private struct InAppBrowser: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        SFSafariViewController(url: url)
+    }
+
+    func updateUIViewController(_ viewController: SFSafariViewController, context: Context) {}
 }
