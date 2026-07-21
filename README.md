@@ -13,6 +13,7 @@ Primera fase d'una app iOS modular amb quatre seccions natives: Hora a Hora, Age
 - `tests`: proves del domini, ingesta, contractes d'IA i API.
 - `openapi/partner-api.yaml`: contracte reduït per a clients i reunions amb socis.
 - `docs/integracio-socis.md`: proposta de col·laboració amb Revista Castells i la CCCC.
+- `docs/testflight-readiness.md`: estat tècnic i passos manuals necessaris per distribuir la beta.
 
 ## Backend local
 
@@ -82,6 +83,10 @@ En un iPhone físic cal indicar una URL accessible des del dispositiu. Les conve
 Les notificacions de l'Hora a Hora no demanen permís en arrencar l'app. En una instal·lació nova, la secció mostra un onboarding descartable; «Configura-ho» obre la pestanya Ajustos. Des d'allà es poden activar o desactivar els avisos; si el permís s'havia denegat a iOS, l'app obre directament els ajustos del sistema per recuperar-lo.
 
 La política de privacitat es publica a `/privacy` en català, castellà i anglès. Ajustos també concentra el correu de suport revisable, l'identificador tècnic de la instal·lació, les fonts i els crèdits, i la versió de l'app.
+
+### TestFlight
+
+El projecte inclou App Icon, privacy manifest, declaració d'exempció de xifrat i configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md) i hi ha un [esborrany de política de privacitat](docs/privacy-policy-draft-ca.md) que s'ha de completar i publicar abans d'una beta externa.
 
 ### Desplegament POC a Vercel
 
