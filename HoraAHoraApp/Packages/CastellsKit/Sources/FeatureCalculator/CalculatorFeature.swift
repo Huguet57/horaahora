@@ -711,7 +711,7 @@ private struct CalculatorWelcomeView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label("Calculadora castellera", systemImage: "rectangle.grid.3x2.fill")
+            Label("Calculadora castellera", systemImage: "plus.forwardslash.minus")
         } description: {
             Text("Compara castells o actuacions amb la taula oficial del Concurs 2026.")
         } actions: {
