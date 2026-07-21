@@ -109,15 +109,6 @@ public struct HourByHourRootView: View {
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if shouldShowNotificationOnboarding {
-                    HourByHourNotificationOnboardingCard(
-                        onConfigure: { showsNotificationSettings = true },
-                        onDismiss: { notificationOnboardingDismissed = true }
-                    )
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                }
-
                 if model.items.isEmpty {
                     Group {
                         if model.isLoading {
@@ -140,6 +131,18 @@ public struct HourByHourRootView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
+                        if shouldShowNotificationOnboarding {
+                            HourByHourNotificationOnboardingCard(
+                                onConfigure: { showsNotificationSettings = true },
+                                onDismiss: { notificationOnboardingDismissed = true }
+                            )
+                            .listRowInsets(
+                                EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+                            )
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                        }
+
                         ForEach(model.dayGroups) { group in
                             Section(group.day?.formatted(date: .complete, time: .omitted) ?? "Sense data") {
                                 ForEach(group.items) { item in
@@ -161,26 +164,15 @@ public struct HourByHourRootView: View {
                     .refreshable { await model.refresh() }
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) {
+            .toolbar {
                 if notificationSettingsModel != nil {
-                    HStack {
-                        Text("Hora a Hora")
-                            .font(.title3.bold())
-                        Spacer()
+                    ToolbarItem(placement: .primaryAction) {
                         Button { showsNotificationSettings = true } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.body.weight(.semibold))
-                                .frame(width: 34, height: 34)
-                                .background(.thinMaterial, in: Circle())
+                            Label("Configura les notificacions", systemImage: "bell")
                         }
-                        .accessibilityLabel("Configura les notificacions")
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(.bar)
                 }
             }
-            .hourByHourNavigationBarHidden()
             .task { await model.loadIfNeeded() }
             .task { await notificationSettingsModel?.refresh() }
             .sheet(item: $detailItem) { item in
@@ -220,15 +212,6 @@ private extension View {
     func hourByHourRemovesTopContentMargin() -> some View {
         #if os(iOS)
         contentMargins(.top, 0, for: .scrollContent)
-        #else
-        self
-        #endif
-    }
-
-    @ViewBuilder
-    func hourByHourNavigationBarHidden() -> some View {
-        #if os(iOS)
-        toolbar(.hidden, for: .navigationBar)
         #else
         self
         #endif
