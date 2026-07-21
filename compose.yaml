@@ -9,9 +9,10 @@ services:
       AI_API_KEY: ${AI_API_KEY:-}
       AI_BASE_URL: ${AI_BASE_URL:-}
       HOUR_BY_HOUR_SOURCE_ENABLED: ${HOUR_BY_HOUR_SOURCE_ENABLED:-true}
-      AGENDA_SOURCE: ${AGENDA_SOURCE:-fixture}
+      AGENDA_SOURCE: ${AGENDA_SOURCE:-disabled}
       AGENDA_REFRESH_SECONDS: ${AGENDA_REFRESH_SECONDS:-1800}
-      CCCC_AGENDA_URL: ${CCCC_AGENDA_URL:-https://castellscat.cat/ca/agenda}
+      AGENDA_REFRESH_ON_REQUEST: ${AGENDA_REFRESH_ON_REQUEST:-false}
+      CCCC_AGENDA_URL: ${CCCC_AGENDA_URL:-https://castellscat.cat/public/ca/agenda}
       CCCC_AGENDA_FIXTURE_PATH: ${CCCC_AGENDA_FIXTURE_PATH:-backend/data/cccc_agenda_fixture.html}
       CCCC_AGENDA_AUTHORIZED: ${CCCC_AGENDA_AUTHORIZED:-false}
     ports:
@@ -21,6 +22,24 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+
+  agenda-sync:
+    build: .
+    command: ["python", "-m", "backend.jobs.sync_agenda", "--daemon"]
+    profiles: ["ingestion"]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://horaahora:horaahora@db:5432/horaahora
+      AGENDA_SOURCE: ${AGENDA_SOURCE:-disabled}
+      AGENDA_SYNC_INTERVAL_SECONDS: ${AGENDA_SYNC_INTERVAL_SECONDS:-86400}
+      AGENDA_SYNC_MONTHS_BACK: ${AGENDA_SYNC_MONTHS_BACK:-1}
+      AGENDA_SYNC_MONTHS_AHEAD: ${AGENDA_SYNC_MONTHS_AHEAD:-12}
+      CCCC_AGENDA_URL: ${CCCC_AGENDA_URL:-https://castellscat.cat/public/ca/agenda}
+      CCCC_AGENDA_FIXTURE_PATH: ${CCCC_AGENDA_FIXTURE_PATH:-backend/data/cccc_agenda_fixture.html}
+      CCCC_AGENDA_AUTHORIZED: ${CCCC_AGENDA_AUTHORIZED:-false}
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:17-alpine

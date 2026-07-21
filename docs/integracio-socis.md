@@ -52,7 +52,7 @@ Si una font no publica data estructurada es conserva el seu ordre; no es dedueix
 
 `sourceID`, `externalID`, títol, data local, hora exacta opcional, etiqueta horària original, zona horària, ordre de font, recinte, municipi, colles, notes, atribució, URL oficial, revisió i data d'actualització. Una cancel·lació o correcció ha de conservar l'identificador i incrementar o substituir la revisió.
 
-L'adaptador HTML de la CCCC queda desactivat en entorns compartits fins que existeixi autorització escrita i acord de col·laboració. El mode `fixture` permet validar l'experiència i el contracte sense fer consultes automatitzades a la web oficial.
+La CCCC ha autoritzat explícitament l'adaptador HTML per a aquesta prova de concepte. L'accés tècnic automatitzat encara necessita una excepció de Cloudflare, un token o un feed oficial. Fins aleshores, la POC utilitza una instantània oficial amb procedència i data de captura; el mode `fixture` queda reservat exclusivament a tests.
 
 ### Notificacions
 

@@ -16,8 +16,13 @@ class Settings:
     revista_castells_url: str = "https://revistacastells.cat/castells-hora-a-hora/"
     agenda_source: str = "disabled"
     agenda_refresh_seconds: int = 1_800
-    cccc_agenda_url: str = "https://castellscat.cat/ca/agenda"
+    agenda_refresh_on_request: bool = False
+    agenda_sync_interval_seconds: int = 86_400
+    agenda_sync_months_back: int = 1
+    agenda_sync_months_ahead: int = 12
+    cccc_agenda_url: str = "https://castellscat.cat/public/ca/agenda"
     cccc_agenda_fixture_path: str = "backend/data/cccc_agenda_fixture.html"
+    cccc_agenda_snapshot_path: str = "backend/data/cccc_agenda_poc_2026_07.html"
     cccc_agenda_authorized: bool = False
     redis_url: str = ""
     rate_limit_max_requests: int = 30
@@ -37,9 +42,18 @@ class Settings:
             revista_castells_url=os.getenv("REVISTA_CASTELLS_URL", defaults.revista_castells_url),
             agenda_source=os.getenv("AGENDA_SOURCE", defaults.agenda_source).lower(),
             agenda_refresh_seconds=int(os.getenv("AGENDA_REFRESH_SECONDS", "1800")),
+            agenda_refresh_on_request=_bool_env("AGENDA_REFRESH_ON_REQUEST", False),
+            agenda_sync_interval_seconds=int(
+                os.getenv("AGENDA_SYNC_INTERVAL_SECONDS", "86400")
+            ),
+            agenda_sync_months_back=int(os.getenv("AGENDA_SYNC_MONTHS_BACK", "1")),
+            agenda_sync_months_ahead=int(os.getenv("AGENDA_SYNC_MONTHS_AHEAD", "12")),
             cccc_agenda_url=os.getenv("CCCC_AGENDA_URL", defaults.cccc_agenda_url),
             cccc_agenda_fixture_path=os.getenv(
                 "CCCC_AGENDA_FIXTURE_PATH", defaults.cccc_agenda_fixture_path
+            ),
+            cccc_agenda_snapshot_path=os.getenv(
+                "CCCC_AGENDA_SNAPSHOT_PATH", defaults.cccc_agenda_snapshot_path
             ),
             cccc_agenda_authorized=_bool_env("CCCC_AGENDA_AUTHORIZED", False),
             redis_url=os.getenv("REDIS_URL", ""),

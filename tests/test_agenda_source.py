@@ -1,10 +1,17 @@
 from datetime import timedelta
 from pathlib import Path
 
-from backend.adapters.content.cccc_agenda import CCCCAgendaFixtureSource, CCCCAgendaHTMLSource
+from backend.adapters.content.cccc_agenda import (
+    CCCCAgendaFixtureSource,
+    CCCCAgendaHTMLSource,
+    CCCCAgendaSnapshotSource,
+)
 
 
 FIXTURE = Path(__file__).parents[1] / "backend" / "data" / "cccc_agenda_fixture.html"
+POC_SNAPSHOT = (
+    Path(__file__).parents[1] / "backend" / "data" / "cccc_agenda_poc_2026_07.html"
+)
 
 
 def test_extracts_agenda_without_results_and_preserves_source_order() -> None:
@@ -98,3 +105,47 @@ def test_fixture_data_is_clearly_non_official() -> None:
 
     assert {event.source_id for event in events} == {"cccc-fixture"}
     assert all(event.attribution == "Dades de demostració — no oficials" for event in events)
+
+
+def test_parses_current_cccc_markup_without_mixing_labels_or_notes_into_groups() -> None:
+    html = """
+    <div id="agenda"><div class="element">
+      <div class="element-header font-weight-bold">Tarragona Ciutat de Castells</div>
+      <div class="element-body">
+        <div class="divTable"><div class="divTableBody"><div class="divTableRow">
+          <div class="divTableCell">
+            22/07/2026 <br>
+            <i class="fa fa-clock-o"></i> 20:00 <br>
+            <i class="fa fa-map-marker"></i> Pla de la Seu <br>
+            <div class="cityname">Tarragona</div> <br>
+          </div>
+          <div class="divTableCell">
+            Amb l'actuació de les colles <br>
+            - Colla Jove Xiquets de Tarragona <br>
+            - Xiquets de Tarragona <br>
+            <div class="pt-1">Horari subjecte a canvis.</div>
+          </div>
+        </div></div></div>
+      </div>
+      <div class="results"><div class="content-hide">Resultats exclosos</div></div>
+    </div></div>
+    """
+
+    events = CCCCAgendaHTMLSource().parse(html, year=2026, month=7)
+
+    assert len(events) == 1
+    assert events[0].participating_groups == [
+        "Colla Jove Xiquets de Tarragona",
+        "Xiquets de Tarragona",
+    ]
+    assert events[0].notes == "Horari subjecte a canvis."
+    assert events[0].venue == "Pla de la Seu"
+
+
+def test_authorized_poc_snapshot_keeps_official_provenance() -> None:
+    events = CCCCAgendaSnapshotSource(POC_SNAPSHOT).fetch_month(2026, 7)
+
+    assert len(events) == 8
+    assert {event.source_id for event in events} == {"cccc"}
+    assert all("Coordinadora" in event.attribution for event in events)
+    assert events[0].participating_groups == ["Colla Jove Xiquets de Tarragona"]

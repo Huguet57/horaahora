@@ -18,7 +18,7 @@ from backend.domain.models import CastellEvent
 class CCCCAgendaHTMLSource:
     source_id = "cccc"
     ATTRIBUTION = "Font: Coordinadora de Colles Castelleres de Catalunya (CCCC)"
-    URL = "https://castellscat.cat/ca/agenda"
+    URL = "https://castellscat.cat/public/ca/agenda"
     TIMEZONE = "Europe/Madrid"
     _DATE_PATTERN = re.compile(r"^\d{2}/\d{2}/\d{4}$")
     _TIME_PATTERN = re.compile(r"^(?P<hour>\d{1,2})[:.](?P<minute>\d{2})(?:\s*h)?$", re.IGNORECASE)
@@ -150,7 +150,10 @@ class CCCCAgendaHTMLSource:
         strings = getattr(cell, "stripped_strings", [])
         groups: list[str] = []
         for value in strings:
-            cleaned = str(value).strip().lstrip("-–— ").strip()
+            raw = str(value).strip()
+            if not raw.startswith(("-", "–", "—")):
+                continue
+            cleaned = raw.lstrip("-–— ").strip()
             if cleaned and cleaned not in groups:
                 groups.append(cleaned)
         return groups
@@ -179,3 +182,14 @@ class CCCCAgendaFixtureSource(CCCCAgendaHTMLSource):
 
     def fetch_month(self, year: int, month: int) -> list[CastellEvent]:
         return self.parse(self.fixture_path.read_text(encoding="utf-8"), year=year, month=month)
+
+
+class CCCCAgendaSnapshotSource(CCCCAgendaHTMLSource):
+    """Authorized official snapshot used only to seed a proof-of-concept database."""
+
+    def __init__(self, snapshot_path: str | Path) -> None:
+        super().__init__()
+        self.snapshot_path = Path(snapshot_path)
+
+    def fetch_month(self, year: int, month: int) -> list[CastellEvent]:
+        return self.parse(self.snapshot_path.read_text(encoding="utf-8"), year=year, month=month)

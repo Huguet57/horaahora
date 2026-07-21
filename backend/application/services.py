@@ -68,10 +68,12 @@ class AgendaService:
         repository: ContentRepository,
         source: AgendaSource | None,
         refresh_seconds: int = 1_800,
+        refresh_on_request: bool = True,
     ) -> None:
         self.repository = repository
         self.source = source
         self.refresh_seconds = refresh_seconds
+        self.refresh_on_request = refresh_on_request
 
     def list(
         self,
@@ -92,7 +94,7 @@ class AgendaService:
             raise ValueError("El rang de l'agenda no pot superar un any")
 
         refreshed = False
-        if self.source is not None:
+        if self.source is not None and self.refresh_on_request:
             for year, month in _months_between(date_from, date_to):
                 if force_refresh or self._month_is_stale(year, month):
                     try:
@@ -130,6 +132,41 @@ class AgendaService:
         if latest.tzinfo is None:
             latest = latest.replace(tzinfo=UTC)
         return (datetime.now(UTC) - latest).total_seconds() >= self.refresh_seconds
+
+
+@dataclass(frozen=True, slots=True)
+class AgendaSyncFailure:
+    year_month: tuple[int, int]
+    error: str
+
+
+@dataclass(frozen=True, slots=True)
+class AgendaSyncResult:
+    succeeded: list[tuple[int, int]]
+    failed: list[AgendaSyncFailure]
+
+
+class AgendaSyncService:
+    """Prefetch complete months and atomically publish them to the read database."""
+
+    def __init__(self, repository: ContentRepository, source: AgendaSource) -> None:
+        self.repository = repository
+        self.source = source
+
+    def sync(self, date_from: date, date_to: date) -> AgendaSyncResult:
+        if date_to < date_from:
+            raise ValueError("La data final no pot ser anterior a la inicial")
+
+        succeeded: list[tuple[int, int]] = []
+        failed: list[AgendaSyncFailure] = []
+        for year, month in _months_between(date_from, date_to):
+            try:
+                items = self.source.fetch_month(year, month)
+                self.repository.replace_agenda_month(self.source.source_id, year, month, items)
+                succeeded.append((year, month))
+            except Exception as error:
+                failed.append(AgendaSyncFailure((year, month), str(error)))
+        return AgendaSyncResult(succeeded=succeeded, failed=failed)
 
 
 class ChatService:

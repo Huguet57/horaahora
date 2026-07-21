@@ -1,7 +1,7 @@
 from datetime import UTC, date, datetime
 
 from backend.adapters.persistence.memory import InMemoryContentRepository
-from backend.application.services import AgendaService
+from backend.application.services import AgendaService, AgendaSyncService
 from backend.domain.models import CastellEvent
 
 
@@ -73,3 +73,39 @@ def test_refresh_failure_returns_previous_snapshot_without_deleting_it() -> None
 
     assert [item.external_id for item in page.items] == ["2026-07"]
     assert page.from_cache is True
+
+
+def test_read_service_does_not_contact_source_when_on_demand_refresh_is_disabled() -> None:
+    source = RecordingAgendaSource()
+    repository = InMemoryContentRepository()
+    AgendaSyncService(repository, source).sync(date(2026, 7, 1), date(2026, 7, 31))
+    source.calls.clear()
+    service = AgendaService(
+        repository,
+        source,
+        refresh_seconds=1_800,
+        refresh_on_request=False,
+    )
+
+    page = service.list(date(2026, 7, 1), date(2026, 7, 31), None, None, None, 50)
+
+    assert source.calls == []
+    assert [item.external_id for item in page.items] == ["2026-07"]
+    assert page.from_cache is True
+    assert page.source_status == "active"
+
+
+def test_sync_service_replaces_successful_months_and_preserves_failed_months() -> None:
+    source = RecordingAgendaSource()
+    repository = InMemoryContentRepository()
+    sync = AgendaSyncService(repository, source)
+    first = sync.sync(date(2026, 7, 1), date(2026, 8, 31))
+    source.should_fail = True
+
+    second = sync.sync(date(2026, 7, 1), date(2026, 8, 31))
+
+    assert first.succeeded == [(2026, 7), (2026, 8)]
+    assert first.failed == []
+    assert second.succeeded == []
+    assert [failure.year_month for failure in second.failed] == [(2026, 7), (2026, 8)]
+    assert repository.count_agenda(date(2026, 7, 1), date(2026, 8, 31), None, None) == 2

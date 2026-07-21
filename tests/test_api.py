@@ -77,6 +77,7 @@ def test_agenda_fixture_contract_supports_cache_and_filters() -> None:
         database_url="sqlite://",
         hour_by_hour_source_enabled=False,
         agenda_source="disabled",
+        agenda_refresh_on_request=True,
         ai_provider="local",
         rate_limit_max_requests=100,
     )

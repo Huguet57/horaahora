@@ -22,14 +22,14 @@ Amb Python 3.11 o posterior:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-AGENDA_SOURCE=fixture uvicorn backend.app:app --reload
+AGENDA_SOURCE=cccc_html CCCC_AGENDA_AUTHORIZED=true uvicorn backend.app:app --reload
 ```
 
 O amb infraestructura local completa:
 
 ```bash
 cp .env.example .env
-docker compose up --build
+docker compose --profile ingestion up --build
 ```
 
 L'API queda disponible a `http://127.0.0.1:8000` i la documentació interactiva a `/docs`. Compose aporta PostgreSQL i Redis. L'adaptador HTML es pot desactivar amb `HOUR_BY_HOUR_SOURCE_ENABLED=false`.
@@ -38,11 +38,26 @@ L'API queda disponible a `http://127.0.0.1:8000` i la documentació interactiva 
 
 `AGENDA_SOURCE` selecciona un adaptador intercanviable:
 
-- `fixture`: dades simulades locals per al simulador i les proves;
+- `fixture`: dades simulades locals, identificades com a no oficials, per al simulador i les proves;
+- `cccc_snapshot`: instantània oficial autoritzada per sembrar la base de dades de la POC;
 - `disabled`: integració desactivada, valor segur per defecte fora de Compose;
 - `cccc_html`: consulta mensual de l'HTML de la CCCC, només després d'obtenir autorització escrita.
 
-El mode real exigeix també `CCCC_AGENDA_AUTHORIZED=true`; si no, el backend falla a l'arrencada per evitar una activació accidental. La font real conserva atribució i enllaç de retorn, refresca com a màxim cada 30 minuts i manté l'última còpia si falla una actualització. L'app desa també una cache SwiftData per consultar els dies carregats sense connexió.
+El mode real exigeix també `CCCC_AGENDA_AUTHORIZED=true`; si no, el backend falla a l'arrencada per evitar una activació accidental. Per a aquesta POC hi ha permís explícit de la CCCC. La font real conserva atribució i enllaç de retorn, i l'app desa també una cache SwiftData per consultar els dies carregats sense connexió.
+
+L'API no consulta la CCCC quan un usuari obre l'agenda (`AGENDA_REFRESH_ON_REQUEST=false`). El servei `agenda-sync` fa el pre-fetch seqüencial de mesos complets, els valida i els substitueix atòmicament a PostgreSQL cada 24 hores. Una fallada no elimina l'última còpia vàlida. La sincronització també es pot executar manualment:
+
+```bash
+AGENDA_SOURCE=cccc_html CCCC_AGENDA_AUTHORIZED=true \
+python -m backend.jobs.sync_agenda --from-month 2026-07 --to-month 2027-07
+```
+
+Cloudflare respon actualment amb un repte als clients HTTP automatitzats. Cal que la CCCC habiliti el client autoritzat (whitelist, token o feed) perquè el job diari pugui refrescar directament. Mentrestant, la POC es pot sembrar amb la instantània oficial capturada el 21 de juliol de 2026, sense dades inventades:
+
+```bash
+AGENDA_SOURCE=cccc_snapshot CCCC_AGENDA_AUTHORIZED=true \
+python -m backend.jobs.sync_agenda --from-month 2026-07 --to-month 2026-07
+```
 
 ### Interpretació de consultes
 
