@@ -53,17 +53,20 @@ class AnthropicQueryInterpreter:
                 "messages": messages,
                 "tools": [
                     {
-                        "name": "parse_castell_query",
+                        "name": "interpreta_consulta_castellera",
                         "description": "Retorna la interpretació estructurada de la consulta castellera.",
                         "input_schema": ParsedQueryPayload.model_json_schema(),
                     }
                 ],
-                "tool_choice": {"type": "tool", "name": "parse_castell_query"},
+                "tool_choice": {"type": "tool", "name": "interpreta_consulta_castellera"},
             },
         )
         response.raise_for_status()
         for content_item in response.json().get("content", []):
-            if content_item.get("type") == "tool_use" and content_item.get("name") == "parse_castell_query":
+            if (
+                content_item.get("type") == "tool_use"
+                and content_item.get("name") == "interpreta_consulta_castellera"
+            ):
                 return content_item.get("input", {})
         raise ValueError("Resposta Anthropic sense tool_use")
 

@@ -54,7 +54,7 @@ class OpenAIQueryInterpreter:
                 "text": {
                     "format": {
                         "type": "json_schema",
-                        "name": "parsed_castell_query",
+                        "name": "consulta_castellera_interpretada",
                         "strict": True,
                         "schema": ParsedQueryPayload.model_json_schema(),
                     }
