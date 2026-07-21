@@ -11,10 +11,10 @@ Estat auditat el 21 de juliol de 2026. Aquesta llista separa el que queda prepar
 | Versió | `CFBundleShortVersionString` 1.0 i build 1 | Configurat | Incrementar sempre el build abans de cada pujada posterior. |
 | Nom | Nom visible `Castells` | Configurat | Confirmar disponibilitat i nom comercial a App Store Connect. |
 | Icona | App Icon opaca de 1024 × 1024 a l'asset catalog | Preparat | Validar la marca amb els socis abans de la beta externa. |
-| Privacitat | `PrivacyInfo.xcprivacy` amb UserDefaults, identificador d'instal·lació i contingut del xat | Preparat | Revisar que les respostes de l'etiqueta de privacitat d'App Store Connect coincideixin amb el manifest. |
+| Privacitat | Política completa en CA, ES i EN servida pel backend; `PrivacyInfo.xcprivacy` existent | Parcialment preparat | Desplegar les URLs i afegir-hi accés dins l'app abans d'una beta externa. Els canvis de l'app estan documentats a `privacy-app-followups.md`. |
 | Xifrat | `ITSAppUsesNonExemptEncryption = NO` per HTTPS estàndard | Preparat | Confirmar si s'afegeix criptografia pròpia en el futur. |
 | Release | APNs `development` en Debug i `production` en Release | Preparat al projecte | Habilitar Push Notifications a l'App ID i obtenir un perfil de distribució. |
-| Backend | URL Release `https://castells-superapp-poc.vercel.app` | Actiu | Fixar retenció, observabilitat i SLA abans d'una beta pública. |
+| Backend | URL Release `https://castells-superapp-poc.vercel.app`, funció configurada a `cdg1` | Actiu | Desplegar la configuració europea i verificar la regió, les URLs de privacitat, la retenció i l'SLA abans d'una beta pública. |
 | Automatització | CI de tests Swift i build iOS Release sense signar | Preparat | Vigilar el primer run de GitHub Actions. |
 | Archive | Archive genèric sense signar | Validat localment | Fer un archive signat des de Xcode quan hi hagi certificat i perfil. |
 
@@ -26,7 +26,7 @@ Estat auditat el 21 de juliol de 2026. Aquesta llista separa el que queda prepar
 | 2 | App ID explícit amb el bundle ID definitiu i Push Notifications | Certificates, Identifiers & Profiles | Signatura Release i notificacions |
 | 3 | Certificat Apple Distribution i perfil App Store Connect, o signatura automàtica autoritzada | Xcode / Developer portal | Archive signat |
 | 4 | Registre nou de l'app amb nom, idioma principal, Bundle ID i SKU | App Store Connect | Pujada del build |
-| 5 | Política de privacitat publicada amb URL HTTPS i accessible des de l'app | Web + app | Beta externa / revisió |
+| 5 | Política de privacitat publicada amb URL HTTPS i accessible des de l'app | Backend preparat; app pendent segons `privacy-app-followups.md` | Beta externa / revisió |
 | 6 | Formulari App Privacy: identificador de dispositiu i contingut d'usuari per funcionalitat, sense tracking | App Store Connect | Beta externa / distribució |
 | 7 | Declarar drets d'ús i atribució de Revista Castells i CCCC | Producte/legal | Beta externa |
 | 8 | Edat, content rights i dades de contacte de revisió | App Store Connect | Beta externa |

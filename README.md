@@ -86,7 +86,7 @@ La política de privacitat es publica a `/privacy` en català, castellà i angl�
 
 ### TestFlight
 
-El projecte inclou App Icon, privacy manifest, declaració d'exempció de xifrat i configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md) i hi ha un [esborrany de política de privacitat](docs/privacy-policy-draft-ca.md) que s'ha de completar i publicar abans d'una beta externa.
+El projecte inclou App Icon, privacy manifest, declaració d'exempció de xifrat i configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md), la [política de privacitat](docs/privacy-policy-ca.md) es publica des del backend i els [canvis futurs de privacitat de l'app](docs/privacy-app-followups.md) estan documentats sense implementar-los encara.
 
 ### Desplegament POC a Vercel
 

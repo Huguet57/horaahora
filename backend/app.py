@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
 from backend.api.schemas import (
@@ -27,7 +28,10 @@ from backend.config import Settings
 from backend.domain.models import ChatTurn
 from backend.domain.ports import AgendaSource, ContentRepository, HourByHourSource, QueryInterpreter, RateLimiter
 from backend.domain.scoring import ScoreTable, ScoringEngine
-from backend.privacy import PRIVACY_PAGE_HTML
+
+
+PRIVACY_PAGES_DIRECTORY = Path(__file__).parent / "static" / "privacy"
+SUPPORTED_PRIVACY_LOCALES = frozenset({"ca", "es", "en"})
 
 
 @dataclass(slots=True)
@@ -81,9 +85,25 @@ def create_app(
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    def privacy_page(locale: str) -> FileResponse:
+        if locale not in SUPPORTED_PRIVACY_LOCALES:
+            raise HTTPException(status_code=404, detail="Idioma no disponible")
+        return FileResponse(
+            PRIVACY_PAGES_DIRECTORY / f"{locale}.html",
+            media_type="text/html; charset=utf-8",
+            headers={
+                "Cache-Control": "public, max-age=3600",
+                "Content-Language": locale,
+            },
+        )
+
     @app.get("/privacy", response_class=HTMLResponse, include_in_schema=False)
-    def privacy() -> HTMLResponse:
-        return HTMLResponse(PRIVACY_PAGE_HTML)
+    def privacy() -> FileResponse:
+        return privacy_page("ca")
+
+    @app.get("/privacy/{locale}", response_class=HTMLResponse)
+    def localized_privacy(locale: str) -> FileResponse:
+        return privacy_page(locale.lower())
 
     @app.get("/v1/hour-by-hour", response_model=HourByHourPageSchema)
     def hour_by_hour(
