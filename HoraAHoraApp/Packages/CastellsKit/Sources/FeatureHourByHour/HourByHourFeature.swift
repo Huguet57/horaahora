@@ -88,13 +88,21 @@ public struct HourByHourDayGroup: Identifiable {
 public struct HourByHourRootView: View {
     @State private var model: HourByHourViewModel
     @State private var detailItem: HourByHourItem?
+    @State private var notificationSettingsModel: HourByHourNotificationSettingsModel?
+    @State private var showsNotificationSettings = false
+    @AppStorage("castells.hour-by-hour.notification-onboarding-dismissed")
+    private var notificationOnboardingDismissed = false
     private let onOpen: ((URL) -> Void)?
 
     public init(
         repository: any HourByHourRepository,
+        notificationManager: (any HourByHourNotificationManaging)? = nil,
         onOpen: ((URL) -> Void)? = nil
     ) {
         _model = State(initialValue: HourByHourViewModel(repository: repository))
+        _notificationSettingsModel = State(
+            initialValue: notificationManager.map(HourByHourNotificationSettingsModel.init)
+        )
         self.onOpen = onOpen
     }
 
@@ -123,6 +131,18 @@ public struct HourByHourRootView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
+                        if shouldShowNotificationOnboarding {
+                            HourByHourNotificationOnboardingCard(
+                                onConfigure: { showsNotificationSettings = true },
+                                onDismiss: { notificationOnboardingDismissed = true }
+                            )
+                            .listRowInsets(
+                                EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+                            )
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                        }
+
                         ForEach(model.dayGroups) { group in
                             Section(group.day?.formatted(date: .complete, time: .omitted) ?? "Sense data") {
                                 ForEach(group.items) { item in
@@ -144,15 +164,37 @@ public struct HourByHourRootView: View {
                     .refreshable { await model.refresh() }
                 }
             }
-            .hourByHourNavigationBarHidden()
+            .toolbar {
+                if notificationSettingsModel != nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button { showsNotificationSettings = true } label: {
+                            Label("Configura les notificacions", systemImage: "bell")
+                        }
+                    }
+                }
+            }
             .task { await model.loadIfNeeded() }
+            .task { await notificationSettingsModel?.refresh() }
             .sheet(item: $detailItem) { item in
                 HourByHourDetailView(item: item)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
                     .hourByHourOpaquePresentation()
             }
+            .sheet(isPresented: $showsNotificationSettings) {
+                if let notificationSettingsModel {
+                    HourByHourNotificationSettingsView(model: notificationSettingsModel)
+                        .presentationDetents([.medium, .large])
+                        .presentationDragIndicator(.visible)
+                        .hourByHourOpaquePresentation()
+                }
+            }
         }
+    }
+
+    private var shouldShowNotificationOnboarding: Bool {
+        notificationSettingsModel?.status == .notDetermined
+            && !notificationOnboardingDismissed
     }
 }
 
@@ -170,15 +212,6 @@ private extension View {
     func hourByHourRemovesTopContentMargin() -> some View {
         #if os(iOS)
         contentMargins(.top, 0, for: .scrollContent)
-        #else
-        self
-        #endif
-    }
-
-    @ViewBuilder
-    func hourByHourNavigationBarHidden() -> some View {
-        #if os(iOS)
-        toolbar(.hidden, for: .navigationBar)
         #else
         self
         #endif

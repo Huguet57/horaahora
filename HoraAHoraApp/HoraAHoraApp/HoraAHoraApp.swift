@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 import CastellsData
 import CastellsDomain
+import FeatureHourByHour
 
 @main
 struct HoraAHoraApp: App {
@@ -27,6 +28,7 @@ struct HoraAHoraApp: App {
 final class AppDependencies {
     let modelContainer: ModelContainer
     let hourByHourRepository: any HourByHourRepository
+    let hourByHourNotificationManager: any HourByHourNotificationManaging
     let agendaRepository: any AgendaRepository
     let chatRepository: any ChatRepository
 
@@ -39,6 +41,7 @@ final class AppDependencies {
             container: modelContainer,
             remoteService: HTTPHourByHourRemoteService(client: client)
         )
+        self.hourByHourNotificationManager = IOSHourByHourNotificationManager()
         self.agendaRepository = CachedAgendaRepository(
             container: modelContainer,
             remoteService: HTTPAgendaRemoteService(client: client)

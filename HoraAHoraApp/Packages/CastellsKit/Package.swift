@@ -23,6 +23,7 @@ let package = Package(
         .target(name: "FeatureCalculator", dependencies: ["CastellsDomain"]),
         .testTarget(name: "CastellsDomainTests", dependencies: ["CastellsDomain"]),
         .testTarget(name: "CastellsDataTests", dependencies: ["CastellsData", "CastellsDomain"]),
+        .testTarget(name: "FeatureHourByHourTests", dependencies: ["FeatureHourByHour"]),
         .testTarget(name: "FeatureAgendaTests", dependencies: ["FeatureAgenda", "CastellsDomain"]),
         .testTarget(name: "FeatureCalculatorTests", dependencies: ["FeatureCalculator", "CastellsDomain"]),
     ]
