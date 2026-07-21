@@ -1,0 +1,47 @@
+services:
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://horaahora:horaahora@db:5432/horaahora
+      REDIS_URL: redis://redis:6379/0
+      AI_PROVIDER: ${AI_PROVIDER:-local}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      HOUR_BY_HOUR_SOURCE_ENABLED: ${HOUR_BY_HOUR_SOURCE_ENABLED:-true}
+      AGENDA_SOURCE: ${AGENDA_SOURCE:-fixture}
+      AGENDA_REFRESH_SECONDS: ${AGENDA_REFRESH_SECONDS:-1800}
+      CCCC_AGENDA_URL: ${CCCC_AGENDA_URL:-https://castellscat.cat/ca/agenda}
+      CCCC_AGENDA_FIXTURE_PATH: ${CCCC_AGENDA_FIXTURE_PATH:-backend/data/cccc_agenda_fixture.html}
+      CCCC_AGENDA_AUTHORIZED: ${CCCC_AGENDA_AUTHORIZED:-false}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: horaahora
+      POSTGRES_USER: horaahora
+      POSTGRES_PASSWORD: horaahora
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U horaahora"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:

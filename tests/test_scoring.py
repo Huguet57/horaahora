@@ -1,0 +1,152 @@
+from backend.domain.models import Outcome, ParsedCastell, ParsedCastellQuery, ParsedPerformance
+from backend.domain.scoring import CastellNormalizer, ScoringEngine, ScoreTable
+
+
+def make_engine() -> ScoringEngine:
+    return ScoringEngine(ScoreTable.default())
+
+
+def performance(label: str, *castells: tuple[str, Outcome]) -> ParsedPerformance:
+    return ParsedPerformance(
+        label=label,
+        castells=[ParsedCastell(notation=notation, outcome=outcome) for notation, outcome in castells],
+    )
+
+
+def test_normalizes_common_notation_and_explicit_net_alias() -> None:
+    normalizer = CastellNormalizer(ScoreTable.default())
+
+    assert normalizer.normalize("5d9f") == "5de9f"
+    assert normalizer.normalize("pd8fm") == "Pde8fm"
+    assert normalizer.normalize("4d9net") == "4de9sf"
+    assert normalizer.normalize("4de9af") == "4de9fa"
+
+
+def test_compares_two_unloaded_castells() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("5d9f", ("5d9f", Outcome.UNLOADED)),
+                performance("4d9fa", ("4d9fa", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert [item.total for item in result.performances] == [3125, 3285]
+    assert result.winner_label == "4d9fa"
+    assert "160 punts" in result.reply
+
+
+def test_compares_named_groups_and_net_alias() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("Vella", ("4d10fm", Outcome.UNLOADED)),
+                performance("Joves", ("4d9net", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert [item.total for item in result.performances] == [4930, 4105]
+    assert result.winner_label == "Vella"
+
+
+def test_compares_three_castell_performances() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance(
+                    "Opció A",
+                    ("5d9f", Outcome.UNLOADED),
+                    ("4d9fa", Outcome.UNLOADED),
+                    ("3d10fm", Outcome.UNLOADED),
+                ),
+                performance(
+                    "Opció B",
+                    ("3d10fm", Outcome.UNLOADED),
+                    ("4d10fm", Outcome.UNLOADED),
+                    ("3d9fa", Outcome.UNLOADED),
+                ),
+            ],
+        )
+    )
+
+    assert [item.total for item in result.performances] == [10935, 12900]
+    assert result.winner_label == "Opció B"
+    assert "1.965 punts" in result.reply
+
+
+def test_keeps_top_three_with_at_most_two_loaded() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="total",
+            performances=[
+                performance(
+                    "Colla",
+                    ("3d10sm", Outcome.LOADED),
+                    ("4d10sm", Outcome.LOADED),
+                    ("2d10fmp", Outcome.LOADED),
+                    ("5d9f", Outcome.UNLOADED),
+                )
+            ],
+        )
+    )
+
+    counted = [item for item in result.performances[0].castells if item.counted]
+    assert len(counted) == 3
+    assert sum(item.outcome is Outcome.LOADED for item in counted) == 2
+    assert any(item.reason == "loaded_limit" for item in result.performances[0].castells)
+
+
+def test_only_best_result_for_same_structure_counts() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="total",
+            performances=[
+                performance(
+                    "Colla",
+                    ("4d9f", Outcome.UNLOADED),
+                    ("4d9net", Outcome.UNLOADED),
+                    ("5d9f", Outcome.UNLOADED),
+                )
+            ],
+        )
+    )
+
+    castells = result.performances[0].castells
+    assert next(item for item in castells if item.canonical == "4de9sf").counted
+    assert next(item for item in castells if item.canonical == "4de9f").reason == "duplicate_structure"
+
+
+def test_attempt_scores_zero_and_unknown_prevents_a_winner() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("A", ("5d9f", Outcome.ATTEMPT)),
+                performance("B", ("10d10", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert result.winner_label is None
+    assert result.needs_clarification
+    assert any("10d10" in warning for warning in result.warnings)
+
+
+def test_equal_performances_are_reported_as_a_tie() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("A", ("5d9f", Outcome.UNLOADED)),
+                performance("B", ("5d9f", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert result.winner_label is None
+    assert "empat a 3.125 punts" in result.reply

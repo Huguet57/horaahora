@@ -1,0 +1,202 @@
+openapi: 3.1.0
+info:
+  title: Castells Super-app API
+  version: 1.0.0
+  description: Contracte públic neutral respecte del proveïdor d'IA, la base de dades i l'allotjament.
+servers:
+  - url: https://api.example.cat
+  - url: http://127.0.0.1:8000
+paths:
+  /v1/hour-by-hour:
+    get:
+      operationId: listHourByHour
+      summary: Retorna entrades en ordre cronològic invers
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 30 }
+      responses:
+        '200':
+          description: Pàgina d'entrades
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HourByHourPage' }
+  /v1/events:
+    get:
+      operationId: listEvents
+      summary: Retorna diades del canal oficial configurat
+      parameters:
+        - name: from
+          in: query
+          description: Data local inicial, inclusiva.
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          description: Data local final, inclusiva. El rang màxim és de 367 dies.
+          schema: { type: string, format: date }
+        - name: group
+          in: query
+          schema: { type: string }
+        - name: municipality
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/Cursor'
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - name: refresh
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Pàgina de diades
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgendaPage' }
+  /v1/chat:
+    post:
+      operationId: calculateCastells
+      summary: Interpreta una consulta i calcula el resultat amb regles deterministes
+      description: El servidor no persisteix la conversa i la resposta no identifica cap model o proveïdor.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChatRequest' }
+      responses:
+        '200':
+          description: Resultat factual i estructurat
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChatResponse' }
+        '400':
+          description: Consulta invàlida
+        '429':
+          description: Límit de consultes superat
+components:
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+  schemas:
+    HourByHourPage:
+      type: object
+      required: [items, from_cache]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/HourByHourItem' }
+        next_cursor: { type: [string, 'null'] }
+        from_cache: { type: boolean }
+    HourByHourItem:
+      type: object
+      required: [id, source_id, external_id, title, display_title, summary, source_order, article_url, action_url, attribution, created_at, updated_at]
+      properties:
+        id: { type: string }
+        source_id: { type: string }
+        external_id: { type: string }
+        title:
+          type: string
+          description: Títol editorial original; és el que es conserva per a notificacions i integracions.
+        display_title:
+          type: string
+          description: Títol per mostrar a la llista, sense el prefix editorial redundant de dia i hora.
+        summary: { type: string }
+        published_at: { type: [string, 'null'], format: date-time }
+        source_order: { type: integer }
+        article_url: { type: string, format: uri }
+        action_url: { type: string, format: uri }
+        attribution: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    AgendaPage:
+      type: object
+      required: [items, official_url, from_cache, source_status]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CastellEvent' }
+        next_cursor: { type: [string, 'null'] }
+        official_url: { type: string, format: uri }
+        from_cache: { type: boolean }
+        source_status: { type: string, enum: [active, unavailable] }
+    CastellEvent:
+      type: object
+      required: [id, source_id, external_id, title, local_date, starts_at, time_label, timezone, venue, municipality, participating_groups, notes, source_url, source_order, attribution, revision, updated_at]
+      properties:
+        id: { type: string }
+        source_id: { type: string }
+        external_id: { type: string }
+        title: { type: string }
+        local_date: { type: string, format: date }
+        starts_at: { type: [string, 'null'], format: date-time }
+        time_label: { type: string, example: Tarda }
+        timezone: { type: string, example: Europe/Madrid }
+        venue: { type: string }
+        municipality: { type: string }
+        participating_groups:
+          type: array
+          items: { type: string }
+        notes: { type: string }
+        source_url: { type: string, format: uri }
+        source_order: { type: integer }
+        attribution: { type: string }
+        revision: { type: string }
+        updated_at: { type: string, format: date-time }
+    ChatRequest:
+      type: object
+      required: [conversation_id, installation_id, messages]
+      properties:
+        conversation_id: { type: string, format: uuid }
+        installation_id: { type: string, maxLength: 128 }
+        locale: { type: string, default: ca-ES }
+        ruleset: { type: string, const: concurs-2026 }
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { $ref: '#/components/schemas/ChatMessage' }
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string, minLength: 1, maxLength: 2000 }
+    ChatResponse:
+      type: object
+      required: [reply, intent, performances, warnings, ruleset_version, needs_clarification]
+      properties:
+        reply: { type: string }
+        intent: { type: string, enum: [lookup, comparison, total, clarification, unsupported] }
+        performances:
+          type: array
+          items: { $ref: '#/components/schemas/Performance' }
+        winner_label: { type: [string, 'null'] }
+        warnings:
+          type: array
+          items: { type: string }
+        ruleset_version: { type: string, example: concurs-2026 }
+        needs_clarification: { type: boolean }
+    Performance:
+      type: object
+      required: [label, total, castells]
+      properties:
+        label: { type: string }
+        total: { type: integer }
+        castells:
+          type: array
+          items: { $ref: '#/components/schemas/ScoredCastell' }
+    ScoredCastell:
+      type: object
+      required: [input, outcome, points, counted]
+      properties:
+        input: { type: string }
+        canonical: { type: [string, 'null'] }
+        outcome: { type: string, enum: [loaded, unloaded, attempt] }
+        points: { type: integer }
+        counted: { type: boolean }
+        reason:
+          type: [string, 'null']
+          enum: [null, unknown_castell, attempt, duplicate_structure, loaded_limit, outside_top_three]
