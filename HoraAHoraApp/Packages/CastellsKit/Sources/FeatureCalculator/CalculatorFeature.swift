@@ -274,15 +274,14 @@ public struct ChatView: View {
         .calculatorInlineNavigationTitle()
         .calculatorChatHidesTabBar()
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                if model.conversation == nil {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark")
-                    }
-                    .accessibilityLabel("Tanca")
+            ToolbarItem(placement: .confirmationAction) {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
                 }
+                .accessibilityLabel("Tanca")
             }
         }
+        .accessibilityAction(.escape) { dismiss() }
         .task { model.load() }
     }
 }
