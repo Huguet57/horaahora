@@ -8,7 +8,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | --- | --- | --- | --- |
 | Codi | 91 tests Python (inclosa integració PostgreSQL 17), 40 tests Swift i builds Debug/Release | Preparat | Fer merge quan el CI de l'últim commit sigui verd. |
 | Identitat | Bundle ID explícit `com.ahuguet.castellsenvena` i App ID amb Push Notifications | Configurat al projecte i al portal | Utilitzar el mateix Bundle ID al registre d'App Store Connect. |
-| Versió | `CFBundleShortVersionString` 1.0 i build 2 | Configurat | Incrementar sempre el build abans de cada pujada posterior. |
+| Versió | `CFBundleShortVersionString` 1.0 i build 5 | Configurat | Incrementar sempre el build abans de cada pujada posterior. |
 | Nom | Nom visible `Castells en vena` | Configurat | Utilitzar exactament aquest nom al registre d'App Store Connect i confirmar-ne la disponibilitat. |
 | Icona | App Icon opaca de 1024 × 1024 a l'asset catalog | Preparat | Validar la marca amb els socis abans de la beta externa. |
 | Privacitat | Política completa en CA, ES i EN, enllaç des d'Ajustos i `PrivacyInfo.xcprivacy` integrat | Preparat al repositori | Desplegar aquesta branca i completar l'etiqueta App Privacy d'App Store Connect d'acord amb el manifest. |
@@ -16,7 +16,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | Release | APNs `development` en Debug i `production` en Release; perfils Development i Store generats | Preparat | La signatura automàtica gestionarà les renovacions. |
 | Backend | URL Release `https://castells-superapp-poc.vercel.app`, Vercel `cdg1`, Neon PostgreSQL i cron idempotent | Preparat al repositori | Provisionar/vincular Neon, aplicar Alembic, configurar secrets i verificar `/health/ready`. |
 | Automatització | CI de tests Swift i build iOS Release sense signar | Preparat | Vigilar el run de l'últim commit. |
-| Archive | Archive signat i IPA App Store exportat amb certificat cloud-managed Apple Distribution | Build 2 acceptat per App Store Connect | Esperar que Apple acabi de processar-lo i revisar qualsevol avís. |
+| Archive | Archive signat i IPA App Store exportat amb certificat cloud-managed Apple Distribution | Build 4 present a TestFlight; build 5 pendent de pujar | Pujar el build 5 i revisar qualsevol avís de processament. |
 
 ## Accions obligatòries al compte d'Apple
 
@@ -30,7 +30,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | 6 | Formulari App Privacy: identificador de dispositiu i contingut d'usuari per funcionalitat, sense tracking | Pendent | Completar-lo a App Store Connect d'acord amb `PrivacyInfo.xcprivacy`. |
 | 7 | Declarar drets d'ús i atribució de Revista Castells i CCCC | Pendent | Confirmar-ho amb producte/legal abans de la beta externa. |
 | 8 | Edat, content rights i dades de contacte de revisió | Pendent | Completar-ho a App Store Connect. |
-| 9 | Crear grup intern, afegir testers i assignar el build processat | Build 2 pujat; processament pendent | Fer-ho quan App Store Connect mostri el build 2 com a disponible. |
+| 9 | Crear grup intern, afegir testers i assignar el build processat | Build 4 present a TestFlight | Assignar el build més recent al grup intern quan estigui processat. |
 | 10 | Per testers externs: beta description, feedback email, “What to Test”, contacte i Beta App Review | Pendent | Utilitzar els textos de `testflight-metadata-ca.md`. |
 
 ## Pujada recomanada
