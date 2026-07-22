@@ -193,6 +193,7 @@ def test_final_app_name_is_consistent_in_xcode_and_testflight_docs() -> None:
 
     assert project.count('INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";') == 2
     assert project.count("PRODUCT_BUNDLE_IDENTIFIER = com.ahuguet.castellsenvena;") == 2
+    assert project.count("CURRENT_PROJECT_VERSION = 2;") == 2
     assert "com.andreu.HoraAHoraApp" not in project
     assert "Nom visible `Castells en vena`" in readiness
     assert "`com.ahuguet.castellsenvena`" in readiness
