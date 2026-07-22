@@ -58,11 +58,12 @@ def test_privacy_page_is_localized_and_explains_prefilled_support_email() -> Non
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     assert 'lang="ca"' in response.text
-    assert 'data-language="es"' in response.text
-    assert 'data-language="en"' in response.text
-    assert "només s’envia quan prems manualment el botó d’enviament" in response.text
-    assert "solo se envía cuando pulsas manualmente el botón de envío" in response.text
-    assert "is only sent when you manually tap the send button" in response.text
+    assert 'href="/privacy/ca"' in response.text
+    assert 'href="/privacy/es"' in response.text
+    assert 'href="/privacy/en"' in response.text
+    assert "correu editable" in response.text
+    assert "només es transmet si revises el correu i prems manualment" in response.text
+    assert "<script" not in response.text.lower()
 
 
 def test_disabled_agenda_has_a_neutral_unavailable_contract() -> None:

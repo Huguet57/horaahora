@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Política de privacidad — Castells en vena</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color-scheme: light dark; }
+    body { margin: 0; background: Canvas; color: CanvasText; line-height: 1.55; }
+    main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 64px; }
+    nav { display: flex; gap: 12px; margin-bottom: 36px; }
+    nav a { color: LinkText; }
+    h1 { font-size: clamp(2rem, 7vw, 3rem); line-height: 1.08; margin-bottom: 8px; }
+    h2 { margin-top: 36px; font-size: 1.35rem; }
+    h3 { margin: 24px 0 4px; font-size: 1.05rem; }
+    p, li { max-width: 72ch; }
+    li + li { margin-top: 8px; }
+    .meta { color: GrayText; margin-top: 0; }
+    .notice { border-left: 4px solid #e3392f; padding: 12px 16px; background: color-mix(in srgb, CanvasText 6%, Canvas); }
+    a { overflow-wrap: anywhere; }
+    footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid color-mix(in srgb, CanvasText 18%, Canvas); color: GrayText; }
+  </style>
+</head>
+<body>
+<main>
+  <nav aria-label="Idiomas">
+    <a href="/privacy/ca" lang="ca">Català</a>
+    <a href="/privacy/es" lang="es" aria-current="page"><strong>Castellano</strong></a>
+    <a href="/privacy/en" lang="en">English</a>
+  </nav>
+
+  <h1>Política de privacidad</h1>
+  <p class="meta"><strong>Castells en vena</strong> · Última actualización: 22 de julio de 2026</p>
+  <p>Esta política explica cómo trata los datos personales la versión actual de Castells en vena, una app gratuita y sin cuenta de usuario.</p>
+
+  <h2>1. Responsable</h2>
+  <p><strong>Responsable:</strong> Andreu Huguet, establecido en Cataluña, España.</p>
+  <p><strong>Contacto de privacidad:</strong> <a href="mailto:tenimaletaapp@gmail.com">tenimaletaapp@gmail.com</a>.</p>
+  <p>No se ha designado un delegado de protección de datos porque, dada la naturaleza y escala actuales del tratamiento, no es obligatorio.</p>
+
+  <h2>2. Datos tratados</h2>
+  <h3>Datos guardados únicamente en el dispositivo</h3>
+  <ul>
+    <li>Conversaciones de la calculadora, incluidos sus títulos y mensajes.</li>
+    <li>Copias locales de la agenda y de Hora a Hora para mejorar la disponibilidad y la lectura sin conexión.</li>
+    <li>Preferencias de la app y un identificador de instalación aleatorio. No es un identificador publicitario ni se utiliza para seguirte entre apps o sitios web.</li>
+  </ul>
+  <p>Las conversaciones pueden eliminarse individualmente. Los demás datos locales desaparecen al desinstalar la app o borrar sus datos desde el sistema.</p>
+
+  <h3>Consultas de la calculadora</h3>
+  <p>Cuando envías una consulta, la app transmite al backend como máximo los 12 últimos mensajes necesarios para comprender el contexto, junto con el identificador aleatorio de instalación. El backend procesa la consulta y la deriva al proveedor de inteligencia artificial configurado. Castells en vena no guarda estas conversaciones en el backend.</p>
+  <p class="notice"><strong>No introduzcas datos personales.</strong> La calculadora solo necesita información castellera para responder.</p>
+
+  <h3>Datos técnicos</h3>
+  <p>Al conectarte al servicio se pueden tratar la dirección IP, la fecha y hora, la ruta solicitada, el estado de la respuesta e información técnica imprescindible para prestar el servicio, limitar abusos y diagnosticar incidencias.</p>
+
+  <h3>Notificaciones</h3>
+  <p>Si activas voluntariamente las notificaciones, iOS gestiona el permiso y Apple puede asignar al dispositivo un token de Apple Push Notification service (APNs). En la versión actual, el backend de Castells en vena no recibe ni conserva dicho token. Puedes desactivar las notificaciones desde la app o desde los ajustes de iOS.</p>
+
+  <h3>Comunicaciones de soporte</h3>
+  <p>Al seleccionar «Contacta con soporte», la app prepara un correo editable con la versión, el número de build y el identificador técnico. Esta información solo se transmite si revisas el correo y pulsas manualmente el botón de envío; también puedes cancelarlo. Si lo envías, se tratarán la dirección de correo, el contenido del mensaje y los archivos que decidas adjuntar. La app no exporta conversaciones ni las adjunta automáticamente.</p>
+
+  <h2>3. Finalidades y bases jurídicas</h2>
+  <ul>
+    <li><strong>Prestar el servicio solicitado:</strong> mostrar contenido y responder consultas de la calculadora. La base es la ejecución del servicio solicitado por el usuario.</li>
+    <li><strong>Seguridad y estabilidad:</strong> limitar peticiones abusivas, prevenir el fraude y diagnosticar errores. La base es el interés legítimo en proteger y mantener el servicio, ponderado con los derechos de los usuarios.</li>
+    <li><strong>Funciones opcionales y soporte:</strong> gestionar las notificaciones que actives y la información que decidas enviar a soporte. La base es tu consentimiento o acción voluntaria, que puedes retirar en cualquier momento.</li>
+  </ul>
+  <p>Los datos necesarios para responder una consulta y proteger el servicio son imprescindibles para ofrecer esas funciones. Las notificaciones y el contacto con soporte son opcionales.</p>
+
+  <h2>4. Proveedores y destinatarios</h2>
+  <ul>
+    <li><strong>Vercel:</strong> alojamiento y ejecución del backend. La función principal está configurada en París (<code>cdg1</code>), aunque Vercel y sus subencargados pueden tratar datos en otros países.</li>
+    <li><strong>OpenAI:</strong> interpretación lingüística de las consultas mediante la API. Las peticiones se envían con la opción de no almacenamiento de la respuesta activada (<code>store: false</code>).</li>
+    <li><strong>Apple:</strong> distribución de la app, permisos del sistema y APNs cuando activas las notificaciones.</li>
+    <li><strong>Google/Gmail:</strong> recepción y gestión de los correos que envíes voluntariamente al contacto de soporte o privacidad.</li>
+  </ul>
+  <p>Revista Castells y la Coordinadora de Colles Castelleres de Catalunya (CCCC) no reciben consultas, identificadores ni perfiles de usuario. La app únicamente muestra contenido atribuido y enlaces a sus fuentes oficiales.</p>
+
+  <h2>5. Transferencias internacionales</h2>
+  <p>Algunos proveedores o subencargados pueden tratar datos fuera del Espacio Económico Europeo. Cuando corresponde, esas transferencias se basan en decisiones de adecuación, cláusulas contractuales tipo de la Comisión Europea u otras garantías reconocidas por el RGPD. Puedes solicitar más información al correo de privacidad.</p>
+
+  <h2>6. Conservación</h2>
+  <ul>
+    <li><strong>Datos locales:</strong> hasta que elimines cada conversación o desinstales la app.</li>
+    <li><strong>Limitador de peticiones:</strong> las claves técnicas se mantienen durante una ventana de 10 minutos.</li>
+    <li><strong>Logs de Vercel:</strong> aproximadamente 1 día con el plan actual.</li>
+    <li><strong>OpenAI:</strong> la API no se utiliza para entrenar modelos por defecto; OpenAI puede conservar logs de prevención de abuso hasta 30 días, salvo que una obligación legal exija otro plazo.</li>
+    <li><strong>Correos de soporte o privacidad:</strong> hasta 12 meses después de resolver la consulta, salvo que sea necesario conservarlos más tiempo para cumplir una obligación legal o defender reclamaciones.</li>
+  </ul>
+
+  <h2>7. Publicidad, analítica y decisiones automatizadas</h2>
+  <p>No hay publicidad, seguimiento entre apps o webs, perfilado comercial ni SDK adicional de analítica o crash reporting. La calculadora automatiza la interpretación y el cálculo de puntuaciones, pero no adopta decisiones con efectos jurídicos o similares sobre las personas.</p>
+
+  <h2>8. Enlaces externos</h2>
+  <p>Cuando abres un enlace de Revista Castells, CCCC, Google Maps u otro servicio externo, el servicio de destino trata la conexión según su propia política de privacidad. Castells en vena no controla esos tratamientos.</p>
+
+  <h2>9. Derechos</h2>
+  <p>Puedes solicitar el acceso, rectificación, supresión, limitación, oposición o portabilidad de tus datos, y retirar el consentimiento sin afectar al tratamiento anterior, escribiendo a <a href="mailto:tenimaletaapp@gmail.com">tenimaletaapp@gmail.com</a>. Se responderá, con carácter general, en el plazo de un mes.</p>
+  <p>Como no hay cuentas, mucha información solo existe en tu dispositivo y el responsable no puede acceder a ella. Puede ser necesario solicitar información técnica adicional para localizar una petición sin identificar por error a otra persona.</p>
+  <p>También puedes presentar una reclamación ante la <a href="https://www.aepd.es/" rel="noreferrer">Agencia Española de Protección de Datos (AEPD)</a>.</p>
+
+  <h2>10. Menores</h2>
+  <p>La app no está dirigida específicamente a menores de 14 años. Si una persona menor de esa edad facilita datos personales cuando el consentimiento sea la base aplicable, es necesaria la autorización de su representante legal.</p>
+
+  <h2>11. Seguridad y cambios</h2>
+  <p>Se aplican medidas proporcionadas, como comunicaciones HTTPS, acceso restringido a la infraestructura y ausencia de persistencia propia de los chats en el backend. Ningún sistema es completamente infalible.</p>
+  <p>Los cambios materiales se publicarán en estas mismas URLs y se actualizará la fecha. Si un cambio requiere consentimiento, se solicitará antes de aplicarlo.</p>
+
+  <footer>Castells en vena · Política de privacidad · 22 de julio de 2026</footer>
+</main>
+</body>
+</html>

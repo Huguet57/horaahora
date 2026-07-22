@@ -2,6 +2,8 @@
 
 Primera fase d'una app iOS modular amb quatre seccions natives: Hora a Hora, Agenda, una calculadora conversacional i Ajustos. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura concreta al domini o al contracte HTTP.
 
+El nom visible i definitiu de l'app és **Castells en vena** i el Bundle ID de distribució és `com.ahuguet.castellsenvena`.
+
 ## Estructura
 
 - `HoraAHoraApp/HoraAHoraApp`: composició, navegació, notificacions i configuració iOS.
@@ -13,6 +15,7 @@ Primera fase d'una app iOS modular amb quatre seccions natives: Hora a Hora, Age
 - `tests`: proves del domini, ingesta, contractes d'IA i API.
 - `openapi/partner-api.yaml`: contracte reduït per a clients i reunions amb socis.
 - `docs/integracio-socis.md`: proposta de col·laboració amb Revista Castells i la CCCC.
+- `docs/testflight-readiness.md`: estat tècnic i passos manuals necessaris per distribuir la beta.
 
 ## Backend local
 
@@ -81,13 +84,19 @@ En un iPhone físic cal indicar una URL accessible des del dispositiu. Les conve
 
 Les notificacions de l'Hora a Hora no demanen permís en arrencar l'app. En una instal·lació nova, la secció mostra un onboarding descartable; «Configura-ho» obre la pestanya Ajustos. Des d'allà es poden activar o desactivar els avisos; si el permís s'havia denegat a iOS, l'app obre directament els ajustos del sistema per recuperar-lo.
 
-La política de privacitat es publica a `/privacy` en català, castellà i anglès. Ajustos també concentra el correu de suport revisable, l'identificador tècnic de la instal·lació, les fonts i els crèdits, i la versió de l'app.
+La política de privacitat es publica a `/privacy` en català, amb selector cap a `/privacy/ca`, `/privacy/es` i `/privacy/en`; són pàgines HTML estàtiques sense JavaScript, cookies ni analítica. Ajustos manté l'enllaç a `/privacy` i concentra el contacte de suport, l'identificador tècnic de la instal·lació, les fonts, els crèdits i la versió de l'app. El correu de suport és editable i mostra versió, build i identificador abans que l'usuari l'enviï manualment; no exporta converses.
+
+### TestFlight
+
+El projecte inclou App Icon, privacy manifest, declaració d'exempció de xifrat i configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md), la [política de privacitat](docs/privacy-policy-ca.md) es publica des del backend i els [canvis futurs de privacitat de l'app](docs/privacy-app-followups.md) estan documentats sense implementar-los encara.
 
 ### Desplegament POC a Vercel
 
 `api/index.py` és un adaptador de lliurament prim que exposa la mateixa aplicació ASGI.
 La configuració de Vercel selecciona OpenAI amb `AI_PROVIDER` i `AI_MODEL`, però la clau
-només existeix com a variable sensible del projecte. La font HTML autoritzada de la CCCC
+només existeix com a variable sensible del projecte. `cdg1` és la regió principal de la
+funció, però això no implica processament exclusiu dins la UE: Vercel i els seus
+subencarregats poden tractar dades en altres països. La font HTML autoritzada de la CCCC
 es consulta amb refresc a demanda i cache en una base
 SQLite temporal. Aquesta configuració és adequada per a la prova de concepte; abans de
 producció cal substituir-la per PostgreSQL i una sincronització programada.
