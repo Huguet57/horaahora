@@ -9,6 +9,7 @@ import FeatureSettings
 struct ContentView: View {
     let dependencies: AppDependencies
 
+    @State private var agendaModel: AgendaViewModel
     @State private var selectedSection = AppSection.hourByHour
     @State private var presentedLink: PresentedLink?
     @State private var settingsModel: SettingsModel
@@ -17,6 +18,9 @@ struct ContentView: View {
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
+        _agendaModel = State(
+            initialValue: AgendaViewModel(repository: dependencies.agendaRepository)
+        )
         _settingsModel = State(initialValue: dependencies.settingsModel)
     }
 
@@ -42,7 +46,7 @@ struct ContentView: View {
             .tabItem { Label("Hora a Hora", systemImage: "clock") }
             .tag(AppSection.hourByHour)
 
-            AgendaRootView(repository: dependencies.agendaRepository)
+            AgendaRootView(model: agendaModel)
                 .tabItem { Label("Agenda", systemImage: "calendar") }
                 .tag(AppSection.agenda)
 
@@ -66,7 +70,10 @@ struct ContentView: View {
             .tabItem { Label("Ajustos", systemImage: "gearshape") }
             .tag(AppSection.settings)
         }
-        .task { await settingsModel.refreshNotificationStatus() }
+        .task {
+            agendaModel.preloadFromCache()
+            await settingsModel.refreshNotificationStatus()
+        }
         .onAppear {
             if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {
                 openHourByHourLink(pendingURL)
