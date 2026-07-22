@@ -56,7 +56,7 @@
   <p>When you connect to the service, the IP address, date and time, requested path, response status and technical information strictly required to provide the service, limit abuse and diagnose incidents may be processed.</p>
 
   <h3>Notifications</h3>
-  <p>If you voluntarily enable notifications, iOS manages the permission and Apple may assign an Apple Push Notification service (APNs) token to the device. In the current version, the Castells en vena backend does not receive or retain this token. You can disable notifications in the app or in iOS Settings.</p>
+  <p>If you voluntarily enable notifications, iOS manages the permission and Apple assigns an Apple Push Notification service (APNs) token to this installation. The app sends the backend that token, the random installation identifier, app version and language so that requested alerts can be delivered. They are not used for analytics, advertising or tracking. When notifications are disabled or Apple invalidates the token, the backend immediately replaces it with a revocation marker.</p>
 
   <h3>Support communications</h3>
   <p>When you select “Contact support”, the app prepares an editable email containing the version, build number and technical identifier. This information is only transmitted if you review the email and manually tap the send button; you can also cancel it. If you send it, your email address, message contents and any files you choose to attach will be processed. The app does not export conversations or attach them automatically.</p>
@@ -72,6 +72,7 @@
   <h2>4. Providers and recipients</h2>
   <ul>
     <li><strong>Vercel:</strong> backend hosting and execution. The primary function is configured in Paris (<code>cdg1</code>), although Vercel and its subprocessors may process data in other countries.</li>
+    <li><strong>Neon:</strong> managed PostgreSQL database storing synchronized content, technical security counters and active notification subscriptions.</li>
     <li><strong>OpenAI:</strong> linguistic interpretation of calculator queries through the API. Requests are sent with response storage disabled (<code>store: false</code>).</li>
     <li><strong>Apple:</strong> app distribution, system permissions and APNs when you enable notifications.</li>
     <li><strong>Google/Gmail:</strong> receiving and managing emails you voluntarily send to the support or privacy contact.</li>
@@ -85,6 +86,7 @@
   <ul>
     <li><strong>Local data:</strong> until you delete each conversation or uninstall the app.</li>
     <li><strong>Rate limiter:</strong> technical keys are kept for a 10-minute window.</li>
+    <li><strong>Notification subscription:</strong> the token is retained while alerts are enabled and is revoked immediately when they are disabled or APNs rejects it. Installations not renewed for 180 days are invalidated; delivery records are kept for no more than 30 days.</li>
     <li><strong>Vercel logs:</strong> approximately 1 day under the current plan.</li>
     <li><strong>OpenAI:</strong> API data is not used to train models by default; OpenAI may retain abuse-monitoring logs for up to 30 days unless a legal obligation requires a different period.</li>
     <li><strong>Support or privacy emails:</strong> for up to 12 months after the query is resolved, unless longer retention is needed to meet a legal obligation or defend legal claims.</li>

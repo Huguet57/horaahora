@@ -7,12 +7,16 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from backend.adapters.persistence.sqlalchemy import Base
+from backend.adapters.persistence.database import normalize_database_url
 
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", config.get_main_option("sqlalchemy.url")))
+database_url = os.getenv("DATABASE_URL", "").strip()
+if not database_url:
+    raise RuntimeError("DATABASE_URL és obligatòria per executar migracions")
+config.set_main_option("sqlalchemy.url", normalize_database_url(database_url).replace("%", "%%"))
 target_metadata = Base.metadata
 
 

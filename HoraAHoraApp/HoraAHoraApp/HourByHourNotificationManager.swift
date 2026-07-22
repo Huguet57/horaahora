@@ -1,5 +1,6 @@
 import UIKit
 import UserNotifications
+import CastellsData
 import FeatureSettings
 
 @MainActor
@@ -10,13 +11,16 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
 
     private let notificationCenter: UNUserNotificationCenter
     private let userDefaults: UserDefaults
+    private let pushSubscriptionCoordinator: PushSubscriptionCoordinator
 
     init(
         notificationCenter: UNUserNotificationCenter = .current(),
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
+        pushSubscriptionCoordinator: PushSubscriptionCoordinator
     ) {
         self.notificationCenter = notificationCenter
         self.userDefaults = userDefaults
+        self.pushSubscriptionCoordinator = pushSubscriptionCoordinator
     }
 
     func currentStatus() async -> HourByHourNotificationStatus {
@@ -24,7 +28,10 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
         let status = status(for: authorizationStatus)
 
         if status == .enabled {
+            await pushSubscriptionCoordinator.setEnabled(true)
             UIApplication.shared.registerForRemoteNotifications()
+        } else if status == .disabled {
+            await pushSubscriptionCoordinator.setEnabled(false)
         }
         return status
     }
@@ -47,6 +54,7 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
         guard authorizationStatus != .denied else { return .denied }
 
         userDefaults.set(true, forKey: Preference.enabledKey)
+        await pushSubscriptionCoordinator.setEnabled(true)
         UIApplication.shared.registerForRemoteNotifications()
         return .enabled
     }
@@ -54,6 +62,7 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
     func disable() async throws -> HourByHourNotificationStatus {
         userDefaults.set(false, forKey: Preference.enabledKey)
         UIApplication.shared.unregisterForRemoteNotifications()
+        await pushSubscriptionCoordinator.setEnabled(false)
 
         let authorizationStatus = await notificationCenter.notificationSettings().authorizationStatus
         return authorizationStatus == .denied ? .denied : .disabled

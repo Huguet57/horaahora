@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class Settings:
-    database_url: str = "sqlite:///./horaahora.db"
+    database_url: str = ""
     ai_provider: str = "local"
     ai_model: str = ""
     ai_api_key: str = ""
@@ -24,15 +24,34 @@ class Settings:
     cccc_agenda_fixture_path: str = "backend/data/cccc_agenda_fixture.html"
     cccc_agenda_snapshot_path: str = "backend/data/cccc_agenda_poc_2026_07.html"
     cccc_agenda_authorized: bool = False
-    redis_url: str = ""
     rate_limit_max_requests: int = 30
     rate_limit_window_seconds: int = 600
+    rate_limit_hash_secret: str = "test-rate-limit-secret"
+    vercel_env: str = ""
+    cron_secret: str = ""
+    push_delivery_enabled: bool = False
+    apns_key_p8: str = ""
+    apns_key_id: str = ""
+    apns_team_id: str = ""
+    apns_bundle_id: str = "com.ahuguet.castellsenvena"
 
     @classmethod
     def from_env(cls) -> "Settings":
         defaults = cls()
+        database_url = os.getenv("DATABASE_URL", "").strip()
+        if not database_url:
+            raise RuntimeError("DATABASE_URL és obligatòria; vincula el projecte amb Neon")
+        if not database_url.startswith(
+            ("postgres://", "postgresql://", "postgresql+psycopg://")
+        ):
+            raise RuntimeError(
+                "DATABASE_URL ha d'apuntar a PostgreSQL; SQLite només es permet als tests"
+            )
+        rate_limit_hash_secret = os.getenv("RATE_LIMIT_HASH_SECRET", "").strip()
+        if not rate_limit_hash_secret:
+            raise RuntimeError("RATE_LIMIT_HASH_SECRET és obligatori")
         return cls(
-            database_url=os.getenv("DATABASE_URL", defaults.database_url),
+            database_url=database_url,
             ai_provider=os.getenv("AI_PROVIDER", defaults.ai_provider).lower(),
             ai_model=os.getenv("AI_MODEL", ""),
             ai_api_key=os.getenv("AI_API_KEY", ""),
@@ -56,10 +75,25 @@ class Settings:
                 "CCCC_AGENDA_SNAPSHOT_PATH", defaults.cccc_agenda_snapshot_path
             ),
             cccc_agenda_authorized=_bool_env("CCCC_AGENDA_AUTHORIZED", False),
-            redis_url=os.getenv("REDIS_URL", ""),
             rate_limit_max_requests=int(os.getenv("RATE_LIMIT_MAX_REQUESTS", "30")),
             rate_limit_window_seconds=int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "600")),
+            rate_limit_hash_secret=rate_limit_hash_secret,
+            vercel_env=os.getenv("VERCEL_ENV", "").lower(),
+            cron_secret=os.getenv("CRON_SECRET", ""),
+            push_delivery_enabled=_bool_env("PUSH_DELIVERY_ENABLED", False),
+            apns_key_p8=os.getenv("APNS_KEY_P8", ""),
+            apns_key_id=os.getenv("APNS_KEY_ID", ""),
+            apns_team_id=os.getenv("APNS_TEAM_ID", ""),
+            apns_bundle_id=os.getenv("APNS_BUNDLE_ID", defaults.apns_bundle_id),
         )
+
+    @property
+    def can_deliver_push(self) -> bool:
+        return self.vercel_env == "production" and self.push_delivery_enabled
+
+    @property
+    def apns_environment(self) -> str:
+        return "production" if self.vercel_env == "production" else "development"
 
 
 def _bool_env(name: str, default: bool) -> bool:

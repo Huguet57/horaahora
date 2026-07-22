@@ -57,7 +57,7 @@
   <p>En connectar-te al servei es poden processar l'adreça IP, la data i l'hora, la ruta sol·licitada, l'estat de la resposta i informació tècnica imprescindible per prestar el servei, limitar abusos i diagnosticar incidències.</p>
 
   <h3>Notificacions</h3>
-  <p>Si actives voluntàriament les notificacions, iOS gestiona el permís i Apple pot assignar un token d'Apple Push Notification service (APNs) al dispositiu. En la versió actual, el backend de Castells en vena no rep ni conserva aquest token. Pots desactivar les notificacions des de l'app o des dels ajustos d'iOS.</p>
+  <p>Si actives voluntàriament les notificacions, iOS gestiona el permís i Apple assigna un token d'Apple Push Notification service (APNs) a aquesta instal·lació. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app i l'idioma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple invalida el token, el backend el substitueix immediatament per una marca de revocació.</p>
 
   <h3>Comunicacions de suport</h3>
   <p>Quan selecciones «Contacta amb suport», l'app prepara un correu editable amb la versió, el número de build i l'identificador tècnic. Aquesta informació només es transmet si revises el correu i prems manualment el botó d'enviament; també el pots cancel·lar. Si l'envies, es tractaran l'adreça de correu, el contingut del missatge i els fitxers que decideixis adjuntar. L'app no exporta converses ni les adjunta automàticament.</p>
@@ -73,6 +73,7 @@
   <h2>4. Proveïdors i destinataris</h2>
   <ul>
     <li><strong>Vercel:</strong> allotjament i execució del backend. La funció principal es configura a París (<code>cdg1</code>), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.</li>
+    <li><strong>Neon:</strong> base de dades PostgreSQL gestionada on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.</li>
     <li><strong>OpenAI:</strong> interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (<code>store: false</code>).</li>
     <li><strong>Apple:</strong> distribució de l'app, permisos del sistema i APNs quan actives notificacions.</li>
     <li><strong>Google/Gmail:</strong> recepció i gestió dels correus que enviïs voluntàriament al contacte de suport o privacitat.</li>
@@ -86,6 +87,7 @@
   <ul>
     <li><strong>Dades locals:</strong> fins que eliminis cada conversa o desinstal·lis l'app.</li>
     <li><strong>Limitador de peticions:</strong> les claus tècniques es mantenen durant una finestra de 10 minuts.</li>
+    <li><strong>Subscripció de notificacions:</strong> el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs el rebutja. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.</li>
     <li><strong>Logs de Vercel:</strong> aproximadament 1 dia amb el pla actual.</li>
     <li><strong>OpenAI:</strong> l'API no s'utilitza per entrenar models per defecte; OpenAI pot retenir logs de prevenció d'abús fins a 30 dies, llevat que una obligació legal exigeixi una altra conservació.</li>
     <li><strong>Correus de suport o privacitat:</strong> fins a 12 mesos després de resoldre la consulta, tret que sigui necessari conservar-los més temps per complir una obligació legal o defensar reclamacions.</li>

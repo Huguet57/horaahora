@@ -7,7 +7,10 @@ from backend.adapters.content.cccc_agenda import CCCCAgendaFixtureSource
 from backend.adapters.persistence.memory import InMemoryContentRepository
 from backend.adapters.rate_limit.memory import InMemoryRateLimiter
 from backend.app import build_agenda_source, create_app
+from backend.adapters.persistence.database import Database
+from backend.application.notifications import NotificationRunResult
 from backend.config import Settings
+from backend.domain.models import PushSubscriptionRegistration
 
 
 def make_client() -> TestClient:
@@ -24,6 +27,124 @@ def make_client() -> TestClient:
         rate_limiter=InMemoryRateLimiter(max_requests=100, window_seconds=60),
     )
     return TestClient(app)
+
+
+class RecordingPushRepository:
+    def __init__(self) -> None:
+        self.registrations: list[tuple[PushSubscriptionRegistration, str, str]] = []
+        self.unregistrations: list[tuple[str, str, str]] = []
+
+    def register(self, registration, *, environment, topic):
+        self.registrations.append((registration, environment, topic))
+
+    def unregister(self, installation_id, *, environment, topic):
+        self.unregistrations.append((installation_id, environment, topic))
+
+
+def test_push_subscription_contract_registers_and_unregisters_current_installation() -> None:
+    repository = RecordingPushRepository()
+    settings = Settings(
+        database_url="sqlite://",
+        hour_by_hour_source_enabled=False,
+        ai_provider="local",
+        apns_bundle_id="com.example.app",
+        vercel_env="production",
+    )
+    app = create_app(
+        settings=settings,
+        interpreter=RegexQueryInterpreter(),
+        content_repository=InMemoryContentRepository(),
+        rate_limiter=InMemoryRateLimiter(max_requests=100, window_seconds=60),
+        push_repository=repository,
+    )
+    client = TestClient(app)
+
+    registered = client.put(
+        "/v1/push-subscriptions/install-1",
+        json={
+            "device_token": "ab" * 32,
+            "app_version": "1.0 (3)",
+            "locale": "ca-ES",
+            "environment": "development",
+        },
+    )
+    removed = client.delete(
+        "/v1/push-subscriptions/install-1?environment=development"
+    )
+
+    assert registered.status_code == 204
+    assert removed.status_code == 204
+    assert repository.registrations[0][0].device_token == "ab" * 32
+    assert repository.registrations[0][1:] == ("development", "com.example.app")
+    assert repository.unregistrations == [("install-1", "development", "com.example.app")]
+
+
+class NotificationRepositoryStub(RecordingPushRepository):
+    def cleanup(self):
+        return {
+            "subscriptions_invalidated": 1,
+            "deliveries_deleted": 2,
+            "outboxes_deleted": 1,
+        }
+
+
+class CoordinatorStub:
+    def __init__(self) -> None:
+        self.call_count = 0
+
+    def run(self):
+        self.call_count += 1
+        return NotificationRunResult(status="completed", delivered=3)
+
+
+def test_cron_routes_require_production_secret_and_return_persisted_results() -> None:
+    notifications = NotificationRepositoryStub()
+    coordinator = CoordinatorStub()
+    database = Database("sqlite+pysqlite:///:memory:")
+    settings = Settings(
+        database_url="sqlite+pysqlite:///:memory:",
+        hour_by_hour_source_enabled=False,
+        vercel_env="production",
+        cron_secret="cron-secret",
+    )
+    app = create_app(
+        settings=settings,
+        database=database,
+        interpreter=RegexQueryInterpreter(),
+        content_repository=InMemoryContentRepository(),
+        rate_limiter=InMemoryRateLimiter(max_requests=100, window_seconds=60),
+        push_repository=notifications,
+        notification_repository=notifications,
+        notification_coordinator=coordinator,
+    )
+    client = TestClient(app)
+
+    assert client.get("/internal/cron/hour-by-hour").status_code == 401
+    response = client.get(
+        "/internal/cron/hour-by-hour",
+        headers={"Authorization": "Bearer cron-secret"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["delivered"] == 3
+    assert coordinator.call_count == 1
+
+
+def test_readiness_returns_503_when_neon_is_unavailable(monkeypatch) -> None:
+    database = Database("sqlite+pysqlite:///:memory:")
+    monkeypatch.setattr(database, "is_ready", lambda: False)
+    app = create_app(
+        settings=Settings(
+            database_url="sqlite+pysqlite:///:memory:",
+            hour_by_hour_source_enabled=False,
+        ),
+        database=database,
+        interpreter=RegexQueryInterpreter(),
+        content_repository=InMemoryContentRepository(),
+        rate_limiter=InMemoryRateLimiter(max_requests=100, window_seconds=60),
+    )
+
+    assert TestClient(app).get("/health/ready").status_code == 503
 
 
 def test_chat_contract_does_not_expose_provider() -> None:
@@ -50,6 +171,37 @@ def test_hour_by_hour_contract_is_paginated() -> None:
 
     assert response.status_code == 200
     assert response.json() == {"items": [], "next_cursor": None, "from_cache": True}
+
+
+def test_hour_by_hour_pull_to_refresh_reads_persisted_content_without_fetching_source() -> None:
+    class RecordingSource:
+        def __init__(self) -> None:
+            self.fetch_count = 0
+
+        def fetch(self):
+            self.fetch_count += 1
+            return []
+
+    source = RecordingSource()
+    settings = Settings(
+        database_url="sqlite://",
+        hour_by_hour_source_enabled=False,
+        ai_provider="local",
+        rate_limit_max_requests=100,
+    )
+    app = create_app(
+        settings=settings,
+        interpreter=RegexQueryInterpreter(),
+        content_repository=InMemoryContentRepository(),
+        rate_limiter=InMemoryRateLimiter(max_requests=100, window_seconds=60),
+        hour_by_hour_source=source,
+        notification_coordinator=CoordinatorStub(),
+    )
+
+    response = TestClient(app).get("/v1/hour-by-hour?limit=30&refresh=true")
+
+    assert response.status_code == 200
+    assert source.fetch_count == 0
 
 
 def test_privacy_page_is_localized_and_explains_prefilled_support_email() -> None:

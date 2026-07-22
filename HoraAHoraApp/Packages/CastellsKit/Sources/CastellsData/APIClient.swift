@@ -45,6 +45,26 @@ public actor APIClient {
         return try await execute(request)
     }
 
+    public func put<Body: Encodable & Sendable>(path: String, body: Body) async throws {
+        var request = URLRequest(url: baseURL.appending(path: path))
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder.castellsAPI.encode(body)
+        try await executeWithoutResponse(request)
+    }
+
+    public func delete(path: String, queryItems: [URLQueryItem] = []) async throws {
+        var components = URLComponents(
+            url: baseURL.appending(path: path),
+            resolvingAgainstBaseURL: false
+        )
+        components?.queryItems = queryItems.isEmpty ? nil : queryItems
+        guard let url = components?.url else { throw URLError(.badURL) }
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        try await executeWithoutResponse(request)
+    }
+
     private func execute<Response: Decodable & Sendable>(_ request: URLRequest) async throws -> Response {
         let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -55,6 +75,17 @@ public actor APIClient {
             throw APIClientError.http(statusCode: httpResponse.statusCode, message: detail)
         }
         return try JSONDecoder.castellsAPI.decode(Response.self, from: data)
+    }
+
+    private func executeWithoutResponse(_ request: URLRequest) async throws {
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIClientError.invalidResponse
+        }
+        guard 200..<300 ~= httpResponse.statusCode else {
+            let detail = try? JSONDecoder().decode(ErrorEnvelope.self, from: data).detail
+            throw APIClientError.http(statusCode: httpResponse.statusCode, message: detail)
+        }
     }
 }
 
