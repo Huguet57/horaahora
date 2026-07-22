@@ -147,6 +147,48 @@ final class AgendaViewModelTests: XCTestCase {
         XCTAssertFalse(model.isLoading)
     }
 
+    func testPreloadFromCacheHydratesTheAgendaWithoutStartingARequest() {
+        let cachedEvent = makeEvent(
+            id: "cached",
+            localDate: "2026-07-21",
+            title: "Desada al dispositiu"
+        )
+        let repository = AgendaRepositoryStub(cachedItems: [cachedEvent])
+        let model = AgendaViewModel(repository: repository)
+        model.selectedDate = date("2026-07-21")
+
+        model.preloadFromCache()
+
+        XCTAssertEqual(model.events.map(\.title), ["Desada al dispositiu"])
+        XCTAssertEqual(model.monthEvents.map(\.title), ["Desada al dispositiu"])
+        XCTAssertEqual(model.sourceStatus, .active)
+        XCTAssertTrue(model.isFromCache)
+        XCTAssertFalse(model.isLoading)
+        XCTAssertTrue(repository.requests.isEmpty)
+    }
+
+    func testLoadReusesThePreloadedSnapshotWithoutReadingTheSameCacheWindowAgain() async {
+        let cachedEvent = makeEvent(
+            id: "cached",
+            localDate: "2026-07-21",
+            title: "Desada al dispositiu"
+        )
+        let repository = AgendaRepositoryStub(
+            cachedItems: [cachedEvent],
+            remoteError: URLError(.notConnectedToInternet)
+        )
+        let model = AgendaViewModel(repository: repository)
+        model.selectedDate = date("2026-07-21")
+        model.preloadFromCache()
+
+        await model.load()
+
+        XCTAssertEqual(repository.cachedRequests.count, 2)
+        XCTAssertEqual(model.events.map(\.title), ["Desada al dispositiu"])
+        XCTAssertNil(model.errorMessage)
+        XCTAssertFalse(model.isLoading)
+    }
+
     func testGoogleMapsURLSearchesForVenueAndMunicipality() throws {
         let url = try XCTUnwrap(
             googleMapsSearchURL(venue: "Plaça Vella", municipality: "El Vendrell")
@@ -202,6 +244,7 @@ private final class AgendaRepositoryStub: AgendaRepository {
     var requestedFrom: String?
     var requestedTo: String?
     var requests: [(from: String, to: String, forceRefresh: Bool)] = []
+    var cachedRequests: [(from: String, to: String)] = []
     private let suppliedItems: [CastellEvent]?
     private let suppliedCachedItems: [CastellEvent]
     private let remoteError: Error?
@@ -224,6 +267,7 @@ private final class AgendaRepositoryStub: AgendaRepository {
     ) throws -> [CastellEvent] {
         let lower = localDate(from)
         let upper = localDate(to)
+        cachedRequests.append((from: lower, to: upper))
         return suppliedCachedItems.filter { lower <= $0.localDate && $0.localDate <= upper }
     }
 

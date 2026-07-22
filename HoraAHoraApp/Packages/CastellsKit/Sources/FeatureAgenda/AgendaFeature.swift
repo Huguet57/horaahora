@@ -86,6 +86,7 @@ public final class AgendaViewModel {
     private var prefetchedMonthKeys: Set<String> = []
     private var monthsBeingPrefetched: Set<String> = []
     private var hasStartedInitialLoad = false
+    private var cachedWindowState: CachedWindowState?
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
     public private(set) var isFromCache = false
@@ -108,6 +109,14 @@ public final class AgendaViewModel {
 
     public var eventDateKeys: Set<String> {
         Set(prefetchedEvents.map(\.localDate))
+    }
+
+    public func preloadFromCache() {
+        if !hasStartedInitialLoad {
+            visibleMonth = selectedDate
+        }
+        let ranges = AgendaCalendarMath.prefetchRanges(containing: visibleMonth)
+        _ = restoreCachedSnapshot(in: ranges)
     }
 
     public func select(_ date: Date) {
@@ -154,24 +163,7 @@ public final class AgendaViewModel {
         let ranges = AgendaCalendarMath.prefetchRanges(containing: visibleMonth)
         guard let firstRange = ranges.first, let lastRange = ranges.last else { return }
 
-        let cached = forceRefresh ? [] : ranges.flatMap { range in
-            (try? repository.cachedEvents(
-                from: range.start,
-                to: range.end,
-                group: nil,
-                municipality: nil
-            )) ?? []
-        }
-        let hasCachedSnapshot = !cached.isEmpty
-        if hasCachedSnapshot {
-            applyPrefetchedWindow(
-                from: firstRange.start,
-                through: lastRange.end,
-                items: cached,
-                sourceStatus: .active,
-                fromCache: true
-            )
-        }
+        let hasCachedSnapshot = forceRefresh ? false : restoreCachedSnapshot(in: ranges)
         isLoading = !hasCachedSnapshot
         defer { isLoading = false }
 
@@ -201,11 +193,53 @@ public final class AgendaViewModel {
                     : .unavailable,
                 fromCache: results.allSatisfy(\.fromCache)
             )
+            cachedWindowState = nil
         } catch {
             if !hasCachedSnapshot {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    private func restoreCachedSnapshot(
+        in ranges: [(start: Date, end: Date)]
+    ) -> Bool {
+        guard let firstRange = ranges.first, let lastRange = ranges.last else { return false }
+        let window = CachedWindowState(
+            startKey: AgendaCalendarMath.localDateKey(firstRange.start),
+            endKey: AgendaCalendarMath.localDateKey(lastRange.end),
+            hasSnapshot: false
+        )
+        if let cachedWindowState,
+           cachedWindowState.startKey == window.startKey,
+           cachedWindowState.endKey == window.endKey {
+            return cachedWindowState.hasSnapshot
+        }
+
+        let cached = ranges.flatMap { range in
+            (try? repository.cachedEvents(
+                from: range.start,
+                to: range.end,
+                group: nil,
+                municipality: nil
+            )) ?? []
+        }
+        let hasSnapshot = !cached.isEmpty
+        cachedWindowState = CachedWindowState(
+            startKey: window.startKey,
+            endKey: window.endKey,
+            hasSnapshot: hasSnapshot
+        )
+        guard hasSnapshot else { return false }
+
+        applyPrefetchedWindow(
+            from: firstRange.start,
+            through: lastRange.end,
+            items: cached,
+            sourceStatus: .active,
+            fromCache: true
+        )
+        return true
     }
 
     private func extendPrefetchWindowIfNeeded() async {
@@ -242,6 +276,12 @@ public final class AgendaViewModel {
         fromCache: Bool,
         sourceStatus: AgendaSourceStatus
     )
+
+    private struct CachedWindowState {
+        let startKey: String
+        let endKey: String
+        let hasSnapshot: Bool
+    }
 
     private func fetch(
         range: (start: Date, end: Date),
@@ -326,12 +366,12 @@ public final class AgendaViewModel {
 }
 
 public struct AgendaRootView: View {
-    @State private var model: AgendaViewModel
+    private let model: AgendaViewModel
     @State private var isCalendarExpanded = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    public init(repository: any AgendaRepository) {
-        _model = State(initialValue: AgendaViewModel(repository: repository))
+    public init(model: AgendaViewModel) {
+        self.model = model
     }
 
     public var body: some View {
