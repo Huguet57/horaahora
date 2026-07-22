@@ -9,6 +9,7 @@ import FeatureSettings
 struct ContentView: View {
     let dependencies: AppDependencies
 
+    @State private var hourByHourModel: HourByHourViewModel
     @State private var agendaModel: AgendaViewModel
     @State private var selectedSection = AppSection.hourByHour
     @State private var presentedLink: PresentedLink?
@@ -18,6 +19,9 @@ struct ContentView: View {
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
+        _hourByHourModel = State(
+            initialValue: HourByHourViewModel(repository: dependencies.hourByHourRepository)
+        )
         _agendaModel = State(
             initialValue: AgendaViewModel(repository: dependencies.agendaRepository)
         )
@@ -27,7 +31,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedSection) {
             HourByHourRootView(
-                repository: dependencies.hourByHourRepository,
+                model: hourByHourModel,
                 showsNotificationOnboarding: settingsModel.showsNotificationOnboarding,
                 onConfigureNotifications: {
                     settingsModel.handleNotificationOnboarding(.configure) {
@@ -73,6 +77,10 @@ struct ContentView: View {
         .task {
             agendaModel.preloadFromCache()
             await settingsModel.refreshNotificationStatus()
+        }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            await hourByHourModel.runAutoRefresh(every: .seconds(60))
         }
         .onAppear {
             if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {

@@ -9,6 +9,8 @@ import UIKit
 @MainActor
 @Observable
 public final class HourByHourViewModel {
+    typealias Sleep = @MainActor @Sendable (Duration) async throws -> Void
+
     private static let minimumRefreshDuration = Duration.milliseconds(500)
 
     public private(set) var items: [HourByHourItem] = []
@@ -18,9 +20,21 @@ public final class HourByHourViewModel {
     public private(set) var errorMessage: String?
     private var nextCursor: String?
     private let repository: any HourByHourRepository
+    private let sleep: Sleep
 
-    public init(repository: any HourByHourRepository) {
+    public convenience init(repository: any HourByHourRepository) {
+        self.init(
+            repository: repository,
+            sleep: { duration in try await ContinuousClock().sleep(for: duration) }
+        )
+    }
+
+    init(
+        repository: any HourByHourRepository,
+        sleep: @escaping Sleep
+    ) {
         self.repository = repository
+        self.sleep = sleep
     }
 
     public func loadIfNeeded() async {
@@ -31,22 +45,50 @@ public final class HourByHourViewModel {
     public func refresh() async {
         let clock = ContinuousClock()
         let startedAt = clock.now
-        await load(forceRefresh: true)
+        await load(forceRefresh: true, mergePolicy: .replace)
         try? await clock.sleep(
             until: startedAt.advanced(by: Self.minimumRefreshDuration)
         )
     }
 
+    public func revalidate() async {
+        await load(forceRefresh: false, mergePolicy: .preserveExisting)
+    }
+
+    public func runAutoRefresh(every interval: Duration = .seconds(60)) async {
+        if items.isEmpty {
+            await loadIfNeeded()
+        } else {
+            await revalidate()
+        }
+
+        while !Task.isCancelled {
+            do {
+                try await sleep(interval)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            await revalidate()
+        }
+    }
+
     public func loadNextIfNeeded(after item: HourByHourItem) async {
-        guard item.id == items.last?.id, nextCursor != nil, !isLoadingMore else { return }
+        guard
+            item.id == items.last?.id,
+            nextCursor != nil,
+            !isLoading,
+            !isLoadingMore
+        else { return }
         isLoadingMore = true
         defer { isLoadingMore = false }
         do {
             let page = try await repository.page(cursor: nextCursor, limit: 30, forceRefresh: false)
-            merge(page.items, replacing: false)
+            merge(page.items, policy: .append)
             nextCursor = page.nextCursor
             isFromCache = page.fromCache
         } catch {
+            guard !Task.isCancelled else { return }
             errorMessage = error.localizedDescription
         }
     }
@@ -65,24 +107,43 @@ public final class HourByHourViewModel {
         }
     }
 
-    private func load(forceRefresh: Bool) async {
+    private func load(forceRefresh: Bool, mergePolicy: MergePolicy = .replace) async {
+        guard !isLoading, !isLoadingMore else { return }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
         do {
             let page = try await repository.page(cursor: nil, limit: 30, forceRefresh: forceRefresh)
-            merge(page.items, replacing: true)
-            nextCursor = page.nextCursor
+            let shouldAdoptFreshCursor = nextCursor == nil
+            merge(page.items, policy: mergePolicy)
+            if mergePolicy == .replace || shouldAdoptFreshCursor {
+                nextCursor = page.nextCursor
+            }
             isFromCache = page.fromCache
         } catch {
+            guard !Task.isCancelled else { return }
             errorMessage = error.localizedDescription
         }
     }
 
-    private func merge(_ incoming: [HourByHourItem], replacing: Bool) {
-        let source = replacing ? incoming : items + incoming
+    private func merge(_ incoming: [HourByHourItem], policy: MergePolicy) {
+        let source: [HourByHourItem]
+        switch policy {
+        case .replace:
+            source = incoming
+        case .append:
+            source = items + incoming
+        case .preserveExisting:
+            source = incoming + items
+        }
         var seen = Set<String>()
         items = source.filter { seen.insert("\($0.sourceID):\($0.externalID)").inserted }
+    }
+
+    private enum MergePolicy: Equatable {
+        case replace
+        case append
+        case preserveExisting
     }
 }
 
@@ -93,7 +154,7 @@ public struct HourByHourDayGroup: Identifiable {
 }
 
 public struct HourByHourRootView: View {
-    @State private var model: HourByHourViewModel
+    private let model: HourByHourViewModel
     @State private var detailItem: HourByHourItem?
     private let showsNotificationOnboarding: Bool
     private let onConfigureNotifications: () -> Void
@@ -101,13 +162,13 @@ public struct HourByHourRootView: View {
     private let onOpen: ((URL) -> Void)?
 
     public init(
-        repository: any HourByHourRepository,
+        model: HourByHourViewModel,
         showsNotificationOnboarding: Bool = false,
         onConfigureNotifications: @escaping () -> Void = {},
         onDismissNotificationOnboarding: @escaping () -> Void = {},
         onOpen: ((URL) -> Void)? = nil
     ) {
-        _model = State(initialValue: HourByHourViewModel(repository: repository))
+        self.model = model
         self.showsNotificationOnboarding = showsNotificationOnboarding
         self.onConfigureNotifications = onConfigureNotifications
         self.onDismissNotificationOnboarding = onDismissNotificationOnboarding
