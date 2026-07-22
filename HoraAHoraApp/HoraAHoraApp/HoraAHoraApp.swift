@@ -20,6 +20,14 @@ struct HoraAHoraApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(dependencies: dependencies)
+                .task {
+                    appDelegate.setTokenUpdateHandler { token in
+                        Task {
+                            await dependencies.pushSubscriptionCoordinator
+                                .didReceiveDeviceToken(token)
+                        }
+                    }
+                }
         }
     }
 }
@@ -32,6 +40,7 @@ final class AppDependencies {
     let chatRepository: any ChatRepository
     let settingsModel: SettingsModel
     let settingsConfiguration: SettingsConfiguration
+    let pushSubscriptionCoordinator: PushSubscriptionCoordinator
 
     init(
         configuration: AppConfiguration = .live(),
@@ -39,7 +48,17 @@ final class AppDependencies {
     ) throws {
         let modelContainer = try DataStack.makeModelContainer()
         let client = APIClient(baseURL: configuration.apiBaseURL)
-        let notificationManager = IOSHourByHourNotificationManager(userDefaults: userDefaults)
+        let pushSubscriptionCoordinator = PushSubscriptionCoordinator(
+            remoteService: HTTPPushSubscriptionRemoteService(client: client),
+            installationID: configuration.technicalIdentifier,
+            appVersion: "\(configuration.appVersion) (\(configuration.buildNumber))",
+            locale: Locale.current.identifier,
+            environment: configuration.apnsEnvironment
+        )
+        let notificationManager = IOSHourByHourNotificationManager(
+            userDefaults: userDefaults,
+            pushSubscriptionCoordinator: pushSubscriptionCoordinator
+        )
 
         self.modelContainer = modelContainer
         self.hourByHourRepository = CachedHourByHourRepository(
@@ -68,6 +87,7 @@ final class AppDependencies {
             }
         )
         self.settingsConfiguration = configuration.settingsConfiguration
+        self.pushSubscriptionCoordinator = pushSubscriptionCoordinator
     }
 }
 
@@ -81,6 +101,7 @@ struct AppConfiguration {
     let appVersion: String
     let buildNumber: String
     let technicalIdentifier: String
+    let apnsEnvironment: String
     let revistaCastellsURL: URL?
     let ccccAgendaURL: URL?
     let concursCastellsURL: URL?
@@ -110,6 +131,11 @@ struct AppConfiguration {
         guard let apiBaseURL = URL(string: configuredBaseURL) else {
             preconditionFailure("CastellsAPIBaseURL no és una URL vàlida")
         }
+#if DEBUG
+        let apnsEnvironment = "development"
+#else
+        let apnsEnvironment = "production"
+#endif
 
         return AppConfiguration(
             apiBaseURL: apiBaseURL,
@@ -122,6 +148,7 @@ struct AppConfiguration {
             technicalIdentifier: InstallationIdentifierStore(
                 userDefaults: userDefaults
             ).currentIdentifier(),
+            apnsEnvironment: apnsEnvironment,
             revistaCastellsURL: URL(
                 string: "https://revistacastells.cat/castells-hora-a-hora/"
             ),

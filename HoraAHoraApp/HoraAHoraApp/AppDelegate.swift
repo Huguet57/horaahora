@@ -4,13 +4,20 @@ import UserNotifications
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     static var shared: AppDelegate?
     static let deepLinkURLKey = "url"
-    var deviceToken: String = ""
-    var onTokenUpdate: ((String) -> Void)?
+    private(set) var deviceToken: String?
+    private var onTokenUpdate: ((String) -> Void)?
     private(set) var pendingDeepLinkURL: URL?
 
     func consumePendingDeepLinkURL() -> URL? {
         defer { pendingDeepLinkURL = nil }
         return pendingDeepLinkURL
+    }
+
+    func setTokenUpdateHandler(_ handler: @escaping (String) -> Void) {
+        onTokenUpdate = handler
+        if let deviceToken {
+            handler(deviceToken)
+        }
     }
 
     func application(
@@ -37,10 +44,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        self.deviceToken = "Error: \(error.localizedDescription)"
-        DispatchQueue.main.async {
-            self.onTokenUpdate?(self.deviceToken)
-        }
+        // A later foreground refresh asks APNs for a fresh token again.
     }
 
     func userNotificationCenter(
