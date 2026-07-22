@@ -2,7 +2,7 @@
 
 Primera fase d'una app iOS modular amb quatre seccions natives: Hora a Hora, Agenda, una calculadora conversacional i Ajustos. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura concreta al domini o al contracte HTTP.
 
-El nom visible i definitiu de l'app és **Castells en vena**.
+El nom visible i definitiu de l'app és **Castells en vena** i el Bundle ID de distribució és `com.ahuguet.castellsenvena`.
 
 ## Estructura
 

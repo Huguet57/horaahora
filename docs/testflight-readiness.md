@@ -6,43 +6,44 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 
 | Àrea | Requisit | Estat | Acció pendent |
 | --- | --- | --- | --- |
-| Codi | `main` estable, tests Python i Swift i build Release | Preparat | Fer merge d'aquesta PR quan el CI sigui verd. |
-| Identitat | Bundle ID explícit `com.andreu.HoraAHoraApp` | Configurat | Confirmar que és l'identificador definitiu abans de crear el registre d'App Store Connect. |
+| Codi | PR #4 rebasada; 67 tests Python, 35 tests Swift i build Release | Preparat | Fer merge quan el CI de l'últim commit sigui verd. |
+| Identitat | Bundle ID explícit `com.ahuguet.castellsenvena` i App ID amb Push Notifications | Configurat al projecte i al portal | Utilitzar el mateix Bundle ID al registre d'App Store Connect. |
 | Versió | `CFBundleShortVersionString` 1.0 i build 1 | Configurat | Incrementar sempre el build abans de cada pujada posterior. |
 | Nom | Nom visible `Castells en vena` | Configurat | Utilitzar exactament aquest nom al registre d'App Store Connect i confirmar-ne la disponibilitat. |
 | Icona | App Icon opaca de 1024 × 1024 a l'asset catalog | Preparat | Validar la marca amb els socis abans de la beta externa. |
 | Privacitat | Política completa en CA, ES i EN, enllaç des d'Ajustos i `PrivacyInfo.xcprivacy` integrat | Preparat al repositori | Desplegar aquesta branca i completar l'etiqueta App Privacy d'App Store Connect d'acord amb el manifest. |
 | Xifrat | `ITSAppUsesNonExemptEncryption = NO` per HTTPS estàndard | Preparat | Confirmar si s'afegeix criptografia pròpia en el futur. |
-| Release | APNs `development` en Debug i `production` en Release | Preparat al projecte | Habilitar Push Notifications a l'App ID i obtenir un perfil de distribució. |
+| Release | APNs `development` en Debug i `production` en Release; perfils Development i Store generats | Preparat | La signatura automàtica gestionarà les renovacions. |
 | Backend | URL Release `https://castells-superapp-poc.vercel.app`, amb `cdg1` com a regió principal | Actiu | Desplegar els canvis i verificar la regió, les URLs, la retenció i l'SLA. Vercel i els seus subencarregats poden tractar dades fora de la UE. |
-| Automatització | CI de tests Swift i build iOS Release sense signar | Preparat | Vigilar el primer run de GitHub Actions. |
-| Archive | Archive genèric sense signar | Validat localment | Fer un archive signat des de Xcode quan hi hagi certificat i perfil. |
+| Automatització | CI de tests Swift i build iOS Release sense signar | Preparat | Vigilar el run de l'últim commit. |
+| Archive | Archive signat i IPA App Store exportat amb certificat cloud-managed Apple Distribution | Validat localment | Crear el registre d'App Store Connect i executar Validate App abans de pujar. |
 
 ## Accions obligatòries al compte d'Apple
 
-| Ordre | Requisit | Qui/On | Bloqueja |
+| Ordre | Requisit | Estat | Acció pendent |
 | --- | --- | --- | --- |
-| 1 | Membresia Apple Developer activa i acords vigents acceptats | Account Holder | Qualsevol pujada |
-| 2 | App ID explícit amb el bundle ID definitiu i Push Notifications | Certificates, Identifiers & Profiles | Signatura Release i notificacions |
-| 3 | Certificat Apple Distribution i perfil App Store Connect, o signatura automàtica autoritzada | Xcode / Developer portal | Archive signat |
-| 4 | Registre nou de l'app amb el nom `Castells en vena`, idioma principal, Bundle ID i SKU | App Store Connect | Pujada del build |
-| 5 | Política de privacitat publicada amb URL HTTPS i accessible des de l'app | Repositori preparat; desplegament pendent | Beta externa / revisió |
-| 6 | Formulari App Privacy: identificador de dispositiu i contingut d'usuari per funcionalitat, sense tracking | App Store Connect | Beta externa / distribució |
-| 7 | Declarar drets d'ús i atribució de Revista Castells i CCCC | Producte/legal | Beta externa |
-| 8 | Edat, content rights i dades de contacte de revisió | App Store Connect | Beta externa |
-| 9 | Crear grup intern, afegir testers i assignar el build processat | TestFlight | Prova interna |
-| 10 | Per testers externs: beta description, feedback email, “What to Test”, contacte i Beta App Review | TestFlight | Prova externa |
+| 1 | Membresia Apple Developer activa i acords vigents acceptats | Compte i equip actius | Confirmar que no hi hagi acords pendents a App Store Connect. |
+| 2 | App ID explícit `com.ahuguet.castellsenvena` amb Push Notifications | Fet | Cap. |
+| 3 | Certificat Apple Distribution i perfil App Store Connect | Fet amb signatura cloud-managed | Renovació automàtica; el perfil Store actual caduca el 29 d'abril de 2027. |
+| 4 | Registre nou de l'app amb el nom `Castells en vena`, idioma principal, Bundle ID i SKU | Pendent | Crear-lo a App Store Connect abans de validar o pujar l'IPA. |
+| 5 | Política de privacitat publicada amb URL HTTPS i accessible des de l'app | Repositori preparat | Desplegar el backend rebasat i verificar les quatre URLs. |
+| 6 | Formulari App Privacy: identificador de dispositiu i contingut d'usuari per funcionalitat, sense tracking | Pendent | Completar-lo a App Store Connect d'acord amb `PrivacyInfo.xcprivacy`. |
+| 7 | Declarar drets d'ús i atribució de Revista Castells i CCCC | Pendent | Confirmar-ho amb producte/legal abans de la beta externa. |
+| 8 | Edat, content rights i dades de contacte de revisió | Pendent | Completar-ho a App Store Connect. |
+| 9 | Crear grup intern, afegir testers i assignar el build processat | Pendent | Fer-ho després de la primera pujada. |
+| 10 | Per testers externs: beta description, feedback email, “What to Test”, contacte i Beta App Review | Pendent | Utilitzar els textos de `testflight-metadata-ca.md`. |
 
 ## Pujada recomanada
 
-1. Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj` amb el compte Apple correcte.
-2. A **Signing & Capabilities**, comprova l'equip `B94LUNLMW9`, el Bundle ID i que no hi hagi errors de provisioning.
-3. Selecciona **Any iOS Device (arm64)** i executa **Product → Archive** amb Release.
-4. A Organizer, executa **Validate App** i resol qualsevol avís.
-5. Executa **Distribute App → App Store Connect → Upload**.
-6. Espera que el build es processi, completa export compliance si Apple ho demana i assigna'l primer a un grup intern.
+1. Crea el registre de `Castells en vena` a App Store Connect amb el Bundle ID `com.ahuguet.castellsenvena`.
+2. Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj` amb el compte Apple de l'equip `B94LUNLMW9`.
+3. A **Signing & Capabilities**, comprova el Bundle ID, Push Notifications i la signatura automàtica.
+4. Selecciona **Any iOS Device (arm64)** i executa **Product → Archive** amb Release.
+5. A Organizer, executa **Validate App** i resol qualsevol avís.
+6. Executa **Distribute App → App Store Connect → Upload**.
+7. Espera que el build es processi, completa export compliance si Apple ho demana i assigna'l primer a un grup intern.
 
-El fitxer `HoraAHoraApp/ExportOptions-TestFlight.plist` deixa preparada l'exportació automàtica un cop existeixin les credencials de distribució. No s'han d'afegir certificats, claus APNs ni contrasenyes al repositori.
+El fitxer `HoraAHoraApp/ExportOptions-TestFlight.plist` ja s'ha validat exportant un IPA App Store signat amb `aps-environment=production` i `beta-reports-active=true`. No s'han d'afegir certificats, claus APNs ni contrasenyes al repositori.
 
 ## Criteris mínims abans de convidar testers
 

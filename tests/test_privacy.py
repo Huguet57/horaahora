@@ -189,7 +189,12 @@ def test_final_app_name_is_consistent_in_xcode_and_testflight_docs() -> None:
     ).read_text()
     readiness = (repository_root / "docs" / "testflight-readiness.md").read_text()
     metadata = (repository_root / "docs" / "testflight-metadata-ca.md").read_text()
+    readme = (repository_root / "README.md").read_text()
 
     assert project.count('INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";') == 2
+    assert project.count("PRODUCT_BUNDLE_IDENTIFIER = com.ahuguet.castellsenvena;") == 2
+    assert "com.andreu.HoraAHoraApp" not in project
     assert "Nom visible `Castells en vena`" in readiness
+    assert "`com.ahuguet.castellsenvena`" in readiness
     assert "Castells en vena és" in metadata
+    assert "`com.ahuguet.castellsenvena`" in readme
