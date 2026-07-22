@@ -173,6 +173,37 @@ def test_hour_by_hour_contract_is_paginated() -> None:
     assert response.json() == {"items": [], "next_cursor": None, "from_cache": True}
 
 
+def test_hour_by_hour_pull_to_refresh_reads_persisted_content_without_fetching_source() -> None:
+    class RecordingSource:
+        def __init__(self) -> None:
+            self.fetch_count = 0
+
+        def fetch(self):
+            self.fetch_count += 1
+            return []
+
+    source = RecordingSource()
+    settings = Settings(
+        database_url="sqlite://",
+        hour_by_hour_source_enabled=False,
+        ai_provider="local",
+        rate_limit_max_requests=100,
+    )
+    app = create_app(
+        settings=settings,
+        interpreter=RegexQueryInterpreter(),
+        content_repository=InMemoryContentRepository(),
+        rate_limiter=InMemoryRateLimiter(max_requests=100, window_seconds=60),
+        hour_by_hour_source=source,
+        notification_coordinator=CoordinatorStub(),
+    )
+
+    response = TestClient(app).get("/v1/hour-by-hour?limit=30&refresh=true")
+
+    assert response.status_code == 200
+    assert source.fetch_count == 0
+
+
 def test_privacy_page_is_localized_and_explains_prefilled_support_email() -> None:
     response = make_client().get("/privacy")
 

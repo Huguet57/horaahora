@@ -91,11 +91,7 @@ def create_app(
     container = ApplicationContainer(
         database=database,
         chat_service=ChatService(interpreter, ScoringEngine(ScoreTable.default())),
-        hour_by_hour_service=HourByHourService(
-            content_repository,
-            hour_by_hour_source,
-            settings.hour_by_hour_refresh_seconds,
-        ),
+        hour_by_hour_service=HourByHourService(content_repository, source=None),
         agenda_service=AgendaService(
             content_repository,
             agenda_source,

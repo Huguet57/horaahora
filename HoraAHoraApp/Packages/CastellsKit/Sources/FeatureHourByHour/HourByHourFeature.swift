@@ -9,6 +9,8 @@ import UIKit
 @MainActor
 @Observable
 public final class HourByHourViewModel {
+    private static let minimumRefreshDuration = Duration.milliseconds(500)
+
     public private(set) var items: [HourByHourItem] = []
     public private(set) var isLoading = false
     public private(set) var isLoadingMore = false
@@ -27,7 +29,12 @@ public final class HourByHourViewModel {
     }
 
     public func refresh() async {
+        let clock = ContinuousClock()
+        let startedAt = clock.now
         await load(forceRefresh: true)
+        try? await clock.sleep(
+            until: startedAt.advanced(by: Self.minimumRefreshDuration)
+        )
     }
 
     public func loadNextIfNeeded(after item: HourByHourItem) async {
