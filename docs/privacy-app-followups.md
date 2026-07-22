@@ -1,36 +1,27 @@
-# Canvis de privacitat pendents a l'app iOS
+# Estat de privacitat de l'app iOS
 
-Aquest document recull treball futur. **No forma part de la implementació actual** i cap d'aquests comportaments s'ha de descriure com a disponible fins que estigui implementat, provat i reflectit en la política de privacitat i a App Store Connect.
+Aquest document separa els controls de privacitat ja disponibles del treball futur. La política i les declaracions d'App Store Connect han de continuar descrivint només comportaments efectivament publicats.
 
-## Abans d'una beta externa o revisió d'Apple
+## Implementat
 
-- Afegir una pantalla «Sobre i privacitat» accessible dins l'app.
-- Enllaçar-hi les versions catalana, castellana i anglesa de la política publicada.
-- Mostrar el contacte `tenimaletaapp@gmail.com` i un identificador tècnic de suport que l'usuari pugui copiar.
-- Revisar `PrivacyInfo.xcprivacy` i les respostes d'App Privacy d'App Store Connect perquè coincideixin amb el comportament real.
+- La quarta secció «Ajustos» centralitza les notificacions, la privacitat, el suport, les fonts i la informació de l'app.
+- «Política de privacitat» obre `/privacy`, que mostra la versió catalana i permet canviar a castellà o anglès amb enllaços HTML estàtics.
+- El contacte `tenimaletaapp@gmail.com` és accessible des d'Ajustos.
+- L'identificador tècnic aleatori de la instal·lació es mostra i es pot copiar.
+- «Contacta amb suport» prepara un correu editable amb la versió, el número de build i l'identificador tècnic. L'usuari pot revisar-lo, modificar-lo o cancel·lar-lo, i només es transmet quan prem manualment el botó d'enviament.
+- No s'exporten ni s'adjunten converses al correu de suport.
+- El backend no rep ni conserva tokens APNs en la versió actual.
 
-L'accés fàcil a la política dins l'app continua sent un requisit pendent i bloqueja la preparació completa per a una beta externa o una revisió pública d'Apple.
+## Pendent
 
-## Suport voluntari
+### Compartició explícita de converses
 
-- Preparar un correu de suport amb l'identificador tècnic inclòs al cos.
-- Mostrar el correu complet abans d'obrir el client de correu; no enviar res en segon pla.
-- Permetre seleccionar una conversa concreta per compartir-la voluntàriament.
-- Mostrar-ne el contingut abans d'adjuntar-lo i no incloure altres converses ni la base de dades local.
-- Actualitzar la política abans d'activar aquest flux, explicant exactament què es comparteix i durant quant temps es conserva.
+- Implementar, si es decideix oferir-la, la compartició explícita de converses seleccionades individualment.
+- Mostrar el contingut complet abans d'adjuntar-lo i no incloure altres converses ni la base de dades local.
+- Actualitzar la política, `PrivacyInfo.xcprivacy` i App Store Connect abans d'activar aquesta funció.
 
-## Notificacions remotes
+### Registre de notificacions remotes
 
-- Implementar el registre directe del token amb APNs sense afegir Firebase ni OneSignal.
-- Afegir al backend un registre associat a l'identificador aleatori d'instal·lació, no a una identitat real.
-- Revocar el token quan es desactivin les notificacions.
-- Eliminar-lo quan Apple el marqui com a invàlid o després de 12 mesos sense activitat.
-- No reutilitzar el token per analítica, perfilat ni altres finalitats.
-- Abans d'activar-ho, actualitzar la política, el manifest de privacitat, App Store Connect i els tests de baixa i caducitat.
-
-## Criteris d'acceptació futurs
-
-- Cap identificador ni conversa surt del dispositiu sense una acció explícita i revisable de l'usuari.
-- Desactivar les notificacions revoca el registre del backend.
-- L'app pot obrir la política encara que no hi hagi una sessió o compte.
-- Els textos i les etiquetes de privacitat descriuen només comportaments ja disponibles.
+- Implementar en el futur el registre i revocació de tokens APNs al backend, sense Firebase ni OneSignal.
+- Associar cada token només a l'identificador aleatori d'instal·lació; revocar-lo quan es desactivin les notificacions i eliminar-lo quan Apple el marqui com a invàlid o després del termini que es defineixi.
+- No reutilitzar els tokens per analítica, perfilat ni cap altra finalitat, i actualitzar la política i les proves abans d'activar el registre.

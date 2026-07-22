@@ -37,7 +37,9 @@ Si s'activen voluntàriament les notificacions, iOS gestiona el permís i Apple 
 
 ### Comunicacions de suport
 
-Si l'usuari escriu voluntàriament al correu de contacte, es tractaran l'adreça de correu, el contingut del missatge i els fitxers que decideixi adjuntar. L'app actual no exporta ni envia converses automàticament a suport.
+Quan se selecciona «Contacta amb suport», l'app prepara un correu editable amb la versió, el número de build i l'identificador tècnic. Aquesta informació només es transmet si l'usuari revisa el correu i prem manualment el botó d'enviament; també pot cancel·lar-lo.
+
+Si l'usuari l'envia, es tractaran l'adreça de correu, el contingut del missatge i els fitxers que decideixi adjuntar. L'app no exporta converses ni les adjunta automàticament a suport.
 
 ## 3. Finalitats i bases jurídiques
 

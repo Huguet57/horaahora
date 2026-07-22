@@ -2,7 +2,7 @@
 
 ## Descripció de la beta
 
-Castells és una prova de concepte d'una super-app castellera col·laborativa. Reuneix l'Hora a Hora de Revista Castells, l'agenda d'actuacions de la Coordinadora de Colles Castelleres de Catalunya i una calculadora conversacional basada en la taula de puntuacions del Concurs de Castells 2026.
+Castells en vena és una prova de concepte d'una super-app castellera col·laborativa. Reuneix l'Hora a Hora de Revista Castells, l'agenda d'actuacions de la Coordinadora de Colles Castelleres de Catalunya i una calculadora conversacional basada en la taula de puntuacions del Concurs de Castells 2026.
 
 ## Què cal provar
 
@@ -18,6 +18,7 @@ Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes
 - L'app no necessita registre ni credencials.
 - L'API de la beta és `https://castells-superapp-poc.vercel.app`.
 - Les converses es desen localment. Per interpretar una consulta, s'envien al backend com a màxim els darrers 12 missatges i un identificador aleatori d'instal·lació; no s'utilitzen per publicitat ni tracking.
+- Ajustos obre la política de privacitat i prepara un correu de suport editable amb la versió, el build i l'identificador tècnic; no s'envia res fins que l'usuari ho confirma manualment i no s'exporten converses.
 - La puntuació final es calcula amb un motor determinista i la taula 2026 versionada; la IA només interpreta el llenguatge.
 - Les fonts editorials es mostren amb atribució i enllaç de retorn.
 
