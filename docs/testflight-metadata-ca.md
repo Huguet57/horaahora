@@ -10,6 +10,7 @@ Castells en vena és una prova de concepte d'una super-app castellera col·labor
 - **Agenda:** punts als dies amb actuacions, gestos i fletxes de setmana/mes, plegat manual, canvi de dia, fitxes i obertura de la ubicació a Google Maps.
 - **Calculadora:** comparacions amb notació curta o llenguatge natural, sinònims castellers, seguiments dins una conversa, historial local i aclariments quan una expressió és ambigua.
 - **General:** llegibilitat, rendiment, errors de dades i comportament en iPhone i iPad.
+- **Notificacions:** activa «Hora a Hora», tanca l'app i comprova la recepció i l'obertura de l'enllaç; després desactiva-les i confirma que no arriben més avisos.
 
 Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes per reproduir qualsevol problema.
 
@@ -21,6 +22,7 @@ Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes
 - Ajustos obre la política de privacitat i prepara un correu de suport editable amb la versió, el build i l'identificador tècnic; no s'envia res fins que l'usuari ho confirma manualment i no s'exporten converses.
 - La puntuació final es calcula amb un motor determinista i la taula 2026 versionada; la IA només interpreta el llenguatge.
 - Les fonts editorials es mostren amb atribució i enllaç de retorn.
+- Els tokens APNs només s'associen a l'identificador aleatori d'instal·lació per lliurar els avisos activats i es revoquen en desactivar-los.
 
 ## Camps que s'han de completar manualment
 

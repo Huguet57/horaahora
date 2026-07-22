@@ -33,7 +33,7 @@ En connectar-se al servei es poden processar l'adreça IP, la data i l'hora, la 
 
 ### Notificacions
 
-Si s'activen voluntàriament les notificacions, iOS gestiona el permís i Apple pot assignar un token d'Apple Push Notification service (APNs) al dispositiu. En la versió actual, el backend de Castells en vena no rep ni conserva aquest token. Les notificacions es poden desactivar des de l'app o des dels ajustos d'iOS.
+Si s'activen voluntàriament les notificacions, iOS gestiona el permís i Apple assigna un token d'Apple Push Notification service (APNs) a aquesta instal·lació. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app i l'idioma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple invalida el token, el backend el substitueix immediatament per una marca de revocació.
 
 ### Comunicacions de suport
 
@@ -52,6 +52,7 @@ Les dades necessàries per respondre una consulta i protegir el servei són impr
 ## 4. Proveïdors i destinataris
 
 - **Vercel:** allotjament i execució del backend. La funció principal es configura a París (`cdg1`), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.
+- **Neon:** base de dades PostgreSQL gestionada on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.
 - **OpenAI:** interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (`store: false`).
 - **Apple:** distribució de l'app, permisos del sistema i APNs quan s'activen notificacions.
 - **Google/Gmail:** recepció i gestió dels correus enviats voluntàriament al contacte de suport o privacitat.
@@ -66,6 +67,7 @@ Alguns proveïdors o subencarregats poden tractar dades fora de l'Espai Econòmi
 
 - **Dades locals:** fins que s'elimina cada conversa o es desinstal·la l'app.
 - **Limitador de peticions:** les claus tècniques es mantenen durant una finestra de 10 minuts.
+- **Subscripció de notificacions:** el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs el rebutja. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.
 - **Logs de Vercel:** aproximadament 1 dia amb el pla actual.
 - **OpenAI:** l'API no s'utilitza per entrenar models per defecte; OpenAI pot retenir logs de prevenció d'abús fins a 30 dies, llevat que una obligació legal exigeixi una altra conservació.
 - **Correus de suport o privacitat:** fins a 12 mesos després de resoldre la consulta, tret que sigui necessari conservar-los més temps per complir una obligació legal o defensar reclamacions.

@@ -114,6 +114,7 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
         assert "OpenAI" in response.text
         assert "store: false" in response.text
         assert "Vercel" in response.text
+        assert "Neon" in response.text
         assert "cdg1" in response.text
         assert "Apple" in response.text
         assert "APNs" in response.text
@@ -168,16 +169,18 @@ def test_catalan_policy_document_has_no_draft_placeholders_or_old_name() -> None
     assert "[data" not in policy.lower()
 
 
-def test_only_conversation_sharing_and_apns_backend_work_remain_pending() -> None:
+def test_only_explicit_conversation_sharing_remains_pending() -> None:
     followups_path = Path(__file__).parents[1] / "docs" / "privacy-app-followups.md"
     followups = followups_path.read_text()
 
     assert "## Implementat" in followups
     assert "secció «Ajustos»" in followups
     assert "correu editable" in followups
+    assert "tokens APNs" in followups
     assert "## Pendent" in followups
     assert "compartició explícita de converses" in followups
-    assert "registre i revocació de tokens APNs" in followups
+    pending = followups.split("## Pendent", 1)[1]
+    assert "registre i revocació de tokens APNs" not in pending
     assert "Afegir una pantalla" not in followups
     assert "Preparar un correu" not in followups
 

@@ -6,7 +6,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 
 | Àrea | Requisit | Estat | Acció pendent |
 | --- | --- | --- | --- |
-| Codi | PR #4 rebasada sobre l'`origin/main` de la PR #8; 67 tests Python, 37 tests Swift i build Release | Preparat | Fer merge quan el CI de l'últim commit sigui verd. |
+| Codi | 91 tests Python (inclosa integració PostgreSQL 17), 40 tests Swift i builds Debug/Release | Preparat | Fer merge quan el CI de l'últim commit sigui verd. |
 | Identitat | Bundle ID explícit `com.ahuguet.castellsenvena` i App ID amb Push Notifications | Configurat al projecte i al portal | Utilitzar el mateix Bundle ID al registre d'App Store Connect. |
 | Versió | `CFBundleShortVersionString` 1.0 i build 2 | Configurat | Incrementar sempre el build abans de cada pujada posterior. |
 | Nom | Nom visible `Castells en vena` | Configurat | Utilitzar exactament aquest nom al registre d'App Store Connect i confirmar-ne la disponibilitat. |
@@ -14,7 +14,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | Privacitat | Política completa en CA, ES i EN, enllaç des d'Ajustos i `PrivacyInfo.xcprivacy` integrat | Preparat al repositori | Desplegar aquesta branca i completar l'etiqueta App Privacy d'App Store Connect d'acord amb el manifest. |
 | Xifrat | `ITSAppUsesNonExemptEncryption = NO` per HTTPS estàndard | Preparat | Confirmar si s'afegeix criptografia pròpia en el futur. |
 | Release | APNs `development` en Debug i `production` en Release; perfils Development i Store generats | Preparat | La signatura automàtica gestionarà les renovacions. |
-| Backend | URL Release `https://castells-superapp-poc.vercel.app`, amb `cdg1` com a regió principal | Actiu | Desplegar els canvis i verificar la regió, les URLs, la retenció i l'SLA. Vercel i els seus subencarregats poden tractar dades fora de la UE. |
+| Backend | URL Release `https://castells-superapp-poc.vercel.app`, Vercel `cdg1`, Neon PostgreSQL i cron idempotent | Preparat al repositori | Provisionar/vincular Neon, aplicar Alembic, configurar secrets i verificar `/health/ready`. |
 | Automatització | CI de tests Swift i build iOS Release sense signar | Preparat | Vigilar el run de l'últim commit. |
 | Archive | Archive signat i IPA App Store exportat amb certificat cloud-managed Apple Distribution | Build 2 acceptat per App Store Connect | Esperar que Apple acabi de processar-lo i revisar qualsevol avís. |
 
@@ -58,4 +58,4 @@ Després de rebasar sobre l'`origin/main` que inclou la PR #8, la versió 1.0 (b
 - La política de privacitat explica que els últims missatges necessaris viatgen al backend i al proveïdor d'IA, mentre l'historial complet queda al dispositiu.
 - El correu de suport mostra versió, build i identificador tècnic abans d'enviar-se, i no exporta converses.
 - S'ha provat almenys en un iPhone físic, un iPad o simulador i amb connectivitat intermitent.
-- Les notificacions o bé funcionen de punta a punta, o bé no es prometen com a funcionalitat de la beta.
+- Una instal·lació TestFlight registra un token APNs de producció a Neon, rep un avís amb l'app tancada i deixa de rebre'n després de desactivar-los.
