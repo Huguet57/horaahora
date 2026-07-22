@@ -81,6 +81,7 @@ enum AgendaCalendarMath {
 public final class AgendaViewModel {
     public var selectedDate: Date
     public private(set) var visibleMonth: Date
+    public private(set) var visibleWeek: Date
     public private(set) var monthEvents: [CastellEvent] = []
     private var prefetchedEvents: [CastellEvent] = []
     private var prefetchedMonthKeys: Set<String> = []
@@ -98,6 +99,7 @@ public final class AgendaViewModel {
         let now = Date()
         self.selectedDate = now
         self.visibleMonth = now
+        self.visibleWeek = now
         self.repository = repository
         self.officialURL = repository.officialURL
     }
@@ -114,6 +116,7 @@ public final class AgendaViewModel {
     public func preloadFromCache() {
         if !hasStartedInitialLoad {
             visibleMonth = selectedDate
+            visibleWeek = selectedDate
         }
         let ranges = AgendaCalendarMath.prefetchRanges(containing: visibleMonth)
         _ = restoreCachedSnapshot(in: ranges)
@@ -122,12 +125,13 @@ public final class AgendaViewModel {
     public func select(_ date: Date) {
         selectedDate = date
         visibleMonth = date
+        visibleWeek = date
         updateVisibleMonthEvents()
     }
 
     public func selectAndLoad(_ date: Date) async {
         select(date)
-        await extendPrefetchWindowIfNeeded()
+        await extendPrefetchWindowIfNeeded(containing: date)
     }
 
     public func changeMonth(by offset: Int) async {
@@ -140,24 +144,26 @@ public final class AgendaViewModel {
         }
         visibleMonth = date
         updateVisibleMonthEvents()
-        await extendPrefetchWindowIfNeeded()
+        await extendPrefetchWindowIfNeeded(containing: date)
     }
 
     public func changeWeek(by offset: Int) async {
         guard let date = AgendaCalendarMath.calendar.date(
             byAdding: .day,
             value: offset * 7,
-            to: selectedDate
+            to: visibleWeek
         ) else {
             return
         }
-        await selectAndLoad(date)
+        visibleWeek = date
+        await extendPrefetchWindowIfNeeded(containing: date)
     }
 
     public func load(forceRefresh: Bool = false) async {
         errorMessage = nil
         if !hasStartedInitialLoad {
             visibleMonth = selectedDate
+            visibleWeek = selectedDate
             hasStartedInitialLoad = true
         }
         let ranges = AgendaCalendarMath.prefetchRanges(containing: visibleMonth)
@@ -242,8 +248,8 @@ public final class AgendaViewModel {
         return true
     }
 
-    private func extendPrefetchWindowIfNeeded() async {
-        let desiredRanges = AgendaCalendarMath.prefetchRanges(containing: visibleMonth)
+    private func extendPrefetchWindowIfNeeded(containing date: Date) async {
+        let desiredRanges = AgendaCalendarMath.prefetchRanges(containing: date)
         guard let firstRange = desiredRanges.first, let lastRange = desiredRanges.last else { return }
 
         let missingMonths = AgendaCalendarMath.monthStarts(
@@ -380,6 +386,7 @@ public struct AgendaRootView: View {
                 AgendaCalendarView(
                     selectedDate: model.selectedDate,
                     visibleMonth: model.visibleMonth,
+                    visibleWeek: model.visibleWeek,
                     eventDateKeys: model.eventDateKeys,
                     isExpanded: isCalendarExpanded,
                     onToggle: {
@@ -505,6 +512,7 @@ private struct OfficialAgendaFallback: View {
 private struct AgendaCalendarView: View {
     let selectedDate: Date
     let visibleMonth: Date
+    let visibleWeek: Date
     let eventDateKeys: Set<String>
     let isExpanded: Bool
     let onToggle: () -> Void
@@ -565,7 +573,7 @@ private struct AgendaCalendarView: View {
         .contentShape(Rectangle())
         .accessibilityAction(named: "Setmana anterior") { onChangeWeek(-1) }
         .accessibilityAction(named: "Setmana següent") { onChangeWeek(1) }
-        .onChange(of: selectedDate) { _, _ in
+        .onChange(of: visibleWeek) { _, _ in
             var transaction = Transaction()
             transaction.disablesAnimations = true
             withTransaction(transaction) {
@@ -725,7 +733,7 @@ private struct AgendaCalendarView: View {
             HStack(spacing: 0) {
                 weekGrid(containing: weekDate(offset: -1))
                     .frame(width: pageWidth)
-                weekGrid(containing: selectedDate)
+                weekGrid(containing: visibleWeek)
                     .frame(width: pageWidth)
                 weekGrid(containing: weekDate(offset: 1))
                     .frame(width: pageWidth)
@@ -750,7 +758,7 @@ private struct AgendaCalendarView: View {
     }
 
     private func weekDate(offset: Int) -> Date {
-        calendar.date(byAdding: .day, value: offset * 7, to: selectedDate) ?? selectedDate
+        calendar.date(byAdding: .day, value: offset * 7, to: visibleWeek) ?? visibleWeek
     }
 
     private func weekPagingGesture(pageWidth: CGFloat) -> some Gesture {
@@ -847,7 +855,7 @@ private struct AgendaCalendarView: View {
     }
 
     private var monthStart: Date {
-        monthStart(containing: isExpanded ? visibleMonth : selectedDate)
+        monthStart(containing: isExpanded ? visibleMonth : visibleWeek)
     }
 
     private func monthStart(containing date: Date) -> Date {

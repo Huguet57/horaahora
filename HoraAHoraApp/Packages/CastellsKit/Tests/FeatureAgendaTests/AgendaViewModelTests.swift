@@ -77,7 +77,7 @@ final class AgendaViewModelTests: XCTestCase {
         XCTAssertEqual(repository.requests.count, 3)
     }
 
-    func testChangingWeekAcrossAMonthExtendsThePrefetchWindowInTheBackground() async {
+    func testChangingWeekKeepsTheActiveDayAndExtendsThePrefetchWindowInTheBackground() async {
         let repository = AgendaRepositoryStub()
         let model = AgendaViewModel(repository: repository)
         model.selectedDate = date("2026-07-28")
@@ -85,7 +85,8 @@ final class AgendaViewModelTests: XCTestCase {
 
         await model.changeWeek(by: 1)
 
-        XCTAssertEqual(localDate(model.selectedDate), "2026-08-04")
+        XCTAssertEqual(localDate(model.selectedDate), "2026-07-28")
+        XCTAssertEqual(localDate(model.visibleWeek), "2026-08-04")
         XCTAssertEqual(repository.requests.count, 3)
         XCTAssertEqual(repository.requestedFrom, "2027-02-01")
         XCTAssertEqual(repository.requestedTo, "2027-02-28")
