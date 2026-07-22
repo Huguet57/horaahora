@@ -4,7 +4,7 @@ from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from backend.domain.models import CalculationResult, CastellEvent, HourByHourItem
 
@@ -136,3 +136,18 @@ class AgendaPageSchema(BaseModel):
     official_url: str = "https://castellscat.cat/ca/agenda"
     from_cache: bool
     source_status: Literal["active", "unavailable"]
+
+
+class PushSubscriptionRequestSchema(BaseModel):
+    device_token: str = Field(min_length=32, max_length=512)
+    app_version: str = Field(default="", max_length=64)
+    locale: str = Field(default="ca-ES", min_length=2, max_length=16)
+    environment: Literal["development", "production"] | None = None
+
+    @field_validator("device_token")
+    @classmethod
+    def validate_device_token(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if len(normalized) % 2 or any(character not in "0123456789abcdef" for character in normalized):
+            raise ValueError("El token APNs ha de ser hexadecimal")
+        return normalized

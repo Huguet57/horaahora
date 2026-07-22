@@ -8,10 +8,24 @@ from backend.adapters.content.cccc_agenda import (
     CCCCAgendaHTMLSource,
     CCCCAgendaSnapshotSource,
 )
-from backend.adapters.persistence.memory import InMemoryContentRepository
-from backend.adapters.rate_limit.memory import InMemoryRateLimiter
+from backend.adapters.notifications.apns import (
+    APNsAuthorizationTokenProvider,
+    APNsGateway,
+)
+from backend.adapters.persistence.database import Database
+from backend.adapters.persistence.notifications import SQLAlchemyNotificationRepository
+from backend.adapters.persistence.sqlalchemy import SQLAlchemyContentRepository
+from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.config import Settings
-from backend.domain.ports import AgendaSource, ContentRepository, QueryInterpreter, RateLimiter
+from backend.domain.ports import (
+    AgendaSource,
+    ContentRepository,
+    NotificationGateway,
+    NotificationRepository,
+    QueryInterpreter,
+    RateLimiter,
+)
+from backend.domain.models import NotificationDisposition, NotificationSendResult
 
 
 def build_interpreter(settings: Settings) -> QueryInterpreter:
@@ -36,31 +50,57 @@ def build_interpreter(settings: Settings) -> QueryInterpreter:
     raise RuntimeError(f"AI_PROVIDER no suportat: {settings.ai_provider}")
 
 
-def build_content_repository(settings: Settings) -> ContentRepository:
-    try:
-        from backend.adapters.persistence.sqlalchemy import SQLAlchemyContentRepository
-
-        return SQLAlchemyContentRepository(settings.database_url)
-    except ImportError:
-        return InMemoryContentRepository()
+def build_database(settings: Settings) -> Database:
+    return Database(settings.database_url)
 
 
-def build_rate_limiter(settings: Settings) -> RateLimiter:
-    if settings.redis_url:
-        try:
-            from backend.adapters.rate_limit.redis import RedisRateLimiter
+def build_content_repository(settings: Settings, database: Database | None = None) -> ContentRepository:
+    return SQLAlchemyContentRepository(database or build_database(settings))
 
-            return RedisRateLimiter(
-                settings.redis_url,
-                settings.rate_limit_max_requests,
-                settings.rate_limit_window_seconds,
-            )
-        except ImportError:
-            pass
-    return InMemoryRateLimiter(
-        settings.rate_limit_max_requests,
-        settings.rate_limit_window_seconds,
+
+def build_notification_repository(
+    settings: Settings, database: Database | None = None
+) -> NotificationRepository:
+    return SQLAlchemyNotificationRepository(database or build_database(settings))
+
+
+def build_rate_limiter(
+    settings: Settings, database: Database | None = None
+) -> RateLimiter:
+    return PostgresRateLimiter(
+        database or build_database(settings),
+        hash_secret=settings.rate_limit_hash_secret,
+        max_requests=settings.rate_limit_max_requests,
+        window_seconds=settings.rate_limit_window_seconds,
     )
+
+
+def build_notification_gateway(settings: Settings) -> NotificationGateway:
+    if not settings.can_deliver_push:
+        return _PushDisabledGateway()
+    missing = [
+        name
+        for name, value in (
+            ("APNS_KEY_P8", settings.apns_key_p8),
+            ("APNS_KEY_ID", settings.apns_key_id),
+            ("APNS_TEAM_ID", settings.apns_team_id),
+        )
+        if not value
+    ]
+    if missing:
+        raise RuntimeError(f"Falten secrets APNs: {', '.join(missing)}")
+    return APNsGateway(
+        authorization_token=APNsAuthorizationTokenProvider(
+            key_p8=settings.apns_key_p8,
+            key_id=settings.apns_key_id,
+            team_id=settings.apns_team_id,
+        )
+    )
+
+
+class _PushDisabledGateway:
+    def send(self, _delivery) -> NotificationSendResult:
+        return NotificationSendResult(NotificationDisposition.FAILED, "PushDisabled")
 
 
 def build_agenda_source(settings: Settings) -> AgendaSource | None:

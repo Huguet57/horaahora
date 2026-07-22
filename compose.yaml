@@ -3,7 +3,7 @@ services:
     build: .
     environment:
       DATABASE_URL: postgresql+psycopg://horaahora:horaahora@db:5432/horaahora
-      REDIS_URL: redis://redis:6379/0
+      RATE_LIMIT_HASH_SECRET: ${RATE_LIMIT_HASH_SECRET:-local-development-secret}
       AI_PROVIDER: ${AI_PROVIDER:-local}
       AI_MODEL: ${AI_MODEL:-}
       AI_API_KEY: ${AI_API_KEY:-}
@@ -20,8 +20,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
 
   agenda-sync:
     build: .
@@ -30,6 +28,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+psycopg://horaahora:horaahora@db:5432/horaahora
+      RATE_LIMIT_HASH_SECRET: ${RATE_LIMIT_HASH_SECRET:-local-development-secret}
       AGENDA_SOURCE: ${AGENDA_SOURCE:-disabled}
       AGENDA_SYNC_INTERVAL_SECONDS: ${AGENDA_SYNC_INTERVAL_SECONDS:-86400}
       AGENDA_SYNC_MONTHS_BACK: ${AGENDA_SYNC_MONTHS_BACK:-1}
@@ -55,12 +54,5 @@ services:
       timeout: 5s
       retries: 10
 
-  redis:
-    image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - redis-data:/data
-
 volumes:
   postgres-data:
-  redis-data:
