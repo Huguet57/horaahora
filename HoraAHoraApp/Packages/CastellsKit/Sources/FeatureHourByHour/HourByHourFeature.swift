@@ -234,6 +234,8 @@ public struct HourByHourRootView: View {
                 }
             }
             .task { await model.loadIfNeeded() }
+            .navigationTitle("Hora a Hora")
+            .hourByHourLargeNavigationTitle()
             .sheet(item: $detailItem) { item in
                 HourByHourDetailView(item: item)
                     .presentationDetents([.medium, .large])
@@ -258,6 +260,15 @@ private extension View {
     func hourByHourRemovesTopContentMargin() -> some View {
         #if os(iOS)
         contentMargins(.top, 0, for: .scrollContent)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func hourByHourLargeNavigationTitle() -> some View {
+        #if os(iOS)
+        navigationBarTitleDisplayMode(.large)
         #else
         self
         #endif
