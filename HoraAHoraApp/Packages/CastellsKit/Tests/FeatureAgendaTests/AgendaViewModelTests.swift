@@ -179,11 +179,12 @@ final class AgendaViewModelTests: XCTestCase {
         while !repository.hasSuspendedRequest {
             await Task.yield()
         }
+        let requestsBeforeRefresh = repository.requests.count
 
         await model.refresh()
 
-        XCTAssertEqual(repository.requests.count, 2)
-        XCTAssertEqual(repository.requests.map(\.forceRefresh), [false, false])
+        XCTAssertEqual(repository.requests.count, requestsBeforeRefresh)
+        XCTAssertFalse(repository.requests.contains(where: \.forceRefresh))
 
         repository.resumeSuspendedRequest()
         await initialLoad.value
