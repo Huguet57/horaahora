@@ -82,6 +82,20 @@ enum AgendaCalendarFold {
         progress <= 0.001
     }
 
+    /// The base height is the expanded-state frame of the visible month, so a
+    /// month with a different week-row count shifts it by the fold-distance
+    /// delta. Rebasing arithmetically covers the folded state, where the
+    /// viewport does not change (no measurement fires) and the endpoint-only
+    /// sync would keep a stale base, clamping the scroll short of the fold end.
+    static func rebasedScrollViewBaseHeight(
+        _ baseHeight: CGFloat,
+        oldFoldDistance: CGFloat,
+        newFoldDistance: CGFloat
+    ) -> CGFloat {
+        guard baseHeight > 0 else { return baseHeight }
+        return max(baseHeight + oldFoldDistance - newFoldDistance, 0)
+    }
+
     private static func clamped(_ value: CGFloat) -> CGFloat {
         min(max(value, 0), 1)
     }

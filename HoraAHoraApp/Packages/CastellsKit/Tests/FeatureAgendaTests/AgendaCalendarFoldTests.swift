@@ -175,6 +175,55 @@ final class AgendaCalendarFoldTests: XCTestCase {
         XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 1))
     }
 
+    func testRebasedBaseHeightFollowsFoldDistanceChanges() {
+        // The base height is the expanded-state frame of the visible month, so
+        // it shifts by exactly the fold-distance delta when the month changes.
+        XCTAssertEqual(
+            AgendaCalendarFold.rebasedScrollViewBaseHeight(
+                500, oldFoldDistance: 260, newFoldDistance: 208
+            ),
+            552
+        )
+        XCTAssertEqual(
+            AgendaCalendarFold.rebasedScrollViewBaseHeight(
+                552, oldFoldDistance: 208, newFoldDistance: 260
+            ),
+            500
+        )
+        // A base that was never measured stays unmeasured.
+        XCTAssertEqual(
+            AgendaCalendarFold.rebasedScrollViewBaseHeight(
+                0, oldFoldDistance: 260, newFoldDistance: 208
+            ),
+            0
+        )
+    }
+
+    func testFoldedShortListKeepsTheFullTravelWhenTheMonthLosesAWeekRow() {
+        // Folded on a six-week month (D=260), selecting a day of a five-week
+        // month (D=208) does not change the folded viewport, so no measurement
+        // arrives. Without the arithmetic rebase the scroll range would drop to
+        // 2*208 - 260 = 156 and the calendar would stay clamped 75% folded.
+        let oldDistance: CGFloat = 260
+        let newDistance: CGFloat = 208
+        let oldBase: CGFloat = 500
+        let foldedFrameHeight = oldBase + oldDistance
+
+        let rebasedBase = AgendaCalendarFold.rebasedScrollViewBaseHeight(
+            oldBase, oldFoldDistance: oldDistance, newFoldDistance: newDistance
+        )
+        let compensation = AgendaCalendarFold.contentCompensation(
+            progress: 1,
+            foldDistance: newDistance
+        )
+        let contentHeight = compensation + AgendaCalendarFold.minimumListContentHeight(
+            scrollViewHeight: rebasedBase,
+            foldDistance: newDistance
+        )
+
+        XCTAssertEqual(contentHeight - foldedFrameHeight, newDistance)
+    }
+
     func testShortListScrollRangeStaysTheFullFoldTravelThroughoutTheFold() {
         // The scrollable range of a short list must be exactly the fold travel at
         // every fold progress. If it fluctuated while folding, the bottom rubber

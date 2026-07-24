@@ -53,6 +53,11 @@ public struct AgendaRootView: View {
                 .agendaNavigationBarHidden()
                 .task { await model.load() }
                 .onChange(of: foldDistance) { oldDistance, newDistance in
+                    scrollViewBaseHeight = AgendaCalendarFold.rebasedScrollViewBaseHeight(
+                        scrollViewBaseHeight,
+                        oldFoldDistance: oldDistance,
+                        newFoldDistance: newDistance
+                    )
                     keepFoldedThroughFoldDistanceChange(
                         from: oldDistance,
                         to: newDistance,
