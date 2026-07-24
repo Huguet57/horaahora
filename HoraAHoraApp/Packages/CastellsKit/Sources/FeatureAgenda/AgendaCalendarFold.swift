@@ -60,12 +60,29 @@ enum AgendaCalendarFold {
     }
 
     /// Minimum height of the scrollable list content so the full fold travel is
-    /// reachable even on days with a single event or no content at all.
+    /// reachable even on days with a single event or no content at all. It is
+    /// computed from the fold-independent base height so that, together with the
+    /// compensation, the scrollable range of a short list stays exactly
+    /// `foldDistance` at every fold progress and the bottom rubber band can
+    /// never settle the scroll inside the fold zone.
     static func minimumListContentHeight(
         scrollViewHeight: CGFloat,
-        remainingFoldDistance: CGFloat
+        foldDistance: CGFloat
     ) -> CGFloat {
-        max(scrollViewHeight, 0) + max(remainingFoldDistance, 0)
+        max(scrollViewHeight, 0) + max(foldDistance, 0)
+    }
+
+    /// Normalizes a measured scroll view height to its expanded-state (base)
+    /// value by removing the fold travel already transferred to the viewport.
+    static func scrollViewBaseHeight(measuredHeight: CGFloat, compensation: CGFloat) -> CGFloat {
+        max(measuredHeight - compensation, 0)
+    }
+
+    /// The measured height lags one frame behind the fold progress, so syncing
+    /// the base height mid-fold would feed layout jitter back into the scroll
+    /// geometry. Both values are only consistent at the fold endpoints.
+    static func shouldSyncScrollViewBaseHeight(progress: CGFloat) -> Bool {
+        progress <= 0.001 || progress >= 0.999
     }
 
     private static func clamped(_ value: CGFloat) -> CGFloat {

@@ -8,7 +8,7 @@ private let agendaListFoldedAnchorID = "agendaListFoldedAnchor"
 public struct AgendaRootView: View {
     private let model: AgendaViewModel
     @State private var scrollOffset: CGFloat = 0
-    @State private var scrollViewHeight: CGFloat = 0
+    @State private var scrollViewBaseHeight: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(model: AgendaViewModel) {
@@ -92,8 +92,8 @@ public struct AgendaRootView: View {
                         .padding(.vertical, 16)
                         .frame(
                             minHeight: AgendaCalendarFold.minimumListContentHeight(
-                                scrollViewHeight: scrollViewHeight,
-                                remainingFoldDistance: foldDistance - compensation
+                                scrollViewHeight: scrollViewBaseHeight,
+                                foldDistance: foldDistance
                             ),
                             alignment: .top
                         )
@@ -113,7 +113,7 @@ public struct AgendaRootView: View {
             // is excluded to keep the guaranteed fold travel exact.
             geometry.size.height - geometry.safeAreaInsets.bottom
         } action: { height in
-            scrollViewHeight = height
+            syncScrollViewBaseHeight(measuredHeight: height, foldDistance: foldDistance)
         }
         .refreshable { await model.refresh() }
     }
@@ -168,6 +168,24 @@ public struct AgendaRootView: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    /// Syncs the fold-independent base height only when the measurement cannot
+    /// disagree with the fold state, keeping the short-list scroll range stable
+    /// while the calendar folds (no jitter feedback at the bottom edge).
+    private func syncScrollViewBaseHeight(measuredHeight: CGFloat, foldDistance: CGFloat) {
+        let progress = AgendaCalendarFold.progress(
+            scrollOffset: scrollOffset,
+            foldDistance: foldDistance
+        )
+        guard AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: progress) else { return }
+        scrollViewBaseHeight = AgendaCalendarFold.scrollViewBaseHeight(
+            measuredHeight: measuredHeight,
+            compensation: AgendaCalendarFold.contentCompensation(
+                progress: progress,
+                foldDistance: foldDistance
+            )
+        )
     }
 
     private func toggleFold(with proxy: ScrollViewProxy) {
