@@ -72,17 +72,14 @@ enum AgendaCalendarFold {
         max(scrollViewHeight, 0) + max(foldDistance, 0)
     }
 
-    /// Normalizes a measured scroll view height to its expanded-state (base)
-    /// value by removing the fold travel already transferred to the viewport.
-    static func scrollViewBaseHeight(measuredHeight: CGFloat, compensation: CGFloat) -> CGFloat {
-        max(measuredHeight - compensation, 0)
-    }
-
-    /// The measured height lags one frame behind the fold progress, so syncing
-    /// the base height mid-fold would feed layout jitter back into the scroll
-    /// geometry. Both values are only consistent at the fold endpoints.
+    /// The measured scroll view height lags behind the fold progress, so it can
+    /// only be trusted while the calendar rests expanded (no fold travel has
+    /// been transferred to the viewport yet). Syncing anywhere else — including
+    /// the folded endpoint, which the scroll reaches mid-gesture — can capture a
+    /// stale height, shrink the list content and clamp the scroll back into the
+    /// fold zone, leaving the calendar stuck half-folded.
     static func shouldSyncScrollViewBaseHeight(progress: CGFloat) -> Bool {
-        progress <= 0.001 || progress >= 0.999
+        progress <= 0.001
     }
 
     private static func clamped(_ value: CGFloat) -> CGFloat {

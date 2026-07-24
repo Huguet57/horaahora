@@ -160,29 +160,19 @@ final class AgendaCalendarFoldTests: XCTestCase {
 
     // MARK: - Stable scroll range on short lists
 
-    func testScrollViewBaseHeightRemovesTheCompensationFromTheMeasuredHeight() {
-        XCTAssertEqual(
-            AgendaCalendarFold.scrollViewBaseHeight(measuredHeight: 500, compensation: 0),
-            500
-        )
-        XCTAssertEqual(
-            AgendaCalendarFold.scrollViewBaseHeight(measuredHeight: 708, compensation: 208),
-            500
-        )
-        XCTAssertEqual(
-            AgendaCalendarFold.scrollViewBaseHeight(measuredHeight: 100, compensation: 208),
-            0
-        )
-    }
-
-    func testScrollViewBaseHeightOnlySyncsAtTheFoldEndpoints() {
+    func testScrollViewBaseHeightOnlySyncsWhileTheCalendarIsExpanded() {
+        // While expanded the measurement cannot disagree with the fold state, so
+        // syncing there is always safe. Anywhere else (including fully folded,
+        // which the scroll reaches mid-gesture) the measured height can lag the
+        // fold progress: syncing would shrink the list content and make the
+        // scroll clamp back to a half-folded resting position.
         XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0))
+        XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: -0.5))
         XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.0005))
-        XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.999))
-        XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 1))
         XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.01))
         XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.5))
-        XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.99))
+        XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.999))
+        XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 1))
     }
 
     func testShortListScrollRangeStaysTheFullFoldTravelThroughoutTheFold() {

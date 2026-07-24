@@ -170,22 +170,18 @@ public struct AgendaRootView: View {
         .accessibilityHidden(true)
     }
 
-    /// Syncs the fold-independent base height only when the measurement cannot
-    /// disagree with the fold state, keeping the short-list scroll range stable
-    /// while the calendar folds (no jitter feedback at the bottom edge).
+    /// Syncs the fold-independent base height only while the calendar rests
+    /// expanded, where the measurement cannot disagree with the fold state.
+    /// The base stays frozen during the whole fold, so the short-list scroll
+    /// range is exactly the fold travel at every frame and the bottom rubber
+    /// band can never clamp the scroll into a half-folded resting position.
     private func syncScrollViewBaseHeight(measuredHeight: CGFloat, foldDistance: CGFloat) {
         let progress = AgendaCalendarFold.progress(
             scrollOffset: scrollOffset,
             foldDistance: foldDistance
         )
         guard AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: progress) else { return }
-        scrollViewBaseHeight = AgendaCalendarFold.scrollViewBaseHeight(
-            measuredHeight: measuredHeight,
-            compensation: AgendaCalendarFold.contentCompensation(
-                progress: progress,
-                foldDistance: foldDistance
-            )
-        )
+        scrollViewBaseHeight = measuredHeight
     }
 
     private func toggleFold(with proxy: ScrollViewProxy) {
