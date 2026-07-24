@@ -79,8 +79,8 @@ public final class ConversationListViewModel {
 public struct CalculatorRootView: View {
     private let repository: any ChatRepository
     @State private var model: ConversationListViewModel
-    @State private var selectedID: UUID?
-    @State private var showingNewConversation = false
+    @State private var selectedDestination: CalculatorDestination?
+    @State private var preferredCompactColumn = NavigationSplitViewColumn.sidebar
     @State private var renameTarget: ChatConversationSummary?
     @State private var renameText = ""
 
@@ -90,8 +90,8 @@ public struct CalculatorRootView: View {
     }
 
     public var body: some View {
-        NavigationSplitView {
-            List(selection: $selectedID) {
+        NavigationSplitView(preferredCompactColumn: $preferredCompactColumn) {
+            List(selection: $selectedDestination) {
                 if model.conversations.isEmpty {
                     ContentUnavailableView {
                         Label("Cap conversa", systemImage: "bubble.left.and.bubble.right")
@@ -101,7 +101,7 @@ public struct CalculatorRootView: View {
                     .listRowBackground(Color.clear)
                 }
                 ForEach(model.conversations) { conversation in
-                    NavigationLink(value: conversation.id) {
+                    NavigationLink(value: CalculatorDestination.conversation(conversation.id)) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(conversation.title).lineLimit(1)
                             ConversationAgeText(date: conversation.updatedAt)
@@ -126,25 +126,26 @@ public struct CalculatorRootView: View {
             .navigationTitle("Calculadora")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button { showingNewConversation = true } label: {
+                    Button { showNewConversation() } label: {
                         Label("Conversa nova", systemImage: "square.and.pencil")
                     }
                 }
             }
         } detail: {
-            if let selectedID {
-                ChatView(repository: repository, conversationID: selectedID)
-                    .id(selectedID)
-            } else {
-                CalculatorWelcomeView { showingNewConversation = true }
+            switch selectedDestination {
+            case let .conversation(id):
+                ChatView(repository: repository, conversationID: id)
+                    .id(selectedDestination)
+                    .onDisappear { model.reload() }
+            case .newConversation:
+                ChatView(repository: repository, conversationID: nil)
+                    .id(selectedDestination)
+                    .onDisappear { model.reload() }
+            case nil:
+                CalculatorWelcomeView { showNewConversation() }
             }
         }
         .task { model.reload() }
-        .sheet(isPresented: $showingNewConversation, onDismiss: { model.reload() }) {
-            NavigationStack {
-                ChatView(repository: repository, conversationID: nil)
-            }
-        }
         .alert("Canvia el nom", isPresented: Binding(
             get: { renameTarget != nil },
             set: { if !$0 { renameTarget = nil } }
@@ -157,11 +158,23 @@ public struct CalculatorRootView: View {
             Button("Cancel·la", role: .cancel) { renameTarget = nil }
         }
     }
+
+    private func showNewConversation() {
+        selectedDestination = .newConversation
+        preferredCompactColumn = .detail
+    }
+}
+
+private enum CalculatorDestination: Hashable {
+    case conversation(UUID)
+    case newConversation
 }
 
 @MainActor
 @Observable
 public final class ChatViewModel {
+    typealias Sleep = @MainActor @Sendable (Duration) async throws -> Void
+
     public var draft = ""
     public private(set) var conversation: ChatConversation?
     public private(set) var pendingUserMessage: ChatMessage?
@@ -169,10 +182,24 @@ public final class ChatViewModel {
     public var errorMessage: String?
     private var conversationID: UUID?
     private let repository: any ChatRepository
+    private let sleep: Sleep
 
-    public init(repository: any ChatRepository, conversationID: UUID?) {
+    public convenience init(repository: any ChatRepository, conversationID: UUID?) {
+        self.init(
+            repository: repository,
+            conversationID: conversationID,
+            sleep: { duration in try await ContinuousClock().sleep(for: duration) }
+        )
+    }
+
+    init(
+        repository: any ChatRepository,
+        conversationID: UUID?,
+        sleep: @escaping Sleep
+    ) {
         self.repository = repository
         self.conversationID = conversationID
+        self.sleep = sleep
     }
 
     public var displayedMessages: [ChatMessage] {
@@ -187,8 +214,25 @@ public final class ChatViewModel {
         guard let conversationID else { return }
         do {
             conversation = try repository.loadConversation(id: conversationID)
+            isSending = conversation?.messages.contains { message in
+                message.role == .user && message.deliveryState == .sending
+            } ?? false
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    public func loadFollowingPendingResponse() async {
+        load()
+        while isSending && !Task.isCancelled {
+            do {
+                try await sleep(.milliseconds(250))
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            load()
         }
     }
 
@@ -240,7 +284,7 @@ public final class ChatViewModel {
 
 public struct ChatView: View {
     @State private var model: ChatViewModel
-    @Environment(\.dismiss) private var dismiss
+    @FocusState private var isComposerFocused: Bool
 
     public init(repository: any ChatRepository, conversationID: UUID?) {
         _model = State(initialValue: ChatViewModel(repository: repository, conversationID: conversationID))
@@ -249,26 +293,39 @@ public struct ChatView: View {
     public var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        if model.showsPromptSuggestions {
-                            PromptSuggestions { suggestion in
-                                model.draft = suggestion
-                                Task { await model.send() }
+                GeometryReader { geometry in
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            if model.showsPromptSuggestions {
+                                PromptSuggestions { suggestion in
+                                    model.draft = suggestion
+                                    Task { await model.send() }
+                                }
+                            }
+                            ForEach(model.displayedMessages) { message in
+                                MessageBubble(message: message) {
+                                    Task { await model.retry(message.id) }
+                                }
+                                .id(message.id)
+                            }
+                            if model.isSending {
+                                AssistantResponseSkeleton()
+                                    .id("assistant-response-skeleton")
                             }
                         }
-                        ForEach(model.displayedMessages) { message in
-                            MessageBubble(message: message) {
-                                Task { await model.retry(message.id) }
-                            }
-                            .id(message.id)
-                        }
-                        if model.isSending {
-                            AssistantResponseSkeleton()
-                                .id("assistant-response-skeleton")
-                        }
+                        .padding()
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: geometry.size.height,
+                            alignment: .top
+                        )
+                        .contentShape(Rectangle())
+                        .simultaneousGesture(TapGesture().onEnded {
+                            isComposerFocused = false
+                        })
                     }
-                    .padding()
+                    .scrollDismissesKeyboard(.interactively)
+                    .scrollBounceBehavior(.always, axes: .vertical)
                 }
                 .onChange(of: model.displayedMessages.count) { _, _ in
                     if let last = model.displayedMessages.last?.id {
@@ -294,6 +351,7 @@ public struct ChatView: View {
                 TextField("Pregunta o escriu dues actuacions…", text: $model.draft, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .lineLimit(1...5)
+                    .focused($isComposerFocused)
                     .onSubmit { Task { await model.send() } }
                 Button { Task { await model.send() } } label: {
                     Image(systemName: "arrow.up.circle.fill").font(.title2)
@@ -307,16 +365,7 @@ public struct ChatView: View {
         .navigationTitle(model.conversation?.title ?? "Conversa nova")
         .calculatorInlineNavigationTitle()
         .calculatorChatHidesTabBar()
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                }
-                .accessibilityLabel("Tanca")
-            }
-        }
-        .accessibilityAction(.escape) { dismiss() }
-        .task { model.load() }
+        .task { await model.loadFollowingPendingResponse() }
     }
 }
 
