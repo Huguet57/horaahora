@@ -7,8 +7,12 @@ from datetime import date, datetime
 from typing import Sequence
 from zoneinfo import ZoneInfo
 
-from backend.application.services import AgendaSyncService
-from backend.bootstrap import build_agenda_source, build_content_repository
+from backend.application.agenda_sync import AgendaSyncService
+from backend.composition.providers import (
+    build_agenda_repository,
+    build_agenda_source,
+    build_database,
+)
 from backend.config import Settings
 
 
@@ -38,7 +42,8 @@ def sync_once(settings: Settings, date_from: date, date_to: date) -> int:
     if source is None:
         raise RuntimeError("AGENDA_SOURCE ha d'estar activa per sincronitzar l'agenda")
 
-    result = AgendaSyncService(build_content_repository(settings), source).sync(date_from, date_to)
+    repository = build_agenda_repository(build_database(settings))
+    result = AgendaSyncService(repository, source).sync(date_from, date_to)
     print(
         json.dumps(
             {

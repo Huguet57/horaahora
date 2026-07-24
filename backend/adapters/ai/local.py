@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import re
 
-from backend.domain.models import (
+from backend.domain.calculator.models import (
     ChatTurn,
     Outcome,
     ParsedCastell,
     ParsedCastellQuery,
     ParsedPerformance,
 )
-from backend.domain.labels import meaningful_performance_labels
+from backend.domain.calculator.labels import meaningful_performance_labels
 
 
 CASTELL_PATTERN = re.compile(

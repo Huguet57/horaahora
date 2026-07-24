@@ -10,7 +10,7 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
 from backend.adapters.persistence.database import Database
-from backend.adapters.persistence.sqlalchemy import RateLimitBucketRecord
+from backend.adapters.persistence.models import RateLimitBucketRecord
 
 
 class PostgresRateLimiter:

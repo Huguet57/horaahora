@@ -6,7 +6,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from backend.adapters.persistence.sqlalchemy import Base
+from backend.adapters.persistence.models import Base
 from backend.adapters.persistence.database import normalize_database_url
 
 

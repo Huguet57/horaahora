@@ -4,8 +4,9 @@ import time
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from backend.domain.models import NotificationDisposition
-from backend.domain.ports import HourByHourSource, NotificationGateway, NotificationRepository
+from backend.domain.content.ports import HourByHourSource
+from backend.domain.notifications.models import NotificationDisposition
+from backend.domain.notifications.ports import NotificationGateway, NotificationRepository
 
 
 @dataclass(frozen=True, slots=True)

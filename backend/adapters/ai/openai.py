@@ -6,7 +6,7 @@ import httpx
 from pydantic import ValidationError
 
 from backend.adapters.ai.schema import ParsedQueryPayload, SYSTEM_PROMPT
-from backend.domain.models import ChatTurn, ParsedCastellQuery
+from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery
 
 
 class OpenAIQueryInterpreter:

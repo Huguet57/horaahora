@@ -11,9 +11,10 @@ El nom visible i definitiu de l'app és **Castells en vena** i el Bundle ID de d
 - `backend/domain`: models, ports i motor de puntuació determinista.
 - `backend/application`: casos d'ús.
 - `backend/adapters`: IA, Revista Castells, persistència i rate limiting.
-- `backend/api`: esquemes HTTP neutrals.
+- `backend/api`: routers i esquemes HTTP separats per contracte.
 - `tests`: proves del domini, ingesta, contractes d'IA i API.
 - `openapi/partner-api.yaml`: contracte reduït per a clients i reunions amb socis.
+- `docs/architecture.md`: límits modulars i dependències permeses.
 - `docs/integracio-socis.md`: proposta de col·laboració amb Revista Castells i la CCCC.
 - `docs/testflight-readiness.md`: estat tècnic i passos manuals necessaris per distribuir la beta.
 
