@@ -45,8 +45,8 @@ public final class ConversationListViewModel {
 public struct CalculatorRootView: View {
     private let repository: any ChatRepository
     @State private var model: ConversationListViewModel
-    @State private var selectedID: UUID?
-    @State private var showingNewConversation = false
+    @State private var selectedDestination: CalculatorDestination?
+    @State private var preferredCompactColumn = NavigationSplitViewColumn.sidebar
     @State private var renameTarget: ChatConversationSummary?
     @State private var renameText = ""
 
@@ -56,8 +56,8 @@ public struct CalculatorRootView: View {
     }
 
     public var body: some View {
-        NavigationSplitView {
-            List(selection: $selectedID) {
+        NavigationSplitView(preferredCompactColumn: $preferredCompactColumn) {
+            List(selection: $selectedDestination) {
                 if model.conversations.isEmpty {
                     ContentUnavailableView {
                         Label("Cap conversa", systemImage: "bubble.left.and.bubble.right")
@@ -67,7 +67,7 @@ public struct CalculatorRootView: View {
                     .listRowBackground(Color.clear)
                 }
                 ForEach(model.conversations) { conversation in
-                    NavigationLink(value: conversation.id) {
+                    NavigationLink(value: CalculatorDestination.conversation(conversation.id)) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(conversation.title).lineLimit(1)
                             Text(conversation.updatedAt, style: .relative)
@@ -92,25 +92,26 @@ public struct CalculatorRootView: View {
             .navigationTitle("Calculadora")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button { showingNewConversation = true } label: {
+                    Button { showNewConversation() } label: {
                         Label("Conversa nova", systemImage: "square.and.pencil")
                     }
                 }
             }
         } detail: {
-            if let selectedID {
-                ChatView(repository: repository, conversationID: selectedID)
-                    .id(selectedID)
-            } else {
-                CalculatorWelcomeView { showingNewConversation = true }
+            switch selectedDestination {
+            case let .conversation(id):
+                ChatView(repository: repository, conversationID: id)
+                    .id(selectedDestination)
+                    .onDisappear { model.reload() }
+            case .newConversation:
+                ChatView(repository: repository, conversationID: nil)
+                    .id(selectedDestination)
+                    .onDisappear { model.reload() }
+            case nil:
+                CalculatorWelcomeView { showNewConversation() }
             }
         }
         .task { model.reload() }
-        .sheet(isPresented: $showingNewConversation, onDismiss: { model.reload() }) {
-            NavigationStack {
-                ChatView(repository: repository, conversationID: nil)
-            }
-        }
         .alert("Canvia el nom", isPresented: Binding(
             get: { renameTarget != nil },
             set: { if !$0 { renameTarget = nil } }
@@ -123,6 +124,16 @@ public struct CalculatorRootView: View {
             Button("Cancel·la", role: .cancel) { renameTarget = nil }
         }
     }
+
+    private func showNewConversation() {
+        selectedDestination = .newConversation
+        preferredCompactColumn = .detail
+    }
+}
+
+private enum CalculatorDestination: Hashable {
+    case conversation(UUID)
+    case newConversation
 }
 
 @MainActor
@@ -240,7 +251,6 @@ public final class ChatViewModel {
 public struct ChatView: View {
     @State private var model: ChatViewModel
     @FocusState private var isComposerFocused: Bool
-    @Environment(\.dismiss) private var dismiss
 
     public init(repository: any ChatRepository, conversationID: UUID?) {
         _model = State(initialValue: ChatViewModel(repository: repository, conversationID: conversationID))
@@ -249,31 +259,40 @@ public struct ChatView: View {
     public var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        if model.showsPromptSuggestions {
-                            PromptSuggestions { suggestion in
-                                model.draft = suggestion
-                                Task { await model.send() }
+                GeometryReader { geometry in
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            if model.showsPromptSuggestions {
+                                PromptSuggestions { suggestion in
+                                    model.draft = suggestion
+                                    Task { await model.send() }
+                                }
+                            }
+                            ForEach(model.displayedMessages) { message in
+                                MessageBubble(message: message) {
+                                    Task { await model.retry(message.id) }
+                                }
+                                .id(message.id)
+                            }
+                            if model.isSending {
+                                AssistantResponseSkeleton()
+                                    .id("assistant-response-skeleton")
                             }
                         }
-                        ForEach(model.displayedMessages) { message in
-                            MessageBubble(message: message) {
-                                Task { await model.retry(message.id) }
-                            }
-                            .id(message.id)
-                        }
-                        if model.isSending {
-                            AssistantResponseSkeleton()
-                                .id("assistant-response-skeleton")
-                        }
+                        .padding()
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: geometry.size.height,
+                            alignment: .top
+                        )
+                        .contentShape(Rectangle())
+                        .simultaneousGesture(TapGesture().onEnded {
+                            isComposerFocused = false
+                        })
                     }
-                    .padding()
+                    .scrollDismissesKeyboard(.interactively)
+                    .scrollBounceBehavior(.always, axes: .vertical)
                 }
-                .scrollDismissesKeyboard(.interactively)
-                .simultaneousGesture(TapGesture().onEnded {
-                    isComposerFocused = false
-                })
                 .onChange(of: model.displayedMessages.count) { _, _ in
                     if let last = model.displayedMessages.last?.id {
                         withAnimation { proxy.scrollTo(last, anchor: .bottom) }
@@ -312,15 +331,6 @@ public struct ChatView: View {
         .navigationTitle(model.conversation?.title ?? "Conversa nova")
         .calculatorInlineNavigationTitle()
         .calculatorChatHidesTabBar()
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                }
-                .accessibilityLabel("Tanca")
-            }
-        }
-        .accessibilityAction(.escape) { dismiss() }
         .task { await model.loadFollowingPendingResponse() }
     }
 }
