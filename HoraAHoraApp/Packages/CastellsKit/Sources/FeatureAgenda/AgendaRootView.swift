@@ -115,7 +115,7 @@ public struct AgendaRootView: View {
         } action: { height in
             scrollViewHeight = height
         }
-        .refreshable { await model.load(forceRefresh: true) }
+        .refreshable { await model.refresh() }
     }
 
     @ViewBuilder
@@ -134,14 +134,14 @@ public struct AgendaRootView: View {
                 officialURL: model.officialURL,
                 message: "No s'ha pogut connectar al servidor."
             ) {
-                Task { await model.load(forceRefresh: true) }
+                Task { await model.refresh() }
             }
         } else if model.sourceStatus == .unavailable {
             OfficialAgendaFallback(
                 officialURL: model.officialURL,
                 message: "Les dades natives no estan disponibles ara mateix."
             ) {
-                Task { await model.load(forceRefresh: true) }
+                Task { await model.refresh() }
             }
         } else {
             Text("No hi ha actuacions aquest dia")
