@@ -138,24 +138,113 @@ final class AgendaCalendarFoldTests: XCTestCase {
         XCTAssertEqual(
             AgendaCalendarFold.minimumListContentHeight(
                 scrollViewHeight: 500,
-                remainingFoldDistance: 208
+                foldDistance: 208
             ),
             708
         )
         XCTAssertEqual(
             AgendaCalendarFold.minimumListContentHeight(
                 scrollViewHeight: 500,
-                remainingFoldDistance: 0
+                foldDistance: 0
             ),
             500
         )
         XCTAssertEqual(
             AgendaCalendarFold.minimumListContentHeight(
                 scrollViewHeight: 0,
-                remainingFoldDistance: 156
+                foldDistance: 156
             ),
             156
         )
+    }
+
+    // MARK: - Stable scroll range on short lists
+
+    func testScrollViewBaseHeightOnlySyncsWhileTheCalendarIsExpanded() {
+        // While expanded the measurement cannot disagree with the fold state, so
+        // syncing there is always safe. Anywhere else (including fully folded,
+        // which the scroll reaches mid-gesture) the measured height can lag the
+        // fold progress: syncing would shrink the list content and make the
+        // scroll clamp back to a half-folded resting position.
+        XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0))
+        XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: -0.5))
+        XCTAssertTrue(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.0005))
+        XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.01))
+        XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.5))
+        XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 0.999))
+        XCTAssertFalse(AgendaCalendarFold.shouldSyncScrollViewBaseHeight(progress: 1))
+    }
+
+    func testRebasedBaseHeightFollowsFoldDistanceChanges() {
+        // The base height is the expanded-state frame of the visible month, so
+        // it shifts by exactly the fold-distance delta when the month changes.
+        XCTAssertEqual(
+            AgendaCalendarFold.rebasedScrollViewBaseHeight(
+                500, oldFoldDistance: 260, newFoldDistance: 208
+            ),
+            552
+        )
+        XCTAssertEqual(
+            AgendaCalendarFold.rebasedScrollViewBaseHeight(
+                552, oldFoldDistance: 208, newFoldDistance: 260
+            ),
+            500
+        )
+        // A base that was never measured stays unmeasured.
+        XCTAssertEqual(
+            AgendaCalendarFold.rebasedScrollViewBaseHeight(
+                0, oldFoldDistance: 260, newFoldDistance: 208
+            ),
+            0
+        )
+    }
+
+    func testFoldedShortListKeepsTheFullTravelWhenTheMonthLosesAWeekRow() {
+        // Folded on a six-week month (D=260), selecting a day of a five-week
+        // month (D=208) does not change the folded viewport, so no measurement
+        // arrives. Without the arithmetic rebase the scroll range would drop to
+        // 2*208 - 260 = 156 and the calendar would stay clamped 75% folded.
+        let oldDistance: CGFloat = 260
+        let newDistance: CGFloat = 208
+        let oldBase: CGFloat = 500
+        let foldedFrameHeight = oldBase + oldDistance
+
+        let rebasedBase = AgendaCalendarFold.rebasedScrollViewBaseHeight(
+            oldBase, oldFoldDistance: oldDistance, newFoldDistance: newDistance
+        )
+        let compensation = AgendaCalendarFold.contentCompensation(
+            progress: 1,
+            foldDistance: newDistance
+        )
+        let contentHeight = compensation + AgendaCalendarFold.minimumListContentHeight(
+            scrollViewHeight: rebasedBase,
+            foldDistance: newDistance
+        )
+
+        XCTAssertEqual(contentHeight - foldedFrameHeight, newDistance)
+    }
+
+    func testShortListScrollRangeStaysTheFullFoldTravelThroughoutTheFold() {
+        // The scrollable range of a short list must be exactly the fold travel at
+        // every fold progress. If it fluctuated while folding, the bottom rubber
+        // band could settle the scroll inside the fold zone, leaving the calendar
+        // stuck half-folded after bouncing.
+        let foldDistance: CGFloat = 208
+        let baseHeight: CGFloat = 500
+
+        for step in 0...10 {
+            let progress = CGFloat(step) / 10
+            let compensation = AgendaCalendarFold.contentCompensation(
+                progress: progress,
+                foldDistance: foldDistance
+            )
+            let contentHeight = compensation + AgendaCalendarFold.minimumListContentHeight(
+                scrollViewHeight: baseHeight,
+                foldDistance: foldDistance
+            )
+            let scrollViewHeight = baseHeight + compensation
+            XCTAssertEqual(contentHeight - scrollViewHeight, foldDistance, accuracy: 0.0001)
+        }
     }
 
     // MARK: - Helpers

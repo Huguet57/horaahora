@@ -60,12 +60,40 @@ enum AgendaCalendarFold {
     }
 
     /// Minimum height of the scrollable list content so the full fold travel is
-    /// reachable even on days with a single event or no content at all.
+    /// reachable even on days with a single event or no content at all. It is
+    /// computed from the fold-independent base height so that, together with the
+    /// compensation, the scrollable range of a short list stays exactly
+    /// `foldDistance` at every fold progress and the bottom rubber band can
+    /// never settle the scroll inside the fold zone.
     static func minimumListContentHeight(
         scrollViewHeight: CGFloat,
-        remainingFoldDistance: CGFloat
+        foldDistance: CGFloat
     ) -> CGFloat {
-        max(scrollViewHeight, 0) + max(remainingFoldDistance, 0)
+        max(scrollViewHeight, 0) + max(foldDistance, 0)
+    }
+
+    /// The measured scroll view height lags behind the fold progress, so it can
+    /// only be trusted while the calendar rests expanded (no fold travel has
+    /// been transferred to the viewport yet). Syncing anywhere else — including
+    /// the folded endpoint, which the scroll reaches mid-gesture — can capture a
+    /// stale height, shrink the list content and clamp the scroll back into the
+    /// fold zone, leaving the calendar stuck half-folded.
+    static func shouldSyncScrollViewBaseHeight(progress: CGFloat) -> Bool {
+        progress <= 0.001
+    }
+
+    /// The base height is the expanded-state frame of the visible month, so a
+    /// month with a different week-row count shifts it by the fold-distance
+    /// delta. Rebasing arithmetically covers the folded state, where the
+    /// viewport does not change (no measurement fires) and the endpoint-only
+    /// sync would keep a stale base, clamping the scroll short of the fold end.
+    static func rebasedScrollViewBaseHeight(
+        _ baseHeight: CGFloat,
+        oldFoldDistance: CGFloat,
+        newFoldDistance: CGFloat
+    ) -> CGFloat {
+        guard baseHeight > 0 else { return baseHeight }
+        return max(baseHeight + oldFoldDistance - newFoldDistance, 0)
     }
 
     private static func clamped(_ value: CGFloat) -> CGFloat {
