@@ -28,6 +28,22 @@ final class ChatViewModelTests: XCTestCase {
         XCTAssertFalse(model.isSending)
         XCTAssertEqual(model.displayedMessages.map(\.role), [.user, .assistant])
     }
+
+    func testReopeningAConversationRefreshesUntilThePendingResponseArrives() async {
+        let repository = ReopenedChatRepository()
+        let model = ChatViewModel(
+            repository: repository,
+            conversationID: repository.conversationID,
+            sleep: { _ in repository.finishSending() }
+        )
+
+        await model.loadFollowingPendingResponse()
+
+        XCTAssertEqual(repository.loadCount, 2)
+        XCTAssertFalse(model.isSending)
+        XCTAssertEqual(model.displayedMessages.map(\.role), [.user, .assistant])
+        XCTAssertEqual(model.displayedMessages.last?.content, "Resposta recuperada")
+    }
 }
 
 @MainActor
@@ -95,5 +111,63 @@ private final class SuspendedChatRepository: ChatRepository {
             updatedAt: now,
             messages: []
         )
+    }
+}
+
+@MainActor
+private final class ReopenedChatRepository: ChatRepository {
+    let conversationID = UUID()
+    private var responseIsReady = false
+    private(set) var loadCount = 0
+
+    func listConversations() throws -> [ChatConversationSummary] { [] }
+
+    func createConversation(title: String) throws -> UUID { conversationID }
+
+    func loadConversation(id: UUID) throws -> ChatConversation {
+        loadCount += 1
+        let now = Date()
+        var messages = [
+            ChatMessage(
+                id: UUID(),
+                role: .user,
+                content: "Què val el 5d9f?",
+                createdAt: now,
+                deliveryState: responseIsReady ? .sent : .sending
+            )
+        ]
+        if responseIsReady {
+            messages.append(ChatMessage(
+                id: UUID(),
+                role: .assistant,
+                content: "Resposta recuperada",
+                createdAt: now,
+                deliveryState: .sent
+            ))
+        }
+        return ChatConversation(
+            id: conversationID,
+            title: "Què val el 5d9f?",
+            createdAt: now,
+            updatedAt: now,
+            messages: messages
+        )
+    }
+
+    func renameConversation(id: UUID, title: String) throws {}
+
+    func deleteConversation(id: UUID) throws {}
+
+    func send(message: String, in conversationID: UUID) async throws -> ChatConversation {
+        finishSending()
+        return try loadConversation(id: conversationID)
+    }
+
+    func retry(messageID: UUID, in conversationID: UUID) async throws -> ChatConversation {
+        try loadConversation(id: conversationID)
+    }
+
+    func finishSending() {
+        responseIsReady = true
     }
 }

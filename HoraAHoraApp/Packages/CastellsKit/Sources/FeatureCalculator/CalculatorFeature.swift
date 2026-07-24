@@ -128,6 +128,8 @@ public struct CalculatorRootView: View {
 @MainActor
 @Observable
 public final class ChatViewModel {
+    typealias Sleep = @MainActor @Sendable (Duration) async throws -> Void
+
     public var draft = ""
     public private(set) var conversation: ChatConversation?
     public private(set) var pendingUserMessage: ChatMessage?
@@ -135,10 +137,24 @@ public final class ChatViewModel {
     public var errorMessage: String?
     private var conversationID: UUID?
     private let repository: any ChatRepository
+    private let sleep: Sleep
 
-    public init(repository: any ChatRepository, conversationID: UUID?) {
+    public convenience init(repository: any ChatRepository, conversationID: UUID?) {
+        self.init(
+            repository: repository,
+            conversationID: conversationID,
+            sleep: { duration in try await ContinuousClock().sleep(for: duration) }
+        )
+    }
+
+    init(
+        repository: any ChatRepository,
+        conversationID: UUID?,
+        sleep: @escaping Sleep
+    ) {
         self.repository = repository
         self.conversationID = conversationID
+        self.sleep = sleep
     }
 
     public var displayedMessages: [ChatMessage] {
@@ -153,8 +169,25 @@ public final class ChatViewModel {
         guard let conversationID else { return }
         do {
             conversation = try repository.loadConversation(id: conversationID)
+            isSending = conversation?.messages.contains { message in
+                message.role == .user && message.deliveryState == .sending
+            } ?? false
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    public func loadFollowingPendingResponse() async {
+        load()
+        while isSending && !Task.isCancelled {
+            do {
+                try await sleep(.milliseconds(250))
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            load()
         }
     }
 
@@ -206,6 +239,7 @@ public final class ChatViewModel {
 
 public struct ChatView: View {
     @State private var model: ChatViewModel
+    @FocusState private var isComposerFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
     public init(repository: any ChatRepository, conversationID: UUID?) {
@@ -236,6 +270,10 @@ public struct ChatView: View {
                     }
                     .padding()
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .simultaneousGesture(TapGesture().onEnded {
+                    isComposerFocused = false
+                })
                 .onChange(of: model.displayedMessages.count) { _, _ in
                     if let last = model.displayedMessages.last?.id {
                         withAnimation { proxy.scrollTo(last, anchor: .bottom) }
@@ -260,6 +298,7 @@ public struct ChatView: View {
                 TextField("Pregunta o escriu dues actuacions…", text: $model.draft, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .lineLimit(1...5)
+                    .focused($isComposerFocused)
                     .onSubmit { Task { await model.send() } }
                 Button { Task { await model.send() } } label: {
                     Image(systemName: "arrow.up.circle.fill").font(.title2)
@@ -282,7 +321,7 @@ public struct ChatView: View {
             }
         }
         .accessibilityAction(.escape) { dismiss() }
-        .task { model.load() }
+        .task { await model.loadFollowingPendingResponse() }
     }
 }
 
