@@ -88,30 +88,43 @@ public struct AgendaRootView: View {
                     Color.clear
                         .frame(height: compensation)
 
-                    listContent
-                        .padding(.vertical, 16)
-                        .frame(
-                            minHeight: AgendaCalendarFold.minimumListContentHeight(
-                                scrollViewHeight: scrollViewBaseHeight,
-                                foldDistance: foldDistance
-                            ),
-                            alignment: .top
-                        )
+                    ZStack(alignment: .top) {
+                        // Fixed-height floor guaranteeing the full fold travel
+                        // on days with little or no content, independent of the
+                        // unbounded height proposal inside the scroll view.
+                        Color.clear
+                            .frame(
+                                height: AgendaCalendarFold.minimumListContentHeight(
+                                    scrollViewHeight: scrollViewBaseHeight,
+                                    foldDistance: foldDistance
+                                )
+                            )
+
+                        listContent
+                            .padding(.vertical, 16)
+                    }
                 }
             }
             .onGeometryChange(for: CGFloat.self) { geometry in
                 -geometry.frame(in: .named(agendaScrollSpaceName)).minY
             } action: { offset in
-                scrollOffset = offset
+                // The fold must track the raw offset 1:1; an inherited animated
+                // transaction here would pile up overlapping springs.
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    scrollOffset = offset
+                }
             }
         }
         .coordinateSpace(.named(agendaScrollSpaceName))
         .contentMargins(.horizontal, 16, for: .scrollContent)
         .scrollTargetBehavior(AgendaFoldSnapBehavior(foldDistance: foldDistance))
         .onGeometryChange(for: CGFloat.self) { geometry in
-            // The bottom safe area already acts as scrollable inset, so it
-            // is excluded to keep the guaranteed fold travel exact.
-            geometry.size.height - geometry.safeAreaInsets.bottom
+            // Full frame height: the scrollable range of this scroll view is
+            // `content − frame` (the bottom safe area does not extend it), so
+            // the fold travel must fit within the full frame plus the floor.
+            geometry.size.height
         } action: { height in
             syncScrollViewBaseHeight(measuredHeight: height, foldDistance: foldDistance)
         }
