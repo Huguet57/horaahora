@@ -1,0 +1,277 @@
+import SwiftUI
+import CastellsDomain
+
+private let agendaScrollSpaceName = "agendaListScrollSpace"
+private let agendaListTopAnchorID = "agendaListTopAnchor"
+private let agendaListFoldedAnchorID = "agendaListFoldedAnchor"
+
+public struct AgendaRootView: View {
+    private let model: AgendaViewModel
+    @State private var scrollOffset: CGFloat = 0
+    @State private var scrollViewHeight: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    public init(model: AgendaViewModel) {
+        self.model = model
+    }
+
+    public var body: some View {
+        NavigationStack {
+            ScrollViewReader { proxy in
+                let distance = foldDistance
+                let foldProgress = AgendaCalendarFold.effectiveProgress(
+                    AgendaCalendarFold.progress(scrollOffset: scrollOffset, foldDistance: distance),
+                    reduceMotion: reduceMotion
+                )
+
+                VStack(spacing: 0) {
+                    AgendaCalendarView(
+                        selectedDate: model.selectedDate,
+                        visibleMonth: model.visibleMonth,
+                        visibleWeek: model.visibleWeek,
+                        eventDateKeys: model.eventDateKeys,
+                        foldProgress: foldProgress,
+                        onToggle: { toggleFold(with: proxy) },
+                        onSelect: { date in
+                            Task { await model.selectAndLoad(date) }
+                        },
+                        onChangeWeek: { offset in
+                            Task { await model.changeWeek(by: offset) }
+                        },
+                        onChangeMonth: { offset in
+                            Task { await model.changeMonth(by: offset) }
+                        }
+                    )
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
+
+                    Divider()
+
+                    foldingEventList(foldDistance: distance, foldProgress: foldProgress)
+                }
+                .agendaNavigationBarHidden()
+                .task { await model.load() }
+                .onChange(of: foldDistance) { oldDistance, newDistance in
+                    keepFoldedThroughFoldDistanceChange(
+                        from: oldDistance,
+                        to: newDistance,
+                        with: proxy
+                    )
+                }
+            }
+        }
+    }
+
+    private var foldDistance: CGFloat {
+        AgendaCalendarFold.foldDistance(
+            weekRowCount: AgendaCalendarMath.monthWeekRows(containing: model.visibleMonth).count
+        )
+    }
+
+    /// The day's event list. Its first `foldDistance` points of scroll travel
+    /// drive the calendar fold instead of moving the cards.
+    private func foldingEventList(foldDistance: CGFloat, foldProgress: CGFloat) -> some View {
+        let compensation = AgendaCalendarFold.contentCompensation(
+            progress: foldProgress,
+            foldDistance: foldDistance
+        )
+
+        return ScrollView {
+            ZStack(alignment: .top) {
+                scrollAnchors(foldDistance: foldDistance)
+
+                VStack(spacing: 0) {
+                    // Fold travel already consumed by the scroll. It keeps
+                    // the cards glued to the calendar bottom instead of
+                    // scrolling at double speed while the calendar folds.
+                    Color.clear
+                        .frame(height: compensation)
+
+                    listContent
+                        .padding(.vertical, 16)
+                        .frame(
+                            minHeight: AgendaCalendarFold.minimumListContentHeight(
+                                scrollViewHeight: scrollViewHeight,
+                                remainingFoldDistance: foldDistance - compensation
+                            ),
+                            alignment: .top
+                        )
+                }
+            }
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                -geometry.frame(in: .named(agendaScrollSpaceName)).minY
+            } action: { offset in
+                scrollOffset = offset
+            }
+        }
+        .coordinateSpace(.named(agendaScrollSpaceName))
+        .contentMargins(.horizontal, 16, for: .scrollContent)
+        .scrollTargetBehavior(AgendaFoldSnapBehavior(foldDistance: foldDistance))
+        .onGeometryChange(for: CGFloat.self) { geometry in
+            // The bottom safe area already acts as scrollable inset, so it
+            // is excluded to keep the guaranteed fold travel exact.
+            geometry.size.height - geometry.safeAreaInsets.bottom
+        } action: { height in
+            scrollViewHeight = height
+        }
+        .refreshable { await model.refresh() }
+    }
+
+    @ViewBuilder
+    private var listContent: some View {
+        if model.isLoading && model.events.isEmpty {
+            ProgressView()
+                .frame(maxWidth: .infinity)
+        } else if !model.events.isEmpty {
+            LazyVStack(alignment: .leading, spacing: 12) {
+                ForEach(model.events) { event in
+                    AgendaEventCard(event: event)
+                }
+            }
+        } else if model.errorMessage != nil {
+            OfficialAgendaFallback(
+                officialURL: model.officialURL,
+                message: "No s'ha pogut connectar al servidor."
+            ) {
+                Task { await model.refresh() }
+            }
+        } else if model.sourceStatus == .unavailable {
+            OfficialAgendaFallback(
+                officialURL: model.officialURL,
+                message: "Les dades natives no estan disponibles ara mateix."
+            ) {
+                Task { await model.refresh() }
+            }
+        } else {
+            Text("No hi ha actuacions aquest dia")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+        }
+    }
+
+    /// Invisible column marking the two snap offsets of the fold: the list top
+    /// (expanded) and the end of the fold travel (collapsed). The chevron and
+    /// the vertical gesture scroll to these same anchors.
+    private func scrollAnchors(foldDistance: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(width: 1, height: 1)
+                .id(agendaListTopAnchorID)
+            Color.clear
+                .frame(width: 1, height: max(foldDistance - 1, 0))
+            Color.clear
+                .frame(width: 1, height: 1)
+                .id(agendaListFoldedAnchorID)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func toggleFold(with proxy: ScrollViewProxy) {
+        let isCollapsed = AgendaCalendarFold.snapsCollapsed(
+            progress: AgendaCalendarFold.progress(
+                scrollOffset: scrollOffset,
+                foldDistance: foldDistance
+            )
+        )
+        // Expanding from a deep scroll position returns to the top of the day.
+        scroll(to: isCollapsed ? agendaListTopAnchorID : agendaListFoldedAnchorID, with: proxy)
+    }
+
+    private func scroll(to anchorID: String, with proxy: ScrollViewProxy) {
+        if reduceMotion {
+            proxy.scrollTo(anchorID, anchor: .top)
+        } else {
+            withAnimation(.snappy(duration: 0.3)) {
+                proxy.scrollTo(anchorID, anchor: .top)
+            }
+        }
+    }
+
+    /// Months have different fold distances (4, 5 or 6 weeks). When the visible
+    /// month changes while the calendar rests folded, the scroll is re-anchored
+    /// to the new fold end so the calendar stays folded without any visual jump.
+    private func keepFoldedThroughFoldDistanceChange(
+        from oldDistance: CGFloat,
+        to newDistance: CGFloat,
+        with proxy: ScrollViewProxy
+    ) {
+        guard
+            newDistance > oldDistance,
+            scrollOffset >= oldDistance,
+            scrollOffset < newDistance
+        else { return }
+
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            proxy.scrollTo(agendaListFoldedAnchorID, anchor: .top)
+        }
+    }
+}
+
+/// Snaps the scroll resting position out of the fold zone: releasing at half
+/// the fold travel or more settles collapsed, below it settles expanded.
+private struct AgendaFoldSnapBehavior: ScrollTargetBehavior {
+    let foldDistance: CGFloat
+
+    func updateTarget(_ target: inout ScrollTarget, context: TargetContext) {
+        target.rect.origin.y = AgendaCalendarFold.snapTargetOffset(
+            proposedOffset: target.rect.origin.y,
+            foldDistance: foldDistance
+        )
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func agendaNavigationBarHidden() -> some View {
+        #if os(iOS)
+        toolbar(.hidden, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+}
+
+private struct OfficialAgendaFallback: View {
+    let officialURL: URL
+    let message: String
+    let retry: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 24, height: 24)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Agenda temporalment no disponible")
+                    .font(.subheadline.weight(.semibold))
+
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 16) {
+                    Button(action: retry) {
+                        Label("Torna-ho a provar", systemImage: "arrow.clockwise")
+                    }
+
+                    Link(destination: officialURL) {
+                        Label("Agenda oficial", systemImage: "arrow.up.right")
+                    }
+                }
+                .font(.caption.weight(.medium))
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+    }
+}

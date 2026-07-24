@@ -127,6 +127,69 @@ final class AgendaViewModelTests: XCTestCase {
         XCTAssertEqual(repository.requests.suffix(2).map(\.forceRefresh), [true, true])
     }
 
+    func testRefreshKeepsCurrentEventsVisibleAndOnlyReloadsTheVisibleMonth() async {
+        let original = makeEvent(
+            id: "original",
+            localDate: "2026-07-21",
+            title: "Diada desada"
+        )
+        let updated = makeEvent(
+            id: "updated",
+            localDate: "2026-07-21",
+            title: "Diada actualitzada"
+        )
+        let neighboringMonth = makeEvent(
+            id: "august",
+            localDate: "2026-08-01",
+            title: "Diada d'agost"
+        )
+        let repository = AgendaRepositoryStub(items: [original, neighboringMonth])
+        let model = AgendaViewModel(repository: repository)
+        model.selectedDate = date("2026-07-21")
+        await model.load()
+        repository.suspendNextForcedRefresh()
+
+        let refresh = Task { await model.refresh() }
+        while !repository.hasSuspendedRequest {
+            await Task.yield()
+        }
+
+        XCTAssertEqual(model.events.map(\.title), ["Diada desada"])
+        XCTAssertEqual(model.eventDateKeys, ["2026-07-21", "2026-08-01"])
+        XCTAssertEqual(repository.requests.count, 3)
+        XCTAssertEqual(repository.requests.last?.from, "2026-07-01")
+        XCTAssertEqual(repository.requests.last?.to, "2026-07-31")
+        XCTAssertEqual(repository.requests.last?.forceRefresh, true)
+
+        repository.resumeSuspendedRequest(returning: [updated])
+        await refresh.value
+
+        XCTAssertEqual(model.events.map(\.title), ["Diada actualitzada"])
+        XCTAssertEqual(model.eventDateKeys, ["2026-07-21", "2026-08-01"])
+        XCTAssertFalse(model.isLoading)
+    }
+
+    func testRefreshDoesNotOverlapAnInFlightAgendaLoad() async {
+        let repository = AgendaRepositoryStub()
+        let model = AgendaViewModel(repository: repository)
+        model.selectedDate = date("2026-07-21")
+        repository.suspendNextRequest()
+
+        let initialLoad = Task { await model.load() }
+        while !repository.hasSuspendedRequest {
+            await Task.yield()
+        }
+        let requestsBeforeRefresh = repository.requests.count
+
+        await model.refresh()
+
+        XCTAssertEqual(repository.requests.count, requestsBeforeRefresh)
+        XCTAssertFalse(repository.requests.contains(where: \.forceRefresh))
+
+        repository.resumeSuspendedRequest()
+        await initialLoad.value
+    }
+
     func testLoadKeepsTheCachedSnapshotWhenSilentRevalidationFails() async {
         let cachedEvent = makeEvent(
             id: "cached",
@@ -246,9 +309,16 @@ private final class AgendaRepositoryStub: AgendaRepository {
     var requestedTo: String?
     var requests: [(from: String, to: String, forceRefresh: Bool)] = []
     var cachedRequests: [(from: String, to: String)] = []
-    private let suppliedItems: [CastellEvent]?
+    private var suppliedItems: [CastellEvent]?
     private let suppliedCachedItems: [CastellEvent]
     private let remoteError: Error?
+    private var shouldSuspendNextRequest = false
+    private var onlySuspendForcedRefresh = false
+    private var suspendedRequest: CheckedContinuation<Void, Never>?
+
+    var hasSuspendedRequest: Bool {
+        suspendedRequest != nil
+    }
 
     init(
         items: [CastellEvent]? = nil,
@@ -258,6 +328,25 @@ private final class AgendaRepositoryStub: AgendaRepository {
         suppliedItems = items
         suppliedCachedItems = cachedItems
         self.remoteError = remoteError
+    }
+
+    func suspendNextRequest() {
+        shouldSuspendNextRequest = true
+        onlySuspendForcedRefresh = false
+    }
+
+    func suspendNextForcedRefresh() {
+        shouldSuspendNextRequest = true
+        onlySuspendForcedRefresh = true
+    }
+
+    func resumeSuspendedRequest(returning items: [CastellEvent]? = nil) {
+        if let items {
+            suppliedItems = items
+        }
+        let continuation = suspendedRequest
+        suspendedRequest = nil
+        continuation?.resume()
     }
 
     func cachedEvents(
@@ -281,6 +370,12 @@ private final class AgendaRepositoryStub: AgendaRepository {
         requestedFrom = localDate(from)
         requestedTo = localDate(to)
         requests.append((from: requestedFrom!, to: requestedTo!, forceRefresh: forceRefresh))
+        if shouldSuspendNextRequest && (!onlySuspendForcedRefresh || forceRefresh) {
+            shouldSuspendNextRequest = false
+            await withCheckedContinuation { continuation in
+                suspendedRequest = continuation
+            }
+        }
         let availableItems = suppliedItems ?? [
             CastellEvent(
                 id: "1", sourceID: "cccc", externalID: "1", title: "Diada nativa",
