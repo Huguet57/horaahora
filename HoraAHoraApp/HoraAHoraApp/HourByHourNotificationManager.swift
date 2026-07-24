@@ -41,7 +41,7 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
 
         if authorizationStatus == .notDetermined {
             let granted = try await notificationCenter.requestAuthorization(
-                options: [.alert, .badge, .sound]
+                options: [.alert, .badge]
             )
             authorizationStatus = await notificationCenter.notificationSettings().authorizationStatus
             if !granted {

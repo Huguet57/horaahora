@@ -46,7 +46,6 @@ class APNsGateway:
             json={
                 "aps": {
                     "alert": {"title": delivery.title, "body": delivery.body},
-                    "sound": "default",
                 },
                 **({"url": delivery.url} if delivery.url else {}),
             },

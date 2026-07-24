@@ -39,7 +39,7 @@ def delivery(environment: str = "production") -> PendingNotificationDelivery:
     )
 
 
-def test_apns_gateway_uses_production_headers_and_alert_payload() -> None:
+def test_apns_gateway_uses_production_headers_and_silent_alert_payload() -> None:
     client = RecordingClient(Response(200))
     gateway = APNsGateway(client=client, authorization_token=lambda: "jwt-token")
 
@@ -55,7 +55,6 @@ def test_apns_gateway_uses_production_headers_and_alert_payload() -> None:
     assert headers["apns-collapse-id"] == "hour-by-hour:item-1"
     assert payload["aps"] == {
         "alert": {"title": "Notícia", "body": "Resum"},
-        "sound": "default",
     }
     assert payload["url"] == "https://example.com/directe"
 
