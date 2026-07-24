@@ -3,6 +3,40 @@ import Observation
 import SwiftUI
 import CastellsDomain
 
+enum ConversationAgeFormatter {
+    static func string(from date: Date, relativeTo referenceDate: Date) -> String {
+        let elapsedSeconds = max(0, Int(referenceDate.timeIntervalSince(date)))
+        guard elapsedSeconds >= 60 else { return "menys d’1 min" }
+
+        let days = elapsedSeconds / 86_400
+        let hours = elapsedSeconds / 3_600 % 24
+        let minutes = elapsedSeconds / 60 % 60
+        var components: [String] = []
+
+        if days > 0 {
+            components.append(days == 1 ? "1 dia" : "\(days) dies")
+        }
+        if hours > 0 {
+            components.append("\(hours) h")
+        }
+        if minutes > 0 {
+            components.append("\(minutes) min")
+        }
+
+        return components.prefix(2).joined(separator: " i ")
+    }
+}
+
+private struct ConversationAgeText: View {
+    let date: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            Text(ConversationAgeFormatter.string(from: date, relativeTo: context.date))
+        }
+    }
+}
+
 @MainActor
 @Observable
 public final class ConversationListViewModel {
@@ -70,7 +104,7 @@ public struct CalculatorRootView: View {
                     NavigationLink(value: conversation.id) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(conversation.title).lineLimit(1)
-                            Text(conversation.updatedAt, style: .relative)
+                            ConversationAgeText(date: conversation.updatedAt)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
