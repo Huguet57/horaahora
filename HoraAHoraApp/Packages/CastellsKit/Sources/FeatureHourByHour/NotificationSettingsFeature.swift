@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 struct HourByHourNotificationOnboardingCard: View {
     let onConfigure: () -> Void
@@ -33,6 +36,14 @@ struct HourByHourNotificationOnboardingCard: View {
             .accessibilityLabel("Ara no")
         }
         .padding(14)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var cardBackground: Color {
+        #if os(iOS)
+        Color(uiColor: .secondarySystemFill)
+        #else
+        Color.secondary.opacity(0.2)
+        #endif
     }
 }
