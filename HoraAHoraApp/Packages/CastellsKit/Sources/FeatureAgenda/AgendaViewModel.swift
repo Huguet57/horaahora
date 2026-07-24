@@ -14,6 +14,7 @@ public final class AgendaViewModel {
     private var monthsBeingPrefetched: Set<String> = []
     private var hasStartedInitialLoad = false
     private var cachedWindowState: CachedWindowState?
+    private var isLoadInFlight = false
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
     public private(set) var isFromCache = false
@@ -86,6 +87,10 @@ public final class AgendaViewModel {
     }
 
     public func load(forceRefresh: Bool = false) async {
+        guard !isLoadInFlight else { return }
+        isLoadInFlight = true
+        defer { isLoadInFlight = false }
+
         errorMessage = nil
         if !hasStartedInitialLoad {
             visibleMonth = selectedDate
@@ -128,6 +133,34 @@ public final class AgendaViewModel {
             cachedWindowState = nil
         } catch {
             if !hasCachedSnapshot {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    public func refresh() async {
+        guard
+            !isLoadInFlight,
+            let range = AgendaCalendarMath.monthRange(containing: visibleMonth)
+        else {
+            return
+        }
+        isLoadInFlight = true
+        defer { isLoadInFlight = false }
+        errorMessage = nil
+
+        do {
+            let result = try await fetch(range: range, forceRefresh: true)
+            applyPrefetchedWindow(
+                from: range.start,
+                through: range.end,
+                items: result.items,
+                sourceStatus: result.sourceStatus,
+                fromCache: result.fromCache
+            )
+            cachedWindowState = nil
+        } catch {
+            if prefetchedEvents.isEmpty {
                 errorMessage = error.localizedDescription
             }
         }
