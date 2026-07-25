@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from backend.domain.content.models import CastellerGroupDirectory
-
+from backend.domain.content.group_directory import CastellerGroupDirectory
 
 DEFAULT_DIRECTORY_PATH = (
     Path(__file__).parents[2] / "data" / "cccc_group_directory_2026_07_25.json"

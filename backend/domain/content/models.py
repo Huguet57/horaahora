@@ -38,10 +38,3 @@ class CastellEvent:
     attribution: str
     revision: str
     updated_at: datetime
-
-
-@dataclass(frozen=True, slots=True)
-class CastellerGroupDirectory:
-    groups: list[str]
-    revision: str
-    official_url: str

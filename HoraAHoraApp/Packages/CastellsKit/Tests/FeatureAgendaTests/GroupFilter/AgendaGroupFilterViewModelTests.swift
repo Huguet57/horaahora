@@ -1,27 +1,19 @@
 import Foundation
 import XCTest
-import CastellsDomain
 @testable import FeatureAgenda
 
 @MainActor
-final class AgendaGroupFilterTests: XCTestCase {
-    func testGroupKeysIgnoreCaseAccentsWhitespaceAndApostropheVariants() {
-        XCTAssertEqual(
-            agendaGroupKey("  Castellers   d’Àltafulla "),
-            agendaGroupKey("castellers d'altafulla")
-        )
-    }
-
+final class AgendaGroupFilterViewModelTests: XCTestCase {
     func testDefaultSelectionShowsEveryEventAndMergesDirectoryWithObservedGroups() async {
         let repository = GroupAgendaRepositoryStub(
             items: [
-                event(id: "a", groups: ["colla observada"]),
-                event(id: "empty", groups: [])
+                fixture.event(id: "a", groups: ["colla observada"]),
+                fixture.event(id: "empty", groups: [])
             ],
             groups: ["Colla Oficial", "Colla Observada"]
         )
         let model = AgendaViewModel(repository: repository)
-        model.selectedDate = day
+        model.selectedDate = fixture.day
 
         await model.load()
         await model.loadGroupDirectory()
@@ -36,14 +28,14 @@ final class AgendaGroupFilterTests: XCTestCase {
     func testCustomSelectionSplitsMatchingAndOtherEvents() async {
         let repository = GroupAgendaRepositoryStub(
             items: [
-                event(id: "a-and-b", groups: ["Colla A", "Colla B"]),
-                event(id: "only-b", groups: ["Colla B"]),
-                event(id: "empty", groups: [])
+                fixture.event(id: "a-and-b", groups: ["Colla A", "Colla B"]),
+                fixture.event(id: "only-b", groups: ["Colla B"]),
+                fixture.event(id: "empty", groups: [])
             ],
             groups: ["Colla A", "Colla B"]
         )
         let model = AgendaViewModel(repository: repository)
-        model.selectedDate = day
+        model.selectedDate = fixture.day
         await model.load()
         await model.loadGroupDirectory()
 
@@ -59,13 +51,13 @@ final class AgendaGroupFilterTests: XCTestCase {
     func testSelectingGraciaMovesItsEventOutOfOtherEvents() async {
         let repository = GroupAgendaRepositoryStub(
             items: [
-                event(id: "gracia", groups: ["Castellers de la Vila de Gràcia"]),
-                event(id: "blanes", groups: ["Colla Castellera de l'Alt Maresme"])
+                fixture.event(id: "gracia", groups: ["Castellers de la Vila de Gràcia"]),
+                fixture.event(id: "blanes", groups: ["Colla Castellera de l'Alt Maresme"])
             ],
             groups: ["Castellers de la Vila de Gràcia", "Colla Castellera de l'Alt Maresme"]
         )
         let model = AgendaViewModel(repository: repository)
-        model.selectedDate = day
+        model.selectedDate = fixture.day
         await model.load()
         await model.loadGroupDirectory()
         model.toggleFollowingAllGroups()
@@ -91,9 +83,10 @@ final class AgendaGroupFilterTests: XCTestCase {
         XCTAssertFalse(model.isGroupFilterActive)
     }
 
-    func testTogglingAllGroupsOffClearsTheSelectionAndTogglingAgainFollowsAll() async {
-        let repository = GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
-        let model = AgendaViewModel(repository: repository)
+    func testTogglingAllGroupsOffClearsSelectionAndTogglingAgainFollowsAll() async {
+        let model = AgendaViewModel(
+            repository: GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
+        )
         await model.loadGroupDirectory()
 
         model.toggleFollowingAllGroups()
@@ -110,12 +103,13 @@ final class AgendaGroupFilterTests: XCTestCase {
         XCTAssertTrue(model.isFollowing(groupName: "Una colla futura"))
     }
 
-    func testTogglingFeaturedGroupsChangesTheirSelectionWithoutRemovingStars() async {
-        let repository = GroupAgendaRepositoryStub(
-            items: [],
-            groups: ["Colla A", "Colla B", "Colla C"]
+    func testTogglingFeaturedGroupsChangesSelectionWithoutRemovingStars() async {
+        let model = AgendaViewModel(
+            repository: GroupAgendaRepositoryStub(
+                items: [],
+                groups: ["Colla A", "Colla B", "Colla C"]
+            )
         )
-        let model = AgendaViewModel(repository: repository)
         await model.loadGroupDirectory()
         model.setFeatured(true, groupName: "Colla A")
         model.setFeatured(true, groupName: "Colla B")
@@ -138,9 +132,10 @@ final class AgendaGroupFilterTests: XCTestCase {
         XCTAssertEqual(model.featuredGroups, ["Colla A", "Colla B"])
     }
 
-    func testFeaturingAddsTheGroupToHighlightedWithoutRemovingItFromAllGroups() async {
-        let repository = GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
-        let model = AgendaViewModel(repository: repository)
+    func testFeaturingKeepsTheGroupInTheCompleteList() async {
+        let model = AgendaViewModel(
+            repository: GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
+        )
         await model.loadGroupDirectory()
 
         model.setFeatured(true, groupName: "Colla B")
@@ -155,8 +150,10 @@ final class AgendaGroupFilterTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let store = AgendaUserDefaultsStore(userDefaults: defaults, key: "agenda-test")
-        let repository = GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
-        let first = AgendaViewModel(repository: repository, filterStore: store)
+        let first = AgendaViewModel(
+            repository: GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"]),
+            filterStore: store
+        )
         await first.loadGroupDirectory()
         first.setFollowing(false, groupName: "Colla A")
         first.setFeatured(true, groupName: "Colla B")
@@ -172,75 +169,7 @@ final class AgendaGroupFilterTests: XCTestCase {
         XCTAssertEqual(restored.availableGroups, ["Colla A", "Colla B"])
     }
 
-    private var day: Date {
-        var components = DateComponents()
-        components.calendar = AgendaCalendarMath.calendar
-        components.timeZone = AgendaCalendarMath.calendar.timeZone
-        components.year = 2026
-        components.month = 7
-        components.day = 25
-        return components.date!
-    }
-
-    private func event(id: String, groups: [String]) -> CastellEvent {
-        CastellEvent(
-            id: id,
-            sourceID: "cccc",
-            externalID: id,
-            title: id,
-            localDate: "2026-07-25",
-            startsAt: nil,
-            timeLabel: "Tarda",
-            timezone: "Europe/Madrid",
-            venue: "Plaça",
-            municipality: "Valls",
-            participatingGroups: groups,
-            notes: "",
-            sourceURL: URL(string: "https://castellscat.cat/ca/agenda")!,
-            sourceOrder: 0,
-            attribution: "Font: CCCC",
-            revision: "r1",
-            updatedAt: Date()
-        )
-    }
-}
-
-@MainActor
-private final class GroupAgendaRepositoryStub: AgendaRepository {
-    let officialURL = URL(string: "https://castellscat.cat/ca/agenda")!
-    let suppliedItems: [CastellEvent]
-    var directoryGroups: [String]
-    private(set) var eventRequestCount = 0
-
-    init(items: [CastellEvent], groups: [String]) {
-        suppliedItems = items
-        directoryGroups = groups
-    }
-
-    func events(
-        from: Date,
-        to: Date,
-        group: String?,
-        municipality: String?,
-        cursor: String?,
-        limit: Int,
-        forceRefresh: Bool
-    ) async throws -> AgendaPage {
-        eventRequestCount += 1
-        return AgendaPage(
-            items: suppliedItems,
-            nextCursor: nil,
-            officialURL: officialURL,
-            fromCache: false,
-            sourceStatus: .active
-        )
-    }
-
-    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
-        CastellerGroupDirectory(
-            groups: directoryGroups,
-            revision: "test",
-            officialURL: URL(string: "https://castellscat.cat/public/ca/les-colles-llistat")!
-        )
+    private var fixture: AgendaGroupFilterTestFixture.Type {
+        AgendaGroupFilterTestFixture.self
     }
 }

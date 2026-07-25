@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from backend.api.routers import agenda, chat, cron, health, hour_by_hour, privacy, push
+from backend.api.routers import agenda, chat, cron, groups, health, hour_by_hour, privacy, push
 from backend.composition.container import ApplicationOverrides, build_container
 from backend.config import Settings
 
@@ -20,6 +20,7 @@ def create_app(
         privacy.router,
         health.router,
         hour_by_hour.router,
+        groups.router,
         agenda.router,
         chat.router,
         push.router,
