@@ -97,18 +97,20 @@ El projecte inclou App Icon, privacy manifest, declaració d'exempció de xifrat
 Per provar, arxivar i pujar l'últim `origin/main` amb un número de build únic:
 
 ```bash
-./scripts/deploy-testflight.sh
+make deploy-testflight
 ```
 
 El script actualitza `origin/main`, crea un worktree temporal del commit exacte i utilitza
 els segons Unix UTC com a `CURRENT_PROJECT_VERSION`; així el build creix sense modificar
 el projecte ni crear un commit només per canviar-ne el número. Requereix el compte Apple
-configurat a Xcode. Per inspeccionar el pla, ometre proves o fixar excepcionalment el build:
+configurat a Xcode. El target de `make` delega a `scripts/deploy-testflight.sh` i permet
+passar-li opcions amb `ARGS`. Per inspeccionar el pla, ometre proves o fixar
+excepcionalment el build:
 
 ```bash
-./scripts/deploy-testflight.sh --dry-run
-./scripts/deploy-testflight.sh --skip-tests
-./scripts/deploy-testflight.sh --build-number 1774400000
+make deploy-testflight ARGS="--dry-run"
+make deploy-testflight ARGS="--skip-tests"
+make deploy-testflight ARGS="--build-number 1774400000"
 ```
 
 ### Desplegament a Vercel i Neon

@@ -3,8 +3,11 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
+
+import pytest
 
 
 REPOSITORY_ROOT = Path(__file__).parents[1]
@@ -83,6 +86,7 @@ def test_invalid_build_number_is_rejected_before_building() -> None:
     assert "must be a positive integer" in result.stderr
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="TestFlight deploy requires macOS")
 def test_deploy_archives_uploads_and_removes_its_temporary_worktree(tmp_path: Path) -> None:
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
@@ -155,4 +159,23 @@ def test_deploy_script_is_documented() -> None:
     readme = (REPOSITORY_ROOT / "README.md").read_text()
 
     assert re.search(r"scripts/deploy-testflight\.sh", readme)
+    assert "make deploy-testflight" in readme
     assert "--build-number" in readme
+
+
+def test_make_target_delegates_to_the_deploy_script() -> None:
+    result = subprocess.run(
+        [
+            "make",
+            "deploy-testflight",
+            "ARGS=--dry-run --skip-tests --ref HEAD --build-number 1774400000",
+        ],
+        cwd=REPOSITORY_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Build number: 1774400000" in result.stdout
+    assert "No upload was performed." in result.stdout
