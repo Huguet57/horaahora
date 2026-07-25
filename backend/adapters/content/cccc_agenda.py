@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 import requests
 from bs4 import BeautifulSoup
 
-from backend.domain.models import CastellEvent
+from backend.domain.content.models import CastellEvent
 
 
 class CCCCAgendaHTMLSource:

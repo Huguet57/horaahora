@@ -6,7 +6,7 @@ import time
 
 import httpx
 
-from backend.domain.models import (
+from backend.domain.notifications.models import (
     NotificationDisposition,
     NotificationSendResult,
     PendingNotificationDelivery,

@@ -4,7 +4,12 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from backend.domain.models import Outcome, ParsedCastell, ParsedCastellQuery, ParsedPerformance
+from backend.domain.calculator.models import (
+    Outcome,
+    ParsedCastell,
+    ParsedCastellQuery,
+    ParsedPerformance,
+)
 
 
 class StrictPayloadModel(BaseModel):

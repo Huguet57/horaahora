@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from backend.domain.models import HourByHourItem
+from backend.domain.content.models import HourByHourItem
 
 
 _EDITORIAL_TITLE_PREFIX = re.compile(

@@ -11,9 +11,12 @@
 		A1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* ContentView.swift */; };
 		A1000003 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppDelegate.swift */; };
 		A1000004 /* HourByHourNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000005 /* HourByHourNotificationManager.swift */; };
-		A1000006 /* StartupLoadingGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000006 /* StartupLoadingGate.swift */; };
-		A1000007 /* StartupLoadingContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007 /* StartupLoadingContainer.swift */; };
-		A1000008 /* StartupLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000008 /* StartupLoadingView.swift */; };
+		A1000005 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000006 /* AppDependencies.swift */; };
+		A1000006 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007 /* AppConfiguration.swift */; };
+		A1000007 /* AppNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000008 /* AppNavigation.swift */; };
+		A1000008 /* StartupLoadingGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009 /* StartupLoadingGate.swift */; };
+		A1000009 /* StartupLoadingContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000010 /* StartupLoadingContainer.swift */; };
+		A1000010 /* StartupLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* StartupLoadingView.swift */; };
 		B1000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2000001 /* Assets.xcassets */; };
 		B1000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B2000002 /* PrivacyInfo.xcprivacy */; };
 		A1000011 /* CastellsDomain in Frameworks */ = {isa = PBXBuildFile; productRef = A1100011 /* CastellsDomain */; };
@@ -30,9 +33,12 @@
 		A2000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A2000003 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A2000005 /* HourByHourNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourByHourNotificationManager.swift; sourceTree = "<group>"; };
-		A2000006 /* StartupLoadingGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingGate.swift; sourceTree = "<group>"; };
-		A2000007 /* StartupLoadingContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingContainer.swift; sourceTree = "<group>"; };
-		A2000008 /* StartupLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingView.swift; sourceTree = "<group>"; };
+		A2000006 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
+		A2000007 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
+		A2000008 /* AppNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigation.swift; sourceTree = "<group>"; };
+		A2000009 /* StartupLoadingGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingGate.swift; sourceTree = "<group>"; };
+		A2000010 /* StartupLoadingContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingContainer.swift; sourceTree = "<group>"; };
+		A2000011 /* StartupLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingView.swift; sourceTree = "<group>"; };
 		A2000004 /* HoraAHoraApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HoraAHoraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B2000002 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -69,23 +75,14 @@
 				4DBB36832F2CC02F0080CD51 /* HoraAHoraApp.entitlements */,
 				B2000001 /* Assets.xcassets */,
 				B2000002 /* PrivacyInfo.xcprivacy */,
-				A4000004 /* Startup */,
-				A2000001 /* HoraAHoraApp.swift */,
-				A2000002 /* ContentView.swift */,
-				A2000003 /* AppDelegate.swift */,
-				A2000005 /* HourByHourNotificationManager.swift */,
+				A4000004 /* App */,
+				A4000005 /* Composition */,
+				A4000006 /* Configuration */,
+				A4000007 /* Navigation */,
+				A4000008 /* Notifications */,
+				A4000009 /* Startup */,
 			);
 			path = HoraAHoraApp;
-			sourceTree = "<group>";
-		};
-		A4000004 /* Startup */ = {
-			isa = PBXGroup;
-			children = (
-				A2000006 /* StartupLoadingGate.swift */,
-				A2000007 /* StartupLoadingContainer.swift */,
-				A2000008 /* StartupLoadingView.swift */,
-			);
-			path = Startup;
 			sourceTree = "<group>";
 		};
 		A4000003 /* Products */ = {
@@ -94,6 +91,58 @@
 				A2000004 /* HoraAHoraApp.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A4000004 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A2000001 /* HoraAHoraApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A4000005 /* Composition */ = {
+			isa = PBXGroup;
+			children = (
+				A2000006 /* AppDependencies.swift */,
+			);
+			path = Composition;
+			sourceTree = "<group>";
+		};
+		A4000006 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				A2000007 /* AppConfiguration.swift */,
+			);
+			path = Configuration;
+			sourceTree = "<group>";
+		};
+		A4000007 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				A2000002 /* ContentView.swift */,
+				A2000008 /* AppNavigation.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		A4000008 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				A2000003 /* AppDelegate.swift */,
+				A2000005 /* HourByHourNotificationManager.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		A4000009 /* Startup */ = {
+			isa = PBXGroup;
+			children = (
+				A2000009 /* StartupLoadingGate.swift */,
+				A2000010 /* StartupLoadingContainer.swift */,
+				A2000011 /* StartupLoadingView.swift */,
+			);
+			path = Startup;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -176,9 +225,12 @@
 				A1000002 /* ContentView.swift in Sources */,
 				A1000003 /* AppDelegate.swift in Sources */,
 				A1000004 /* HourByHourNotificationManager.swift in Sources */,
-				A1000006 /* StartupLoadingGate.swift in Sources */,
-				A1000007 /* StartupLoadingContainer.swift in Sources */,
-				A1000008 /* StartupLoadingView.swift in Sources */,
+				A1000005 /* AppDependencies.swift in Sources */,
+				A1000006 /* AppConfiguration.swift in Sources */,
+				A1000007 /* AppNavigation.swift in Sources */,
+				A1000008 /* StartupLoadingGate.swift in Sources */,
+				A1000009 /* StartupLoadingContainer.swift in Sources */,
+				A1000010 /* StartupLoadingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
