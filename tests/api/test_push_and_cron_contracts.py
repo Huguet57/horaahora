@@ -35,6 +35,11 @@ class CoordinatorStub:
         return NotificationRunResult(status="completed", delivered=3)
 
 
+class FailingCoordinator:
+    def run(self):
+        raise RuntimeError("APNs unavailable")
+
+
 def test_push_subscription_contract_registers_and_unregisters_current_installation() -> None:
     repository = RecordingPushRepository()
     client = make_test_client(
@@ -92,3 +97,30 @@ def test_cron_routes_require_production_secret_and_return_persisted_results() ->
     assert response.status_code == 200
     assert response.json()["delivered"] == 3
     assert coordinator.call_count == 1
+
+
+def test_failed_cron_emits_an_alert_signal(monkeypatch) -> None:
+    events: list[tuple[int, str, dict]] = []
+    monkeypatch.setattr(
+        "backend.api.routers.cron.log_event",
+        lambda _logger, level, event, **fields: events.append((level, event, fields)),
+    )
+    client = make_test_client(
+        settings=Settings(
+            database_url="sqlite+pysqlite:///:memory:",
+            hour_by_hour_source_enabled=False,
+            vercel_env="production",
+            cron_secret="cron-secret",
+        ),
+        notification_coordinator=FailingCoordinator(),
+    )
+
+    try:
+        client.get(
+            "/internal/cron/hour-by-hour",
+            headers={"Authorization": "Bearer cron-secret"},
+        )
+    except RuntimeError:
+        pass
+
+    assert events == [(40, "cron_failed", {"cron": "hour-by-hour", "exc_info": True})]

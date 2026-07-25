@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -11,9 +12,11 @@ from backend.domain.notifications.models import (
     NotificationSendResult,
     PendingNotificationDelivery,
 )
+from backend.observability import log_event
 
 _INVALID_TOKEN_REASONS = {"BadDeviceToken", "DeviceTokenNotForTopic", "Unregistered"}
 _TRANSIENT_STATUSES = {429, 500, 503}
+logger = logging.getLogger("horaahora.apns")
 
 
 class APNsGateway:
@@ -58,10 +61,24 @@ class APNsGateway:
         except Exception:
             reason = f"HTTP {response.status_code}"
         if reason in _INVALID_TOKEN_REASONS:
-            return NotificationSendResult(NotificationDisposition.INVALID_TOKEN, reason)
-        if response.status_code in _TRANSIENT_STATUSES:
-            return NotificationSendResult(NotificationDisposition.RETRY, reason)
-        return NotificationSendResult(NotificationDisposition.FAILED, reason)
+            result = NotificationSendResult(NotificationDisposition.INVALID_TOKEN, reason)
+        elif response.status_code in _TRANSIENT_STATUSES:
+            result = NotificationSendResult(NotificationDisposition.RETRY, reason)
+        else:
+            result = NotificationSendResult(NotificationDisposition.FAILED, reason)
+        log_event(
+            logger,
+            logging.ERROR
+            if result.disposition is NotificationDisposition.FAILED
+            else logging.WARNING,
+            "apns_delivery_rejected",
+            delivery_id=delivery.id,
+            environment=delivery.environment,
+            status_code=response.status_code,
+            reason=reason,
+            disposition=result.disposition.value,
+        )
+        return result
 
 
 class APNsAuthorizationTokenProvider:
