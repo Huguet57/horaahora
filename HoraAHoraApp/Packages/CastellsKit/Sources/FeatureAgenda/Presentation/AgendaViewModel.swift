@@ -12,6 +12,7 @@ public final class AgendaViewModel {
     public private(set) var events: [CastellEvent] = []
     public private(set) var otherEvents: [CastellEvent] = []
     public private(set) var eventDateKeys: Set<String> = []
+    var groupSelectionRevision: UInt = 0
     var eventWindow = AgendaEventWindow()
     private var monthsBeingPrefetched: Set<String> = []
     private var hasStartedInitialLoad = false

@@ -64,6 +64,9 @@ public struct AgendaRootView: View {
                 .agendaNavigationBarHidden()
                 .task { await model.load() }
                 .task { await model.loadGroupDirectory() }
+                .onChange(of: model.groupSelectionRevision) {
+                    resetScrollAfterGroupSelectionChange(with: proxy)
+                }
                 .onChange(of: foldDistance) { oldDistance, newDistance in
                     scrollViewBaseHeight = AgendaCalendarFold.rebasedScrollViewBaseHeight(
                         scrollViewBaseHeight,
@@ -112,6 +115,15 @@ public struct AgendaRootView: View {
             withAnimation(.snappy(duration: 0.3)) {
                 proxy.scrollTo(anchorID, anchor: .top)
             }
+        }
+    }
+
+    private func resetScrollAfterGroupSelectionChange(with proxy: ScrollViewProxy) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            scrollOffset = 0
+            proxy.scrollTo(AgendaScrollIdentifiers.top, anchor: .top)
         }
     }
 

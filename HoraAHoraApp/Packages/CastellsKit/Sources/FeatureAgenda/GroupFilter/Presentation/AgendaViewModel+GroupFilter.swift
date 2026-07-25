@@ -16,23 +16,27 @@ public extension AgendaViewModel {
     }
 
     func setFollowing(_ following: Bool, groupName: String) {
+        let previousSelection = groupFilter.selection
         groupFilter.setFollowing(following, groupName: groupName)
-        updateVisibleMonthEvents()
+        finishGroupSelectionChange(from: previousSelection)
     }
 
     func followAllGroups() {
+        let previousSelection = groupFilter.selection
         groupFilter.followAll()
-        updateVisibleMonthEvents()
+        finishGroupSelectionChange(from: previousSelection)
     }
 
     func toggleFollowingAllGroups() {
+        let previousSelection = groupFilter.selection
         groupFilter.toggleFollowingAll()
-        updateVisibleMonthEvents()
+        finishGroupSelectionChange(from: previousSelection)
     }
 
     func toggleFollowingFeaturedGroups() {
+        let previousSelection = groupFilter.selection
         groupFilter.toggleFollowingFeatured()
-        updateVisibleMonthEvents()
+        finishGroupSelectionChange(from: previousSelection)
     }
 
     func setFeatured(_ featured: Bool, groupName: String) {
@@ -55,6 +59,12 @@ public extension AgendaViewModel {
 }
 
 extension AgendaViewModel {
+    private func finishGroupSelectionChange(from previousSelection: AgendaGroupSelection) {
+        guard groupFilter.selection != previousSelection else { return }
+        groupSelectionRevision &+= 1
+        updateVisibleMonthEvents()
+    }
+
     func mergeObservedGroups() {
         groupFilter.mergeObservedGroups(eventWindow.participatingGroupNames)
     }
