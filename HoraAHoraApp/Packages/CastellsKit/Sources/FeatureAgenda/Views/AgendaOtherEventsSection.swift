@@ -22,11 +22,16 @@ struct AgendaOtherEventsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if hasMatchingEvents {
-                disclosureButton
-            } else {
-                filteredEmptyState
+            if !hasMatchingEvents {
+                Text("No hi ha actuacions de les colles seleccionades")
+                    .font(.subheadline.weight(.medium))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
             }
+
+            disclosureButton
 
             if disclosure.isExpanded {
                 ForEach(events) { event in
@@ -35,35 +40,6 @@ struct AgendaOtherEventsSection: View {
                 }
             }
         }
-    }
-
-    private var filteredEmptyState: some View {
-        VStack(spacing: 2) {
-            Text("No hi ha actuacions de les colles seleccionades")
-                .font(.subheadline.weight(.medium))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-
-            Button {
-                toggleDisclosure()
-            } label: {
-                HStack(spacing: 6) {
-                    Text(filteredDisclosureTitle)
-                    Image(systemName: disclosure.isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption2.weight(.semibold))
-                }
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityHint(
-                disclosure.isExpanded ? "Plega les actuacions" : "Mostra les actuacions"
-            )
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
     }
 
     private var disclosureButton: some View {
@@ -96,14 +72,6 @@ struct AgendaOtherEventsSection: View {
         .accessibilityHint(
             disclosure.isExpanded ? "Plega les actuacions" : "Mostra les actuacions"
         )
-    }
-
-    private var filteredDisclosureTitle: String {
-        if disclosure.isExpanded {
-            return "Amaga les altres actuacions"
-        }
-
-        return events.count == 1 ? "Mostra una actuació més" : "Mostra \(events.count) actuacions més"
     }
 
     private func toggleDisclosure() {
