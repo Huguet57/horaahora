@@ -62,7 +62,12 @@ def test_apns_gateway_uses_production_headers_and_silent_alert_payload() -> None
     assert payload["url"] == "https://example.com/directe"
 
 
-def test_apns_gateway_classifies_invalid_and_transient_responses() -> None:
+def test_apns_gateway_classifies_and_logs_rejected_responses(monkeypatch) -> None:
+    events: list[tuple[int, str, dict]] = []
+    monkeypatch.setattr(
+        "backend.adapters.notifications.apns.log_event",
+        lambda _logger, level, event, **fields: events.append((level, event, fields)),
+    )
     invalid = APNsGateway(
         client=RecordingClient(Response(410, {"reason": "Unregistered"})),
         authorization_token=lambda: "jwt-token",
@@ -76,3 +81,15 @@ def test_apns_gateway_classifies_invalid_and_transient_responses() -> None:
     assert invalid.reason == "Unregistered"
     assert transient.disposition is NotificationDisposition.RETRY
     assert transient.reason == "TooManyRequests"
+    assert [event for _, event, _ in events] == [
+        "apns_delivery_rejected",
+        "apns_delivery_rejected",
+    ]
+    assert events[0][2] == {
+        "delivery_id": "delivery-1",
+        "environment": "production",
+        "status_code": 410,
+        "reason": "Unregistered",
+        "disposition": "invalid_token",
+    }
+    assert "device_token" not in events[0][2]

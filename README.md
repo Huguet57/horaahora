@@ -16,6 +16,7 @@ El nom visible i definitiu de l'app és **Castells en vena** i el Bundle ID de d
 - `openapi/partner-api.yaml`: contracte reduït per a clients i reunions amb socis.
 - `docs/architecture.md`: límits modulars i dependències permeses.
 - `docs/integracio-socis.md`: proposta de col·laboració amb Revista Castells i la CCCC.
+- `docs/observability.md`: request IDs, logs estructurats i senyals d'alerta operativa.
 - `docs/testflight-readiness.md`: estat tècnic i passos manuals necessaris per distribuir la beta.
 
 ## Backend local
@@ -159,6 +160,8 @@ vercel env run -e production -- \
 Vercel Pro invoca `/internal/cron/hour-by-hour` cada minut i `/internal/cron/maintenance`
 diàriament. Tots dos exigeixen el `Bearer CRON_SECRET`; l'outbox, les restriccions úniques
 i l'advisory lock de PostgreSQL fan que execucions duplicades siguin idempotents.
+Les peticions retornen `X-Request-ID` i el backend emet logs JSON correlacionats. Consulta
+[la guia d'observabilitat](docs/observability.md) per configurar les alertes recomanades.
 
 ## Proves
 

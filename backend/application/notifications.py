@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -7,6 +8,9 @@ from datetime import UTC, datetime, timedelta
 from backend.domain.content.ports import HourByHourSource
 from backend.domain.notifications.models import NotificationDisposition
 from backend.domain.notifications.ports import NotificationGateway, NotificationRepository
+from backend.observability import log_event
+
+logger = logging.getLogger("horaahora.notifications")
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +70,15 @@ class HourByHourNotificationCoordinator:
                 try:
                     result = self.gateway.send(delivery)
                 except Exception as error:
+                    log_event(
+                        logger,
+                        logging.ERROR,
+                        "notification_delivery_exception",
+                        exc_info=True,
+                        delivery_id=delivery.id,
+                        attempt_count=delivery.attempt_count,
+                        error_type=type(error).__name__,
+                    )
                     self.repository.mark_retry(
                         delivery.id,
                         reason=type(error).__name__,
