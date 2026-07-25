@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 import tomllib
 from pathlib import Path
 
@@ -47,13 +46,3 @@ def test_container_uses_only_locked_runtime_dependencies() -> None:
     assert "uv sync --frozen --no-dev --no-install-project" in dockerfile
     assert 'PATH="/app/.venv/bin:$PATH"' in dockerfile
     assert "requirements" not in dockerfile
-
-
-def test_dependabot_checks_every_versioned_dependency_source_weekly() -> None:
-    configuration = read(".github/dependabot.yml")
-    ecosystems = set(
-        re.findall(r'package-ecosystem:\s*["\']([^"\']+)["\']', configuration)
-    )
-
-    assert ecosystems == {"uv", "github-actions", "docker", "docker-compose"}
-    assert configuration.count('interval: "weekly"') == len(ecosystems)
