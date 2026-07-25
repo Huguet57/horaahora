@@ -6,16 +6,25 @@ struct AgendaGroupFilter {
     private(set) var selection: AgendaGroupSelection
     private(set) var featuredGroupKeys: Set<String>
     private(set) var availableGroups: [String]
+    private(set) var availableGroupKeys: Set<String>
+    private(set) var selectedGroupCount: Int
     private(set) var directoryRevision: String?
 
     init(store: (any AgendaFilterStoring)?) {
         let persisted = store?.load() ?? AgendaFilterState()
+        let availableGroups = AgendaGroupNameNormalizer.merged(
+            preferred: persisted.cachedGroups,
+            fallback: []
+        )
+        let availableGroupKeys = Set(availableGroups.map(AgendaGroupNameNormalizer.key))
         self.store = store
         self.selection = persisted.selection
         self.featuredGroupKeys = persisted.featuredGroupKeys
-        self.availableGroups = AgendaGroupNameNormalizer.merged(
-            preferred: persisted.cachedGroups,
-            fallback: []
+        self.availableGroups = availableGroups
+        self.availableGroupKeys = availableGroupKeys
+        self.selectedGroupCount = Self.selectedGroupCount(
+            for: persisted.selection,
+            availableGroupKeys: availableGroupKeys
         )
         self.directoryRevision = persisted.directoryRevision
     }
@@ -33,15 +42,6 @@ struct AgendaGroupFilter {
         return false
     }
 
-    var selectedGroupCount: Int {
-        switch selection {
-        case .all:
-            availableGroups.count
-        case let .custom(keys):
-            keys.intersection(Set(availableGroups.map { key(for: $0) })).count
-        }
-    }
-
     func isFollowing(_ groupName: String) -> Bool {
         switch selection {
         case .all:
@@ -55,12 +55,12 @@ struct AgendaGroupFilter {
         featuredGroupKeys.contains(key(for: groupName))
     }
 
-    func matches(participatingGroups: [String]) -> Bool {
+    func matches(participatingGroupKeys: Set<String>) -> Bool {
         switch selection {
         case .all:
             true
         case let .custom(keys):
-            participatingGroups.contains { keys.contains(key(for: $0)) }
+            !keys.isDisjoint(with: participatingGroupKeys)
         }
     }
 
@@ -69,7 +69,7 @@ struct AgendaGroupFilter {
         switch selection {
         case .all:
             guard !following else { return }
-            var keys = Set(availableGroups.map { key(for: $0) })
+            var keys = availableGroupKeys
             keys.remove(groupKey)
             selection = .custom(keys)
         case let .custom(currentKeys):
@@ -77,17 +77,20 @@ struct AgendaGroupFilter {
             if following { keys.insert(groupKey) } else { keys.remove(groupKey) }
             selection = .custom(keys)
         }
+        refreshSelectedGroupCount()
         persist()
     }
 
     mutating func followAll() {
         guard isActive else { return }
         selection = .all
+        refreshSelectedGroupCount()
         persist()
     }
 
     mutating func toggleFollowingAll() {
         selection = isActive ? .all : .custom([])
+        refreshSelectedGroupCount()
         persist()
     }
 
@@ -97,7 +100,7 @@ struct AgendaGroupFilter {
         switch selection {
         case .all:
             selection = .custom(
-                Set(availableGroups.map { key(for: $0) }).subtracting(featuredKeys)
+                availableGroupKeys.subtracting(featuredKeys)
             )
         case let .custom(currentKeys):
             selection = .custom(
@@ -106,6 +109,7 @@ struct AgendaGroupFilter {
                     : currentKeys.union(featuredKeys)
             )
         }
+        refreshSelectedGroupCount()
         persist()
     }
 
@@ -120,20 +124,49 @@ struct AgendaGroupFilter {
         revision: String,
         observedGroups: [String]
     ) {
-        availableGroups = AgendaGroupNameNormalizer.merged(
-            preferred: groups,
-            fallback: availableGroups + observedGroups
+        replaceAvailableGroups(
+            AgendaGroupNameNormalizer.merged(
+                preferred: groups,
+                fallback: availableGroups + observedGroups
+            )
         )
         if !revision.isEmpty { directoryRevision = revision }
         persist()
     }
 
     mutating func mergeObservedGroups(_ groups: [String]) {
-        availableGroups = AgendaGroupNameNormalizer.merged(
-            preferred: availableGroups,
-            fallback: groups
+        replaceAvailableGroups(
+            AgendaGroupNameNormalizer.merged(
+                preferred: availableGroups,
+                fallback: groups
+            )
         )
         persist()
+    }
+
+    private mutating func replaceAvailableGroups(_ groups: [String]) {
+        availableGroups = groups
+        availableGroupKeys = Set(groups.map(AgendaGroupNameNormalizer.key))
+        refreshSelectedGroupCount()
+    }
+
+    private mutating func refreshSelectedGroupCount() {
+        selectedGroupCount = Self.selectedGroupCount(
+            for: selection,
+            availableGroupKeys: availableGroupKeys
+        )
+    }
+
+    private static func selectedGroupCount(
+        for selection: AgendaGroupSelection,
+        availableGroupKeys: Set<String>
+    ) -> Int {
+        switch selection {
+        case .all:
+            availableGroupKeys.count
+        case let .custom(keys):
+            keys.intersection(availableGroupKeys).count
+        }
     }
 
     private func key(for groupName: String) -> String {
