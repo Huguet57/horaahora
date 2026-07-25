@@ -73,6 +73,27 @@ def test_model_prompt_contains_casteller_jargon_and_conventional_omissions() -> 
         assert guidance in SYSTEM_PROMPT
 
 
+def test_model_prompt_distinguishes_short_net_notations_from_verbal_names() -> None:
+    expected_guidance = [
+        "`2d8` escrit exactament així",
+        "`2d8sf`",
+        "`3d9` escrit exactament així",
+        "`3d9sf`",
+        "`4d9` escrit exactament així",
+        "`4d9sf`",
+        "`pd7` escrit exactament així",
+        "`pd7sf`",
+        "la `f` és obligatòria",
+        "| «torre/dos de vuit» sense modificadors | `2d8f` |",
+        "| «tres de nou» sense modificadors | `3d9f` |",
+        "| «quatre de nou» sense modificadors | `4d9f` |",
+        "| «pilar de set» sense modificadors | `pd7f` |",
+    ]
+
+    for guidance in expected_guidance:
+        assert guidance in SYSTEM_PROMPT
+
+
 def test_openai_adapter_repairs_invalid_structured_output_once() -> None:
     calls = 0
 

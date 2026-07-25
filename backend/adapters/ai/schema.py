@@ -73,14 +73,22 @@ Extreu els participants, els castells i el resultat de cada castell. No calculis
 </interpretació>
 
 <castells>
-- Si l'usuari escriu una notació completa i inequívoca, conserva-la. Si omet reforços que convencionalment es donen per entesos, expandeix-la segons la taula de jerga següent; el motor determinista també ho validarà.
+- Si l'usuari escriu una notació completa i inequívoca, conserva-la. Si omet reforços que convencionalment es donen per entesos, expandeix-la segons la taula de jerga següent; el motor determinista també ho validarà. Les notacions curtes exactes `2d8`, `3d9`, `4d9` i `pd7` són l'excepció explícita indicada més avall: representen les variants sense folre.
 - Converteix denominacions verbals inequívoces a notació convencional: per exemple, «cinc de nou amb folre» és «5d9f» i «quatre de nou sense folre» és «4d9sf».
 - No inventis castells, colles ni resultats que l'usuari no hagi indicat o implicat clarament.
 - No rebutgis una notació només perquè no la reconeguis. Conserva-la perquè el motor determinista pugui validar-la i demanar l'aclariment adequat.
 </castells>
 
 <jerga_castellera>
-Aplica primer qualsevol modificador explícit de l'usuari. Només després aplica les omissions convencionals. En la parla castellera, el reforç habitual sovint no es diu perquè és implícit; no interpretis el nom nu com una estructura exòtica que no es veu habitualment.
+Aplica primer qualsevol modificador explícit de l'usuari. Només després aplica les omissions convencionals. En les denominacions verbals, el reforç habitual sovint no es diu perquè és implícit. En canvi, una coincidència exacta amb una notació curta de la regla prioritària següent designa el castell sense folre.
+
+Regla prioritària per a coincidències exactes de notació curta:
+- `2d8` escrit exactament així, sense cap sufix, vol dir `2d8sf`.
+- `3d9` escrit exactament així, sense cap sufix, vol dir `3d9sf`.
+- `4d9` escrit exactament així, sense cap sufix, vol dir `4d9sf`.
+- `pd7` escrit exactament així, sense cap sufix, vol dir `pd7sf`.
+- Per referir-se a les variants amb folre en notació curta, la `f` és obligatòria: `2d8f`, `3d9f`, `4d9f` i `pd7f`.
+- Aquesta regla s'aplica al token exacte encara que aparegui dins una pregunta o comparació i té prioritat sobre les omissions convencionals de les denominacions verbals.
 
 Equivalències de vocabulari i sufixos:
 | Expressió habitual | Significat o notació |
@@ -124,11 +132,15 @@ Omissions i noms convencionals que has de resoldre sense demanar aclariments:
 | «pilar de vuit» o `pd8` sense més modificadors | `pd8fm` |
 | «dos/torre de deu» o `2d10` sense més modificadors | `2d10fmp` |
 | «pilar de nou» o `pd9` sense més modificadors | `pd9fmp` |
-| «tres de nou» o `3d9` sense modificadors | `3d9f` |
-| «quatre de nou» o `4d9` sense modificadors | `4d9f` |
+| «tres de nou» sense modificadors | `3d9f` |
+| «quatre de nou» sense modificadors | `4d9f` |
 | «cinc/set/nou de nou» sense modificadors | `5d9f` / `7d9f` / `9d9f` |
-| «torre/dos de vuit» o `2d8` sense modificadors | `2d8f` |
-| «pilar de set» o `pd7` sense modificadors | `pd7f` |
+| «torre/dos de vuit» sense modificadors | `2d8f` |
+| «pilar de set» sense modificadors | `pd7f` |
+| `3d9` escrit exactament així | `3d9sf` |
+| `4d9` escrit exactament així | `4d9sf` |
+| `2d8` escrit exactament així | `2d8sf` |
+| `pd7` escrit exactament així | `pd7sf` |
 | «torre neta», «dos de vuit net/neta» o «dos de vuit sense folre» | `2d8sf` |
 | «quatre de nou net/sense folre» | `4d9sf` |
 | «tres de nou net/sense folre» | `3d9sf` |
@@ -150,6 +162,8 @@ Sobrenoms habituals inequívocs:
 
 Exemples obligatoris de criteri:
 - «Què val més un quatre de 10 o una torre neta?» = comparació entre `4d10fm` i `2d8sf`.
+- `2d9fm o 2d8` = comparació entre `2d9fm` i `2d8sf`, perquè `2d8` és una coincidència exacta de notació curta.
+- `4d9 o 3d9` = comparació entre `4d9sf` i `3d9sf`; només `4d9f` i `3d9f` designen les variants amb folre en notació curta.
 - «Quatre de 10 amb folre» = `4d10sm`, perquè l'usuari ha explicitat folre però no manilles.
 - «Quatre de 10 amb folre i manilles» = `4d10fm`.
 - Si l'usuari explicita una de les variants rares (`sm`, «sense manilles», només «amb folre», `sf` o «sense folre»), respecta-la i no hi afegeixis el reforç habitual.
