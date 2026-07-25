@@ -69,7 +69,7 @@ public struct HourByHourRootView: View {
                                         onOpen: onOpen,
                                         onShowDetails: { detailItem = item }
                                     )
-                                    .transition(newContentTransition)
+                                    .hourByHourNewItemTransition(reduceMotion: reduceMotion)
                                     .task { await model.loadNextIfNeeded(after: item) }
                                 }
                             }
@@ -80,9 +80,9 @@ public struct HourByHourRootView: View {
                     }
                     .hourByHourListStyle()
                     .hourByHourRemovesTopContentMargin()
-                    .animation(
-                        reduceMotion ? nil : .snappy(duration: 0.32),
-                        value: model.newContentAnimationRevision
+                    .hourByHourNewItemsAnimation(
+                        revision: model.newItemsRevision,
+                        reduceMotion: reduceMotion
                     )
                     .refreshable { await model.refresh() }
                 }
@@ -97,13 +97,5 @@ public struct HourByHourRootView: View {
                     .hourByHourOpaquePresentation()
             }
         }
-    }
-
-    private var newContentTransition: AnyTransition {
-        guard !reduceMotion else { return .identity }
-        return .asymmetric(
-            insertion: .opacity.combined(with: .offset(y: -8)),
-            removal: .opacity
-        )
     }
 }

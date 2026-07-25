@@ -11,7 +11,7 @@ public final class HourByHourViewModel {
 
     public private(set) var items: [HourByHourItem] = []
     public private(set) var dayGroups: [HourByHourDayGroup] = []
-    public private(set) var newContentAnimationRevision = 0
+    public private(set) var newItemsRevision = 0
     public private(set) var isLoading = false
     public private(set) var isLoadingMore = false
     public private(set) var hasCompletedInitialLoad = false
@@ -48,7 +48,7 @@ public final class HourByHourViewModel {
     }
 
     public func revalidate() async {
-        await load(forceRefresh: false, mergePolicy: .preserveExisting)
+        await load(forceRefresh: false, mergePolicy: .revalidate)
     }
 
     public func runAutoRefresh(every interval: Duration = .seconds(60)) async {
@@ -92,7 +92,10 @@ public final class HourByHourViewModel {
         }
     }
 
-    private func load(forceRefresh: Bool, mergePolicy: MergePolicy = .replace) async {
+    private func load(
+        forceRefresh: Bool,
+        mergePolicy: HourByHourItemMerger.Policy = .replace
+    ) async {
         guard !isLoading, !isLoadingMore else { return }
         isLoading = true
         errorMessage = nil
@@ -115,41 +118,13 @@ public final class HourByHourViewModel {
         }
     }
 
-    private func merge(_ incoming: [HourByHourItem], policy: MergePolicy) {
-        let containsNewContent: Bool
-        if policy == .preserveExisting, !items.isEmpty {
-            let existingKeys = Set(items.map(Self.identityKey))
-            containsNewContent = incoming.contains {
-                !existingKeys.contains(Self.identityKey($0))
-            }
-        } else {
-            containsNewContent = false
+    private func merge(_ incoming: [HourByHourItem], policy: HourByHourItemMerger.Policy) {
+        let result = HourByHourItemMerger.merge(incoming, into: items, policy: policy)
+        guard result.items != items else { return }
+        items = result.items
+        dayGroups = HourByHourDayGrouping.groups(from: result.items)
+        if result.containsNewItems {
+            newItemsRevision &+= 1
         }
-        let source: [HourByHourItem]
-        switch policy {
-        case .replace: source = incoming
-        case .append: source = items + incoming
-        case .preserveExisting: source = incoming + items
-        }
-        var seen = Set<String>()
-        let mergedItems = source.filter {
-            seen.insert(Self.identityKey($0)).inserted
-        }
-        guard mergedItems != items else { return }
-        items = mergedItems
-        dayGroups = HourByHourDayGrouping.groups(from: mergedItems)
-        if containsNewContent {
-            newContentAnimationRevision &+= 1
-        }
-    }
-
-    private static func identityKey(_ item: HourByHourItem) -> String {
-        "\(item.sourceID):\(item.externalID)"
-    }
-
-    private enum MergePolicy: Equatable {
-        case replace
-        case append
-        case preserveExisting
     }
 }

@@ -37,10 +37,10 @@ struct ContentView: View {
             agendaModel.preloadFromCache()
             await settingsModel.refreshNotificationStatus()
         }
-        .task(id: shouldRunHourByHourAutoRefresh) {
-            guard shouldRunHourByHourAutoRefresh else { return }
-            await hourByHourModel.runAutoRefresh(every: .seconds(60))
-        }
+        .hourByHourAutoRefresh(
+            model: hourByHourModel,
+            isEnabled: scenePhase == .active && selectedSection == .hourByHour
+        )
         .onAppear {
             if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {
                 openHourByHourLink(pendingURL)
@@ -101,10 +101,6 @@ struct ContentView: View {
             .tabItem { Label("Ajustos", systemImage: "gearshape") }
             .tag(AppSection.settings)
         }
-    }
-
-    private var shouldRunHourByHourAutoRefresh: Bool {
-        scenePhase == .active && selectedSection == .hourByHour
     }
 
     private func openHourByHourLink(_ url: URL) {
