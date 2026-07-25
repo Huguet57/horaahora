@@ -84,6 +84,7 @@ public struct AgendaRootView: View {
         .sheet(isPresented: $showsGroupFilter) {
             AgendaGroupFilterView(model: model)
                 .presentationDetents([.medium, .large])
+                .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.visible)
         }
     }
