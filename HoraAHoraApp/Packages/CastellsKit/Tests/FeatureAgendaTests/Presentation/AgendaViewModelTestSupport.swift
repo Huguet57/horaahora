@@ -105,7 +105,8 @@ func makeAgendaEvent(
     localDate: String,
     title: String,
     municipality: String = "Valls",
-    sourceOrder: Int = 0
+    sourceOrder: Int = 0,
+    participatingGroups: [String] = ["Colla A"]
 ) -> CastellEvent {
     CastellEvent(
         id: id,
@@ -118,7 +119,7 @@ func makeAgendaEvent(
         timezone: "Europe/Madrid",
         venue: "Plaça",
         municipality: municipality,
-        participatingGroups: ["Colla A"],
+        participatingGroups: participatingGroups,
         notes: "",
         sourceURL: URL(string: "https://castellscat.cat/ca/agenda")!,
         sourceOrder: sourceOrder,

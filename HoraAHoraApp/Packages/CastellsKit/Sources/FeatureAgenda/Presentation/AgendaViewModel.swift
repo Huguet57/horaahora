@@ -233,15 +233,14 @@ public final class AgendaViewModel {
     }
 
     func updateVisibleMonthEvents() {
-        let dayEvents = eventWindow.events(on: selectedDate)
-        events = dayEvents.filter(matchesGroupSelection)
-        otherEvents = dayEvents.filter { !matchesGroupSelection($0) }
-        eventDateKeys = eventWindow.dateKeys(matching: matchesGroupSelection)
-        monthEvents = eventWindow.events(inMonthContaining: visibleMonth)
-            .filter(matchesGroupSelection)
-    }
-
-    func matchesGroupSelection(_ event: CastellEvent) -> Bool {
-        groupFilter.matches(participatingGroups: event.participatingGroups)
+        let projection = eventWindow.projection(
+            on: selectedDate,
+            inMonthContaining: visibleMonth,
+            matchingGroupKeys: groupFilter.matches
+        )
+        events = projection.events
+        otherEvents = projection.otherEvents
+        eventDateKeys = projection.eventDateKeys
+        monthEvents = projection.monthEvents
     }
 }
