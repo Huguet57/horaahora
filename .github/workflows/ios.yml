@@ -2,21 +2,37 @@ name: iOS
 
 on:
   pull_request:
-    paths:
-      - "HoraAHoraApp/**"
-      - ".github/workflows/ios.yml"
   push:
     branches: [main]
-    paths:
-      - "HoraAHoraApp/**"
-      - ".github/workflows/ios.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect iOS changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ios: ${{ steps.filter.outputs.ios }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Detect relevant paths
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          HEAD_SHA: ${{ github.sha }}
+        run: bash .github/scripts/detect-ios-changes.sh "$BASE_SHA" "$HEAD_SHA"
+
   test-and-build:
+    name: iOS test and build
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
     runs-on: macos-latest
     timeout-minutes: 30
 
@@ -40,3 +56,30 @@ jobs:
           -configuration Release
           -destination 'generic/platform=iOS'
           CODE_SIGNING_ALLOWED=NO
+
+  required:
+    name: iOS required
+    if: always()
+    needs: [changes, test-and-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Verify the conditional build result
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          IOS_CHANGED: ${{ needs.changes.outputs.ios }}
+          BUILD_RESULT: ${{ needs.test-and-build.result }}
+        run: |
+          if [[ "$CHANGES_RESULT" != "success" ]]; then
+            echo "iOS change detection failed: $CHANGES_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$IOS_CHANGED" == "true" && "$BUILD_RESULT" != "success" ]]; then
+            echo "The required iOS build did not pass: $BUILD_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$IOS_CHANGED" != "true" && "$BUILD_RESULT" != "skipped" ]]; then
+            echo "Unexpected iOS build result for an unrelated change: $BUILD_RESULT" >&2
+            exit 1
+          fi
