@@ -138,7 +138,11 @@ public struct CalculatorRootView: View {
                     .id(selectedDestination)
                     .onDisappear { model.reload() }
             case .newConversation:
-                ChatView(repository: repository, conversationID: nil)
+                ChatView(
+                    repository: repository,
+                    conversationID: nil,
+                    onConversationCreated: { model.reload() }
+                )
                     .id(selectedDestination)
                     .onDisappear { model.reload() }
             case nil:
@@ -183,23 +187,31 @@ public final class ChatViewModel {
     private var conversationID: UUID?
     private let repository: any ChatRepository
     private let sleep: Sleep
+    private let onConversationCreated: @MainActor () -> Void
 
-    public convenience init(repository: any ChatRepository, conversationID: UUID?) {
+    public convenience init(
+        repository: any ChatRepository,
+        conversationID: UUID?,
+        onConversationCreated: @escaping @MainActor () -> Void = {}
+    ) {
         self.init(
             repository: repository,
             conversationID: conversationID,
-            sleep: { duration in try await ContinuousClock().sleep(for: duration) }
+            sleep: { duration in try await ContinuousClock().sleep(for: duration) },
+            onConversationCreated: onConversationCreated
         )
     }
 
     init(
         repository: any ChatRepository,
         conversationID: UUID?,
-        sleep: @escaping Sleep
+        sleep: @escaping Sleep,
+        onConversationCreated: @escaping @MainActor () -> Void = {}
     ) {
         self.repository = repository
         self.conversationID = conversationID
         self.sleep = sleep
+        self.onConversationCreated = onConversationCreated
     }
 
     public var displayedMessages: [ChatMessage] {
@@ -256,6 +268,7 @@ public final class ChatViewModel {
             } else {
                 id = try repository.createConversation(title: text)
                 conversationID = id
+                onConversationCreated()
             }
             let updatedConversation = try await repository.send(message: text, in: id)
             pendingUserMessage = nil
@@ -286,8 +299,16 @@ public struct ChatView: View {
     @State private var model: ChatViewModel
     @FocusState private var isComposerFocused: Bool
 
-    public init(repository: any ChatRepository, conversationID: UUID?) {
-        _model = State(initialValue: ChatViewModel(repository: repository, conversationID: conversationID))
+    public init(
+        repository: any ChatRepository,
+        conversationID: UUID?,
+        onConversationCreated: @escaping @MainActor () -> Void = {}
+    ) {
+        _model = State(initialValue: ChatViewModel(
+            repository: repository,
+            conversationID: conversationID,
+            onConversationCreated: onConversationCreated
+        ))
     }
 
     public var body: some View {

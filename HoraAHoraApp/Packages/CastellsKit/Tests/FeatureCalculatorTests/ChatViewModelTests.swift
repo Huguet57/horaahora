@@ -29,6 +29,28 @@ final class ChatViewModelTests: XCTestCase {
         XCTAssertEqual(model.displayedMessages.map(\.role), [.user, .assistant])
     }
 
+    func testCreatingConversationNotifiesTheListBeforeTheResponseArrives() async {
+        let repository = SuspendedChatRepository()
+        var createdConversationCount = 0
+        let model = ChatViewModel(
+            repository: repository,
+            conversationID: nil,
+            sleep: { _ in },
+            onConversationCreated: { createdConversationCount += 1 }
+        )
+        model.draft = "Què val el 5d9f?"
+
+        let task = Task { await model.send() }
+        while !repository.didStartSending {
+            await Task.yield()
+        }
+
+        XCTAssertEqual(createdConversationCount, 1)
+
+        repository.finishSending()
+        await task.value
+    }
+
     func testReopeningAConversationRefreshesUntilThePendingResponseArrives() async {
         let repository = ReopenedChatRepository()
         let model = ChatViewModel(
