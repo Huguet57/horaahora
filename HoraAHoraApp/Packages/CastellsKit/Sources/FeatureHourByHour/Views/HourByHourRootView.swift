@@ -8,6 +8,7 @@ public struct HourByHourRootView: View {
     private let onConfigureNotifications: () -> Void
     private let onDismissNotificationOnboarding: () -> Void
     private let onOpen: ((URL) -> Void)?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(
         model: HourByHourViewModel,
@@ -68,6 +69,7 @@ public struct HourByHourRootView: View {
                                         onOpen: onOpen,
                                         onShowDetails: { detailItem = item }
                                     )
+                                    .hourByHourNewItemTransition(reduceMotion: reduceMotion)
                                     .task { await model.loadNextIfNeeded(after: item) }
                                 }
                             }
@@ -78,6 +80,10 @@ public struct HourByHourRootView: View {
                     }
                     .hourByHourListStyle()
                     .hourByHourRemovesTopContentMargin()
+                    .hourByHourNewItemsAnimation(
+                        revision: model.newItemsRevision,
+                        reduceMotion: reduceMotion
+                    )
                     .refreshable { await model.refresh() }
                 }
             }

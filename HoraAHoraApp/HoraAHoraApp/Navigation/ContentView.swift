@@ -37,10 +37,10 @@ struct ContentView: View {
             agendaModel.preloadFromCache()
             await settingsModel.refreshNotificationStatus()
         }
-        .task(id: scenePhase) {
-            guard scenePhase == .active else { return }
-            await hourByHourModel.runAutoRefresh(every: .seconds(60))
-        }
+        .hourByHourAutoRefresh(
+            model: hourByHourModel,
+            isEnabled: scenePhase == .active && selectedSection == .hourByHour
+        )
         .onAppear {
             if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {
                 openHourByHourLink(pendingURL)
