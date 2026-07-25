@@ -2,43 +2,14 @@ import Foundation
 import SwiftUI
 
 extension AgendaCalendarView {
-    var weekdayHeaderRow: some View {
-        HStack(spacing: 4) {
-            ForEach(weekdays, id: \.self) { weekday in
-                Text(weekday)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .frame(height: AgendaCalendarFold.weekdayHeaderHeight)
-    }
-
     func dayButton(_ date: Date) -> some View {
-        let hasEvents = eventDateKeys.contains(AgendaCalendarMath.localDateKey(date))
-        return AgendaCalendarDayButton(
+        AgendaCalendarDayButton(
             date: date,
             selectedDate: selectedDate,
-            hasEvents: hasEvents,
+            hasEvents: eventDateKeys.contains(AgendaCalendarMath.localDateKey(date)),
             onSelect: onSelect
         )
         .equatable()
-    }
-
-    var calendar: Calendar {
-        AgendaCalendarMath.calendar
-    }
-
-    private var monthStart: Date {
-        monthStart(containing: isCollapsed ? visibleWeek : visibleMonth)
-    }
-
-    func monthStart(containing date: Date) -> Date {
-        calendar.dateInterval(of: .month, for: date)!.start
-    }
-
-    var monthTitle: String {
-        AgendaCalendarMath.monthTitle(for: monthStart)
     }
 }
 
