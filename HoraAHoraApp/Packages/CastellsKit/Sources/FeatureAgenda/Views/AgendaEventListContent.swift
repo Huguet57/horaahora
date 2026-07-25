@@ -11,7 +11,6 @@ struct AgendaEventListContent: View, Equatable {
     let sourceStatus: AgendaSourceStatus
     let officialURL: URL
     let refresh: () -> Void
-    let openFilter: () -> Void
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events
@@ -37,8 +36,7 @@ struct AgendaEventListContent: View, Equatable {
                 if !otherEvents.isEmpty {
                     AgendaOtherEventsSection(
                         events: otherEvents,
-                        hasMatchingEvents: !events.isEmpty,
-                        onOpenFilter: openFilter
+                        hasMatchingEvents: !events.isEmpty
                     )
                     .id(otherEventsSectionID)
                 }

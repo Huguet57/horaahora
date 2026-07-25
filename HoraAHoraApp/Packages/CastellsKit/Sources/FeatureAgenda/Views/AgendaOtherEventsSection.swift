@@ -4,18 +4,15 @@ import CastellsDomain
 struct AgendaOtherEventsSection: View {
     let events: [CastellEvent]
     let hasMatchingEvents: Bool
-    let onOpenFilter: () -> Void
     @State private var disclosure: AgendaOtherEventsDisclosureState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         events: [CastellEvent],
-        hasMatchingEvents: Bool,
-        onOpenFilter: @escaping () -> Void
+        hasMatchingEvents: Bool
     ) {
         self.events = events
         self.hasMatchingEvents = hasMatchingEvents
-        self.onOpenFilter = onOpenFilter
         _disclosure = State(
             initialValue: AgendaOtherEventsDisclosureState(
                 hasMatchingEvents: hasMatchingEvents
@@ -41,18 +38,12 @@ struct AgendaOtherEventsSection: View {
     }
 
     private var noMatchesMessage: some View {
-        VStack(spacing: 8) {
-            Text("Cap actuació coincideix amb les colles seleccionades")
-                .font(.subheadline.weight(.medium))
-                .multilineTextAlignment(.center)
-
-            Button("Modifica el filtre", action: onOpenFilter)
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-        }
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
+        Text("Cap actuació coincideix amb les colles seleccionades")
+            .font(.subheadline.weight(.medium))
+            .multilineTextAlignment(.center)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
     }
 
     private var disclosureButton: some View {
