@@ -27,7 +27,14 @@ struct AgendaEventListContent: View, Equatable {
             ProgressView()
                 .frame(maxWidth: .infinity)
         } else if !events.isEmpty || !otherEvents.isEmpty {
-            LazyVStack(alignment: .leading, spacing: 12) {
+            // An eager VStack keeps the content height exact at all times. A
+            // LazyVStack estimates unmaterialized rows from the average card
+            // height, so the collapsed "Altres actuacions" row (44pt) was
+            // estimated ~290pt: materializing it near the end of the scroll
+            // shrank the content and clamped the offset back with a visible
+            // jump. A day holds at most a few dozen cards, so laziness buys
+            // nothing here.
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(events) { event in
                     AgendaEventCard(event: event)
                         .id("selected:\(event.id)")
