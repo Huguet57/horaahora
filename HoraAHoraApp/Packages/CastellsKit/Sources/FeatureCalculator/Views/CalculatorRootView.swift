@@ -16,37 +16,8 @@ public struct CalculatorRootView: View {
 
     public var body: some View {
         NavigationSplitView(preferredCompactColumn: $preferredCompactColumn) {
-            List(selection: $selectedDestination) {
-                if model.conversations.isEmpty {
-                    ContentUnavailableView {
-                        Label("Cap conversa", systemImage: "bubble.left.and.bubble.right")
-                    } description: {
-                        Text("Crea una conversa per comparar castells i actuacions.")
-                    }
-                    .listRowBackground(Color.clear)
-                }
-                ForEach(model.conversations) { conversation in
-                    NavigationLink(value: CalculatorDestination.conversation(conversation.id)) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(conversation.title).lineLimit(1)
-                            ConversationAgeText(date: conversation.updatedAt)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) { model.delete(conversation.id) } label: {
-                            Label("Elimina", systemImage: "trash")
-                        }
-                        Button {
-                            renameTarget = conversation
-                            renameText = conversation.title
-                        } label: {
-                            Label("Canvia el nom", systemImage: "pencil")
-                        }
-                        .tint(.blue)
-                    }
-                }
+            TimelineView(.periodic(from: .now, by: 60)) { context in
+                conversationList(relativeTo: context.date)
             }
             .navigationTitle("Calculadora")
             .toolbar {
@@ -89,6 +60,46 @@ public struct CalculatorRootView: View {
                 renameTarget = nil
             }
             Button("Cancel·la", role: .cancel) { renameTarget = nil }
+        }
+    }
+
+    private func conversationList(relativeTo referenceDate: Date) -> some View {
+        List(selection: $selectedDestination) {
+            if model.conversations.isEmpty {
+                ContentUnavailableView {
+                    Label("Cap conversa", systemImage: "bubble.left.and.bubble.right")
+                } description: {
+                    Text("Crea una conversa per comparar castells i actuacions.")
+                }
+                .listRowBackground(Color.clear)
+            }
+            ForEach(model.conversations) { conversation in
+                NavigationLink(value: CalculatorDestination.conversation(conversation.id)) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(conversation.title).lineLimit(1)
+                        Text(
+                            ConversationAgeFormatter.string(
+                                from: conversation.updatedAt,
+                                relativeTo: referenceDate
+                            )
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                .swipeActions(edge: .trailing) {
+                    Button(role: .destructive) { model.delete(conversation.id) } label: {
+                        Label("Elimina", systemImage: "trash")
+                    }
+                    Button {
+                        renameTarget = conversation
+                        renameText = conversation.title
+                    } label: {
+                        Label("Canvia el nom", systemImage: "pencil")
+                    }
+                    .tint(.blue)
+                }
+            }
         }
     }
 
