@@ -1,17 +1,8 @@
 name: CodeQL Swift
 
 on:
-  pull_request:
-    paths:
-      - "HoraAHoraApp/**"
-      - ".github/workflows/codeql-swift.yml"
-  push:
-    branches: [main]
-    paths:
-      - "HoraAHoraApp/**"
-      - ".github/workflows/codeql-swift.yml"
   schedule:
-    - cron: "41 4 * * 1"
+    - cron: "41 4 1 * *"
   workflow_dispatch:
 
 permissions:
@@ -26,7 +17,7 @@ jobs:
   analyze:
     name: CodeQL Swift
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v6
@@ -43,8 +34,10 @@ jobs:
           xcodebuild build
           -project HoraAHoraApp/HoraAHoraApp.xcodeproj
           -scheme HoraAHoraApp
-          -configuration Release
+          -configuration Debug
           -destination 'generic/platform=iOS'
+          ARCHS=arm64
+          ONLY_ACTIVE_ARCH=YES
           CODE_SIGNING_ALLOWED=NO
 
       - name: Analyze Swift

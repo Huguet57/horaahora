@@ -34,7 +34,7 @@ def test_backend_ci_gates_format_lint_and_migration_drift() -> None:
     assert "alembic check" in workflow
 
 
-def test_codeql_scans_python_and_path_filtered_swift() -> None:
+def test_codeql_scans_python_and_runs_optimized_swift_monthly() -> None:
     python_workflow = read(".github/workflows/codeql-python.yml")
     swift_workflow = read(".github/workflows/codeql-swift.yml")
 
@@ -46,7 +46,14 @@ def test_codeql_scans_python_and_path_filtered_swift() -> None:
     assert "languages: python" in python_workflow
     assert "languages: swift" in swift_workflow
     assert "build-mode: manual" in swift_workflow
-    assert '"HoraAHoraApp/**"' in swift_workflow
+    assert "pull_request:" not in swift_workflow
+    assert "push:" not in swift_workflow
+    assert 'cron: "41 4 1 * *"' in swift_workflow
+    assert "workflow_dispatch:" in swift_workflow
+    assert "timeout-minutes: 15" in swift_workflow
+    assert "-configuration Debug" in swift_workflow
+    assert "ARCHS=arm64" in swift_workflow
+    assert "ONLY_ACTIVE_ARCH=YES" in swift_workflow
     assert "CODE_SIGNING_ALLOWED=NO" in swift_workflow
 
 
