@@ -1,0 +1,46 @@
+name: CodeQL Swift
+
+on:
+  schedule:
+    - cron: "41 4 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: codeql-swift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: CodeQL Swift
+    runs-on: macos-15
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4.37.3
+        with:
+          languages: swift
+          build-mode: manual
+          queries: security-extended
+
+      - name: Build the unsigned app
+        run: >-
+          xcodebuild build
+          -project HoraAHoraApp/HoraAHoraApp.xcodeproj
+          -scheme HoraAHoraApp
+          -configuration Debug
+          -destination 'generic/platform=iOS'
+          ARCHS=arm64
+          ONLY_ACTIVE_ARCH=YES
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Analyze Swift
+        uses: github/codeql-action/analyze@v4.37.3
+        with:
+          category: "/language:swift"

@@ -34,7 +34,9 @@ class ScoringEngine:
         unknown_notations: list[str] = []
         performance_results: list[PerformanceResult] = []
         performance_labels = meaningful_performance_labels(query.performances)
-        for performance, performance_label in zip(query.performances, performance_labels):
+        for performance, performance_label in zip(
+            query.performances, performance_labels, strict=True
+        ):
             scored: list[ScoredCastell] = []
             for parsed in performance.castells:
                 canonical = self.normalizer.normalize(parsed.notation)
@@ -100,7 +102,11 @@ class ScoringEngine:
         if len(notations) == 1:
             return f"Quan dius «{notations[0]}», a quin castell et refereixes?"
         quoted = [f"«{notation}»" for notation in notations]
-        names = " ni ".join(quoted) if len(quoted) == 2 else ", ".join(quoted[:-1]) + f" ni {quoted[-1]}"
+        names = (
+            " ni ".join(quoted)
+            if len(quoted) == 2
+            else ", ".join(quoted[:-1]) + f" ni {quoted[-1]}"
+        )
         return f"No acabo d’identificar {names}. A quins castells et refereixes?"
 
     def _select_counted(self, scored: list[ScoredCastell]) -> None:
@@ -128,7 +134,9 @@ class ScoringEngine:
             for group in itertools.combinations(candidates, size)
             if sum(item.outcome is Outcome.LOADED for item in group) <= 2
         ]
-        selected = max(combinations, key=lambda group: sum(item.points for item in group), default=())
+        selected = max(
+            combinations, key=lambda group: sum(item.points for item in group), default=()
+        )
         selected_ids = {id(item) for item in selected}
         loaded_selected = sum(item.outcome is Outcome.LOADED for item in selected)
         for item in candidates:
@@ -146,9 +154,7 @@ class ScoringEngine:
     def _format_points(points: int) -> str:
         return f"{points:,}".replace(",", ".")
 
-    def _render_reply(
-        self, performances: list[PerformanceResult], winner_label: str | None
-    ) -> str:
+    def _render_reply(self, performances: list[PerformanceResult], winner_label: str | None) -> str:
         parts: list[str] = []
         for performance in performances:
             counted = [item for item in performance.castells if item.counted]

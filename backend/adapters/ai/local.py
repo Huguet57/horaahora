@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from backend.domain.calculator.labels import meaningful_performance_labels
 from backend.domain.calculator.models import (
     ChatTurn,
     Outcome,
@@ -9,8 +10,6 @@ from backend.domain.calculator.models import (
     ParsedCastellQuery,
     ParsedPerformance,
 )
-from backend.domain.calculator.labels import meaningful_performance_labels
-
 
 CASTELL_PATTERN = re.compile(
     r"\b(?:[pt](?:d|de)?\d{1,2}[a-z]*|\d+(?:d|de)\d{1,2}[a-z]*)\b",
@@ -95,7 +94,7 @@ class RegexQueryInterpreter:
         labels = meaningful_performance_labels(performances)
         return [
             ParsedPerformance(label=label, castells=performance.castells)
-            for label, performance in zip(labels, performances)
+            for label, performance in zip(labels, performances, strict=True)
         ]
 
     def _parse_castells(self, text: str) -> list[ParsedCastell]:
@@ -108,7 +107,9 @@ class RegexQueryInterpreter:
             explicit = self._explicit_outcome(prefix)
             if explicit is not None:
                 inherited_outcome = explicit
-            result.append(ParsedCastell(match.group(0), explicit or inherited_outcome or Outcome.UNLOADED))
+            result.append(
+                ParsedCastell(match.group(0), explicit or inherited_outcome or Outcome.UNLOADED)
+            )
             previous_end = match.end()
         return result
 

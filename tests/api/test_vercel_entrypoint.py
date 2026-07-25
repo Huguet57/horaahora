@@ -1,5 +1,5 @@
-import json
 import importlib
+import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient

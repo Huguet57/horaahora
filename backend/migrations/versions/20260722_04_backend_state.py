@@ -1,8 +1,7 @@
 """Centralize notification and rate-limit state in PostgreSQL."""
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "20260722_04"
 down_revision = "20260721_03"
@@ -35,7 +34,9 @@ def upgrade() -> None:
             "device_token", "environment", "topic", name="uq_push_token_environment_topic"
         ),
     )
-    op.create_index("ix_push_subscriptions_installation_id", "push_subscriptions", ["installation_id"])
+    op.create_index(
+        "ix_push_subscriptions_installation_id", "push_subscriptions", ["installation_id"]
+    )
     op.create_index("ix_push_subscriptions_environment", "push_subscriptions", ["environment"])
     op.create_index("ix_push_subscriptions_updated_at", "push_subscriptions", ["updated_at"])
     op.create_index("ix_push_subscriptions_last_seen_at", "push_subscriptions", ["last_seen_at"])
@@ -95,11 +96,11 @@ def upgrade() -> None:
         sa.Column("last_error", sa.Text(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.UniqueConstraint(
-            "outbox_id", "subscription_id", name="uq_notification_delivery_target"
-        ),
+        sa.UniqueConstraint("outbox_id", "subscription_id", name="uq_notification_delivery_target"),
     )
-    op.create_index("ix_notification_deliveries_outbox_id", "notification_deliveries", ["outbox_id"])
+    op.create_index(
+        "ix_notification_deliveries_outbox_id", "notification_deliveries", ["outbox_id"]
+    )
     op.create_index(
         "ix_notification_deliveries_subscription_id",
         "notification_deliveries",
@@ -111,8 +112,12 @@ def upgrade() -> None:
         "notification_deliveries",
         ["next_attempt_at"],
     )
-    op.create_index("ix_notification_deliveries_created_at", "notification_deliveries", ["created_at"])
-    op.create_index("ix_notification_deliveries_updated_at", "notification_deliveries", ["updated_at"])
+    op.create_index(
+        "ix_notification_deliveries_created_at", "notification_deliveries", ["created_at"]
+    )
+    op.create_index(
+        "ix_notification_deliveries_updated_at", "notification_deliveries", ["updated_at"]
+    )
 
     op.create_table(
         "rate_limit_buckets",

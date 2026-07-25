@@ -36,14 +36,12 @@ class Settings:
     apns_bundle_id: str = "com.ahuguet.castellsenvena"
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         defaults = cls()
         database_url = os.getenv("DATABASE_URL", "").strip()
         if not database_url:
             raise RuntimeError("DATABASE_URL és obligatòria; vincula el projecte amb Neon")
-        if not database_url.startswith(
-            ("postgres://", "postgresql://", "postgresql+psycopg://")
-        ):
+        if not database_url.startswith(("postgres://", "postgresql://", "postgresql+psycopg://")):
             raise RuntimeError(
                 "DATABASE_URL ha d'apuntar a PostgreSQL; SQLite només es permet als tests"
             )
@@ -62,9 +60,7 @@ class Settings:
             agenda_source=os.getenv("AGENDA_SOURCE", defaults.agenda_source).lower(),
             agenda_refresh_seconds=int(os.getenv("AGENDA_REFRESH_SECONDS", "1800")),
             agenda_refresh_on_request=_bool_env("AGENDA_REFRESH_ON_REQUEST", False),
-            agenda_sync_interval_seconds=int(
-                os.getenv("AGENDA_SYNC_INTERVAL_SECONDS", "86400")
-            ),
+            agenda_sync_interval_seconds=int(os.getenv("AGENDA_SYNC_INTERVAL_SECONDS", "86400")),
             agenda_sync_months_back=int(os.getenv("AGENDA_SYNC_MONTHS_BACK", "1")),
             agenda_sync_months_ahead=int(os.getenv("AGENDA_SYNC_MONTHS_AHEAD", "12")),
             cccc_agenda_url=os.getenv("CCCC_AGENDA_URL", defaults.cccc_agenda_url),

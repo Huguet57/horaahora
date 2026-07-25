@@ -69,8 +69,8 @@ def build_container(
     hour_repository = overrides.hour_by_hour_repository or build_hour_by_hour_repository(database)
     agenda_repository = overrides.agenda_repository or build_agenda_repository(database)
     rate_limiter = overrides.rate_limiter or build_rate_limiter(settings, database)
-    notification_repository = (
-        overrides.notification_repository or build_notification_repository(database)
+    notification_repository = overrides.notification_repository or build_notification_repository(
+        database
     )
     push_repository = overrides.push_repository or build_push_repository(database)
 

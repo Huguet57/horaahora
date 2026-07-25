@@ -37,7 +37,10 @@ def test_sql_repository_upserts_and_orders_newest_first() -> None:
 
     assert repository.count_hour_by_hour() == 2
     assert [value.title for value in repository.list_hour_by_hour(0, 10)] == ["New", "Old updated"]
-    assert [value.display_title for value in repository.list_hour_by_hour(0, 10)] == ["New", "Old updated"]
+    assert [value.display_title for value in repository.list_hour_by_hour(0, 10)] == [
+        "New",
+        "Old updated",
+    ]
 
 
 def test_sqlite_repository_preserves_the_instant_of_offset_dates() -> None:
@@ -91,9 +94,7 @@ def test_agenda_month_snapshot_propagates_updates_and_deletions() -> None:
     repository.replace_agenda_month(
         "cccc", 2026, 7, [agenda_event("one", day), agenda_event("two", day)]
     )
-    repository.replace_agenda_month(
-        "cccc", 2026, 7, [agenda_event("one", day, revision="r2")]
-    )
+    repository.replace_agenda_month("cccc", 2026, 7, [agenda_event("one", day, revision="r2")])
 
     events = repository.list_agenda(day, day, None, None, 0, 50)
     assert [(event.external_id, event.revision) for event in events] == [("one", "r2")]

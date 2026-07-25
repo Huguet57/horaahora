@@ -57,17 +57,13 @@ def test_push_subscription_contract_registers_and_unregisters_current_installati
             "environment": "development",
         },
     )
-    removed = client.delete(
-        "/v1/push-subscriptions/install-1?environment=development"
-    )
+    removed = client.delete("/v1/push-subscriptions/install-1?environment=development")
 
     assert registered.status_code == 204
     assert removed.status_code == 204
     assert repository.registrations[0][0].device_token == "ab" * 32
     assert repository.registrations[0][1:] == ("development", "com.example.app")
-    assert repository.unregistrations == [
-        ("install-1", "development", "com.example.app")
-    ]
+    assert repository.unregistrations == [("install-1", "development", "com.example.app")]
 
 
 def test_cron_routes_require_production_secret_and_return_persisted_results() -> None:

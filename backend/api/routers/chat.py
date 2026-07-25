@@ -7,7 +7,6 @@ from backend.api.schemas.chat import ChatRequestSchema, ChatResponseSchema
 from backend.composition.container import ApplicationContainer
 from backend.domain.calculator.models import ChatTurn
 
-
 router = APIRouter()
 
 

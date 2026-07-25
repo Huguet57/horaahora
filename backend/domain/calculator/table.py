@@ -5,11 +5,8 @@ from pathlib import Path
 
 from backend.domain.calculator.models import Outcome
 
-
 DATA_FILE = (
-    Path(__file__).resolve().parents[2]
-    / "data"
-    / "taula_puntuacions_concurs_castells_2026.csv"
+    Path(__file__).resolve().parents[2] / "data" / "taula_puntuacions_concurs_castells_2026.csv"
 )
 
 
@@ -18,7 +15,7 @@ class ScoreTable:
         self.scores = scores
 
     @classmethod
-    def from_csv(cls, path: Path) -> "ScoreTable":
+    def from_csv(cls, path: Path) -> ScoreTable:
         scores: dict[str, dict[Outcome, int]] = {}
         with path.open(newline="", encoding="utf-8") as file:
             for row in csv.DictReader(file):
@@ -30,7 +27,7 @@ class ScoreTable:
         return cls(scores)
 
     @classmethod
-    def default(cls) -> "ScoreTable":
+    def default(cls) -> ScoreTable:
         return cls.from_csv(DATA_FILE)
 
     def contains(self, canonical: str) -> bool:

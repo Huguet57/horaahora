@@ -2,8 +2,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from backend.app import create_app
 from backend.api.routers.privacy import router as privacy_router
+from backend.app import create_app
 from backend.config import Settings
 from tests.support.application import application_overrides
 

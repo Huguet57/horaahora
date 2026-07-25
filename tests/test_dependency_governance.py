@@ -3,7 +3,6 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).parents[1]
 
 

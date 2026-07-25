@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
 import unicodedata
+from datetime import UTC, date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.engine import Engine
@@ -160,12 +160,11 @@ class SQLAlchemyAgendaRepository:
             for record in records
             if (
                 group_key is None
-                or any(_search_key(value) == group_key for value in record.participating_groups or [])
+                or any(
+                    _search_key(value) == group_key for value in record.participating_groups or []
+                )
             )
-            and (
-                municipality_key is None
-                or _search_key(record.municipality) == municipality_key
-            )
+            and (municipality_key is None or _search_key(record.municipality) == municipality_key)
         ]
 
 

@@ -7,7 +7,6 @@ from backend.api.schemas.push import PushSubscriptionRequestSchema
 from backend.composition.container import ApplicationContainer
 from backend.domain.notifications.models import PushSubscriptionRegistration
 
-
 router = APIRouter()
 
 

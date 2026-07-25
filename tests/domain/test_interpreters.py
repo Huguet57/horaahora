@@ -8,8 +8,13 @@ def test_interprets_or_comparison() -> None:
     query = asyncio.run(RegexQueryInterpreter().interpret([], "Què guanya el 5d9f o el 4d9fa?"))
 
     assert [performance.label for performance in query.performances] == ["Amb 5d9f", "Amb 4d9fa"]
-    assert [performance.castells[0].notation for performance in query.performances] == ["5d9f", "4d9fa"]
-    assert all(performance.castells[0].outcome is Outcome.UNLOADED for performance in query.performances)
+    assert [performance.castells[0].notation for performance in query.performances] == [
+        "5d9f",
+        "4d9fa",
+    ]
+    assert all(
+        performance.castells[0].outcome is Outcome.UNLOADED for performance in query.performances
+    )
 
 
 def test_interprets_named_groups() -> None:
@@ -21,7 +26,10 @@ def test_interprets_named_groups() -> None:
     )
 
     assert [performance.label for performance in query.performances] == ["Vella", "Joves"]
-    assert [performance.castells[0].notation for performance in query.performances] == ["4d10fm", "4d9net"]
+    assert [performance.castells[0].notation for performance in query.performances] == [
+        "4d10fm",
+        "4d9net",
+    ]
 
 
 def test_interprets_vs_lists() -> None:

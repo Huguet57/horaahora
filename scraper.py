@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
 
-
 URL = "https://revistacastells.cat/castells-hora-a-hora/"
 
 
@@ -18,6 +17,7 @@ class Entry:
     def destination_url(self) -> str:
         """Return linked content only when the excerpt provides a useful destination."""
         return self.embedded_url
+
 
 def fetch_entries() -> list[Entry]:
     """Compatibility wrapper around the replaceable editorial-source adapter."""

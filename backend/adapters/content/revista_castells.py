@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 
 from backend.domain.content.models import HourByHourItem
 
-
 _EDITORIAL_TITLE_PREFIX = re.compile(
     r"^\s*(?:dilluns|dimarts|dimecres|dijous|divendres|dissabte|diumenge)"
     r"\s*,?\s*\d{1,2}\s*,\s*\d{1,2}(?:[.:]\d{1,2})?\s*h(?:\s*[.·:–—-])?\s*",
@@ -63,7 +62,11 @@ class RevistaCastellsHTMLSource:
             embedded_href = str(embedded.get("href", "")).strip() if embedded else ""
             action_url = urljoin(self.url, embedded_href) if embedded_href else None
             title = title_element.get_text(" ", strip=True)
-            published_at = self._parse_datetime(str(time_element.get("datetime", ""))) if time_element else None
+            published_at = (
+                self._parse_datetime(str(time_element.get("datetime", "")))
+                if time_element
+                else None
+            )
             external_id = hashlib.sha256((article_url or title).encode("utf-8")).hexdigest()
             item_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{self.SOURCE_ID}:{external_id}"))
             items.append(

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from datetime import UTC, datetime
-import time
 
 import httpx
 
@@ -11,7 +11,6 @@ from backend.domain.notifications.models import (
     NotificationSendResult,
     PendingNotificationDelivery,
 )
-
 
 _INVALID_TOKEN_REASONS = {"BadDeviceToken", "DeviceTokenNotForTopic", "Unregistered"}
 _TRANSIENT_STATUSES = {429, 500, 503}

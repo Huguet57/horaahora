@@ -24,9 +24,7 @@ class HourByHourService:
         self.source = source
         self.refresh_seconds = refresh_seconds
 
-    def list(
-        self, cursor: str | None, limit: int, force_refresh: bool = False
-    ) -> HourByHourPage:
+    def list(self, cursor: str | None, limit: int, force_refresh: bool = False) -> HourByHourPage:
         refreshed = False
         if self.source is not None and (force_refresh or self._is_stale()):
             try:

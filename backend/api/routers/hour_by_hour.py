@@ -6,7 +6,6 @@ from backend.api.dependencies import get_container
 from backend.api.schemas.content import HourByHourItemSchema, HourByHourPageSchema
 from backend.composition.container import ApplicationContainer
 
-
 router = APIRouter()
 
 

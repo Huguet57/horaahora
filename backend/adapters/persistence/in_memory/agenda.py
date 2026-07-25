@@ -1,6 +1,6 @@
+import unicodedata
 from datetime import UTC, date, datetime
 from threading import Lock
-import unicodedata
 
 from backend.domain.content.models import CastellEvent
 
@@ -37,9 +37,7 @@ class InMemoryAgendaRepository:
         limit: int,
     ) -> list[CastellEvent]:
         with self._lock:
-            return self._filtered(date_from, date_to, group, municipality)[
-                offset : offset + limit
-            ]
+            return self._filtered(date_from, date_to, group, municipality)[offset : offset + limit]
 
     def count_agenda(
         self,
@@ -68,10 +66,7 @@ class InMemoryAgendaRepository:
                 group_key is None
                 or any(_search_key(value) == group_key for value in item.participating_groups)
             )
-            and (
-                municipality_key is None
-                or _search_key(item.municipality) == municipality_key
-            )
+            and (municipality_key is None or _search_key(item.municipality) == municipality_key)
         ]
         return sorted(values, key=lambda item: (item.local_date, item.source_order, item.title))
 

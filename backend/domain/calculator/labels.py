@@ -11,9 +11,7 @@ def meaningful_performance_labels(performances: list[ParsedPerformance]) -> list
     ]
     labels: list[str | None] = []
     used = {
-        _compact(performance.label)
-        for performance in performances
-        if not _is_generic(performance)
+        _compact(performance.label) for performance in performances if not _is_generic(performance)
     }
 
     for index, performance in enumerate(performances):
@@ -44,9 +42,7 @@ def meaningful_performance_labels(performances: list[ParsedPerformance]) -> list
         fallback_index = index
         while True:
             fallback = (
-                chr(ord("A") + fallback_index)
-                if fallback_index < 26
-                else f"A{fallback_index + 1}"
+                chr(ord("A") + fallback_index) if fallback_index < 26 else f"A{fallback_index + 1}"
             )
             if _compact(fallback) not in used:
                 break

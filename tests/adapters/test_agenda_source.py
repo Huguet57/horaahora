@@ -7,11 +7,8 @@ from backend.adapters.content.cccc_agenda import (
     CCCCAgendaSnapshotSource,
 )
 
-
 FIXTURE = Path(__file__).parents[2] / "backend" / "data" / "cccc_agenda_fixture.html"
-POC_SNAPSHOT = (
-    Path(__file__).parents[2] / "backend" / "data" / "cccc_agenda_poc_2026_07.html"
-)
+POC_SNAPSHOT = Path(__file__).parents[2] / "backend" / "data" / "cccc_agenda_poc_2026_07.html"
 
 
 def test_extracts_agenda_without_results_and_preserves_source_order() -> None:
@@ -40,9 +37,7 @@ def test_extracts_agenda_without_results_and_preserves_source_order() -> None:
 
 
 def test_preserves_imprecise_time_and_accepts_dot_separator() -> None:
-    events = CCCCAgendaHTMLSource().parse(
-        FIXTURE.read_text(encoding="utf-8"), year=2026, month=7
-    )
+    events = CCCCAgendaHTMLSource().parse(FIXTURE.read_text(encoding="utf-8"), year=2026, month=7)
 
     assert events[1].time_label == "Tarda"
     assert events[1].starts_at is None

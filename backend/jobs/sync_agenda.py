@@ -3,8 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from collections.abc import Sequence
 from datetime import date, datetime
-from typing import Sequence
 from zoneinfo import ZoneInfo
 
 from backend.application.agenda_sync import AgendaSyncService
