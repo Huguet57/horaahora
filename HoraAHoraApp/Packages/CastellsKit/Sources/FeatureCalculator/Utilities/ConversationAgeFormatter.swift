@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 
 enum ConversationAgeFormatter {
     static func string(from date: Date, relativeTo referenceDate: Date) -> String {
@@ -14,15 +13,5 @@ enum ConversationAgeFormatter {
         if hours > 0 { components.append("\(hours) h") }
         if minutes > 0 { components.append("\(minutes) min") }
         return components.prefix(2).joined(separator: " i ")
-    }
-}
-
-struct ConversationAgeText: View {
-    let date: Date
-
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { context in
-            Text(ConversationAgeFormatter.string(from: date, relativeTo: context.date))
-        }
     }
 }
