@@ -34,6 +34,8 @@ def test_privacy_index_is_catalan_and_links_every_language() -> None:
     assert 'href="/privacy/ca"' in response.text
     assert 'href="/privacy/es"' in response.text
     assert 'href="/privacy/en"' in response.text
+    assert "correu editable" in response.text
+    assert "només es transmet si revises el correu i prems manualment" in response.text
     assert "<script" not in response.text.lower()
 
 

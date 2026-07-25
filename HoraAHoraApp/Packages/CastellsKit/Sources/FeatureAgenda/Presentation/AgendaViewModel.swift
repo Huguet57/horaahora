@@ -9,35 +9,34 @@ public final class AgendaViewModel {
     public private(set) var visibleMonth: Date
     public private(set) var visibleWeek: Date
     public private(set) var monthEvents: [CastellEvent] = []
-    private var prefetchedEvents: [CastellEvent] = []
-    private var prefetchedMonthKeys: Set<String> = []
+    private var eventWindow = AgendaEventWindow()
     private var monthsBeingPrefetched: Set<String> = []
     private var hasStartedInitialLoad = false
-    private var cachedWindowState: CachedWindowState?
     private var isLoadInFlight = false
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
     public private(set) var isFromCache = false
     public private(set) var sourceStatus: AgendaSourceStatus = .unavailable
     public let officialURL: URL
-    private let repository: any AgendaRepository
+    private let pageLoader: AgendaPageLoader
+    private let cacheReader: AgendaCacheWindowReader
 
     public init(repository: any AgendaRepository) {
         let now = Date()
         self.selectedDate = now
         self.visibleMonth = now
         self.visibleWeek = now
-        self.repository = repository
+        self.pageLoader = AgendaPageLoader(repository: repository)
+        self.cacheReader = AgendaCacheWindowReader(repository: repository)
         self.officialURL = repository.officialURL
     }
 
     public var events: [CastellEvent] {
-        let selectedKey = AgendaCalendarMath.localDateKey(selectedDate)
-        return prefetchedEvents.filter { $0.localDate == selectedKey }
+        eventWindow.events(on: selectedDate)
     }
 
     public var eventDateKeys: Set<String> {
-        Set(prefetchedEvents.map(\.localDate))
+        eventWindow.dateKeys
     }
 
     public func preloadFromCache() {
@@ -105,17 +104,17 @@ public final class AgendaViewModel {
         defer { isLoading = false }
 
         do {
-            let results: [FetchResult]
+            let results: [AgendaFetchResult]
             if ranges.count == 2 {
-                async let first = fetch(range: ranges[0], forceRefresh: forceRefresh)
-                async let second = fetch(range: ranges[1], forceRefresh: forceRefresh)
+                async let first = pageLoader.fetch(range: ranges[0], forceRefresh: forceRefresh)
+                async let second = pageLoader.fetch(range: ranges[1], forceRefresh: forceRefresh)
                 let pair = try await (first, second)
                 results = [pair.0, pair.1]
             } else {
-                var sequentialResults: [FetchResult] = []
+                var sequentialResults: [AgendaFetchResult] = []
                 for range in ranges {
                     sequentialResults.append(
-                        try await fetch(range: range, forceRefresh: forceRefresh)
+                        try await pageLoader.fetch(range: range, forceRefresh: forceRefresh)
                     )
                 }
                 results = sequentialResults
@@ -130,7 +129,7 @@ public final class AgendaViewModel {
                     : .unavailable,
                 fromCache: results.allSatisfy(\.fromCache)
             )
-            cachedWindowState = nil
+            cacheReader.reset()
         } catch {
             if !hasCachedSnapshot {
                 errorMessage = error.localizedDescription
@@ -150,7 +149,7 @@ public final class AgendaViewModel {
         errorMessage = nil
 
         do {
-            let result = try await fetch(range: range, forceRefresh: true)
+            let result = try await pageLoader.fetch(range: range, forceRefresh: true)
             applyPrefetchedWindow(
                 from: range.start,
                 through: range.end,
@@ -158,9 +157,9 @@ public final class AgendaViewModel {
                 sourceStatus: result.sourceStatus,
                 fromCache: result.fromCache
             )
-            cachedWindowState = nil
+            cacheReader.reset()
         } catch {
-            if prefetchedEvents.isEmpty {
+            if eventWindow.isEmpty {
                 errorMessage = error.localizedDescription
             }
         }
@@ -169,42 +168,17 @@ public final class AgendaViewModel {
     private func restoreCachedSnapshot(
         in ranges: [(start: Date, end: Date)]
     ) -> Bool {
-        guard let firstRange = ranges.first, let lastRange = ranges.last else { return false }
-        let window = CachedWindowState(
-            startKey: AgendaCalendarMath.localDateKey(firstRange.start),
-            endKey: AgendaCalendarMath.localDateKey(lastRange.end),
-            hasSnapshot: false
-        )
-        if let cachedWindowState,
-           cachedWindowState.startKey == window.startKey,
-           cachedWindowState.endKey == window.endKey {
-            return cachedWindowState.hasSnapshot
+        let lookup = cacheReader.lookup(in: ranges)
+        if let window = lookup.windowToApply {
+            applyPrefetchedWindow(
+                from: window.start,
+                through: window.end,
+                items: window.items,
+                sourceStatus: .active,
+                fromCache: true
+            )
         }
-
-        let cached = ranges.flatMap { range in
-            (try? repository.cachedEvents(
-                from: range.start,
-                to: range.end,
-                group: nil,
-                municipality: nil
-            )) ?? []
-        }
-        let hasSnapshot = !cached.isEmpty
-        cachedWindowState = CachedWindowState(
-            startKey: window.startKey,
-            endKey: window.endKey,
-            hasSnapshot: hasSnapshot
-        )
-        guard hasSnapshot else { return false }
-
-        applyPrefetchedWindow(
-            from: firstRange.start,
-            through: lastRange.end,
-            items: cached,
-            sourceStatus: .active,
-            fromCache: true
-        )
-        return true
+        return lookup.hasSnapshot
     }
 
     private func extendPrefetchWindowIfNeeded(containing date: Date) async {
@@ -216,7 +190,7 @@ public final class AgendaViewModel {
             through: lastRange.end
         ).filter {
             let key = AgendaCalendarMath.monthKey($0)
-            return !prefetchedMonthKeys.contains(key) && !monthsBeingPrefetched.contains(key)
+            return !eventWindow.containsMonth($0) && !monthsBeingPrefetched.contains(key)
         }
 
         for monthStart in missingMonths {
@@ -224,9 +198,9 @@ public final class AgendaViewModel {
             guard let range = AgendaCalendarMath.monthRange(containing: monthStart) else { continue }
             monthsBeingPrefetched.insert(key)
             do {
-                let result = try await fetch(range: range, forceRefresh: false)
-                replacePrefetchedEvents(from: range.start, through: range.end, with: result.items)
-                prefetchedMonthKeys.insert(key)
+                let result = try await pageLoader.fetch(range: range, forceRefresh: false)
+                eventWindow.replace(from: range.start, through: range.end, with: result.items)
+                eventWindow.markLoaded(monthStartingAt: monthStart)
                 updateVisibleMonthEvents()
             } catch {
                 // The selected month is already in the prefetched window. A failed edge
@@ -236,50 +210,6 @@ public final class AgendaViewModel {
         }
     }
 
-    private typealias FetchResult = (
-        items: [CastellEvent],
-        fromCache: Bool,
-        sourceStatus: AgendaSourceStatus
-    )
-
-    private struct CachedWindowState {
-        let startKey: String
-        let endKey: String
-        let hasSnapshot: Bool
-    }
-
-    private func fetch(
-        range: (start: Date, end: Date),
-        forceRefresh: Bool
-    ) async throws -> FetchResult {
-        var cursor: String?
-        var collected: [CastellEvent] = []
-        var allFromCache = true
-        var statuses: [AgendaSourceStatus] = []
-
-        repeat {
-            let page = try await repository.events(
-                from: range.start,
-                to: range.end,
-                group: nil,
-                municipality: nil,
-                cursor: cursor,
-                limit: 100,
-                forceRefresh: forceRefresh && cursor == nil
-            )
-            collected.append(contentsOf: page.items)
-            allFromCache = allFromCache && page.fromCache
-            statuses.append(page.sourceStatus)
-            cursor = page.nextCursor
-        } while cursor != nil
-
-        return (
-            uniqueAndSorted(collected),
-            allFromCache,
-            statuses.allSatisfy { $0 == .active } ? .active : .unavailable
-        )
-    }
-
     private func applyPrefetchedWindow(
         from start: Date,
         through end: Date,
@@ -287,45 +217,14 @@ public final class AgendaViewModel {
         sourceStatus: AgendaSourceStatus,
         fromCache: Bool
     ) {
-        replacePrefetchedEvents(from: start, through: end, with: items)
-        prefetchedMonthKeys.formUnion(
-            AgendaCalendarMath.monthStarts(from: start, through: end)
-                .map(AgendaCalendarMath.monthKey)
-        )
+        eventWindow.replace(from: start, through: end, with: items)
+        eventWindow.markLoaded(from: start, through: end)
         self.sourceStatus = sourceStatus
         isFromCache = fromCache
         updateVisibleMonthEvents()
     }
 
-    private func replacePrefetchedEvents(
-        from start: Date,
-        through end: Date,
-        with events: [CastellEvent]
-    ) {
-        let lower = AgendaCalendarMath.localDateKey(start)
-        let upper = AgendaCalendarMath.localDateKey(end)
-        prefetchedEvents.removeAll { lower <= $0.localDate && $0.localDate <= upper }
-        prefetchedEvents.append(contentsOf: events)
-        prefetchedEvents = uniqueAndSorted(prefetchedEvents)
-    }
-
-    private func uniqueAndSorted(_ events: [CastellEvent]) -> [CastellEvent] {
-        var seen = Set<String>()
-        return events
-            .filter { seen.insert("\($0.sourceID):\($0.externalID)").inserted }
-            .sorted {
-                if $0.localDate == $1.localDate { return $0.sourceOrder < $1.sourceOrder }
-                return $0.localDate < $1.localDate
-            }
-    }
-
     private func updateVisibleMonthEvents() {
-        guard let range = AgendaCalendarMath.monthRange(containing: visibleMonth) else {
-            monthEvents = []
-            return
-        }
-        let lower = AgendaCalendarMath.localDateKey(range.start)
-        let upper = AgendaCalendarMath.localDateKey(range.end)
-        monthEvents = prefetchedEvents.filter { lower <= $0.localDate && $0.localDate <= upper }
+        monthEvents = eventWindow.events(inMonthContaining: visibleMonth)
     }
 }
