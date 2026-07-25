@@ -145,6 +145,7 @@ public struct CalculatorRootView: View {
                 CalculatorWelcomeView { showNewConversation() }
             }
         }
+        .calculatorTabBarVisibility(isChatPresented: selectedDestination != nil)
         .task { model.reload() }
         .alert("Canvia el nom", isPresented: Binding(
             get: { renameTarget != nil },
@@ -364,7 +365,6 @@ public struct ChatView: View {
         }
         .navigationTitle(model.conversation?.title ?? "Conversa nova")
         .calculatorInlineNavigationTitle()
-        .calculatorChatHidesTabBar()
         .task { await model.loadFollowingPendingResponse() }
     }
 }
@@ -448,9 +448,9 @@ private extension View {
     }
 
     @ViewBuilder
-    func calculatorChatHidesTabBar() -> some View {
+    func calculatorTabBarVisibility(isChatPresented: Bool) -> some View {
         #if os(iOS)
-        toolbar(.hidden, for: .tabBar)
+        toolbar(isChatPresented ? .hidden : .automatic, for: .tabBar)
         #else
         self
         #endif
