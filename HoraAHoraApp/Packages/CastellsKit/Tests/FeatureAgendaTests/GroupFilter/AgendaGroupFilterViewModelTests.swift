@@ -139,7 +139,7 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
         XCTAssertFalse(model.isGroupFilterActive)
     }
 
-    func testAvailableGroupKeysStayPrecomputedAcrossDirectoryAndObservedGroupMerges() async {
+    func testSelectedGroupCountStaysInSyncAcrossDirectoryAndObservedGroupMerges() async {
         let repository = GroupAgendaRepositoryStub(
             items: [
                 fixture.event(id: "observed", groups: ["Castellers de la Vila de Gràcia"])
@@ -152,10 +152,6 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
         await model.load()
         await model.loadGroupDirectory()
 
-        XCTAssertEqual(
-            model.groupFilter.availableGroupKeys,
-            ["castellers de la vila de gracia", "colla a"]
-        )
         XCTAssertEqual(model.selectedGroupCount, 2)
 
         model.setFollowing(false, groupName: "Colla A")
@@ -164,10 +160,6 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
         repository.directoryGroups.append("Colla B")
         await model.loadGroupDirectory(forceRefresh: true)
 
-        XCTAssertEqual(
-            model.groupFilter.availableGroupKeys,
-            ["castellers de la vila de gracia", "colla a", "colla b"]
-        )
         XCTAssertEqual(model.selectedGroupCount, 1)
     }
 

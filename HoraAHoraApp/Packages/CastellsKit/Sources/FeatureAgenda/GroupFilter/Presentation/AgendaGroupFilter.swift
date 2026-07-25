@@ -5,28 +5,23 @@ struct AgendaGroupFilter {
     private let store: (any AgendaFilterStoring)?
     private(set) var selection: AgendaGroupSelection
     private(set) var featuredGroupKeys: Set<String>
-    private(set) var availableGroups: [String]
-    private(set) var availableGroupKeys: Set<String>
+    private var catalog: AgendaGroupCatalog
     private(set) var selectedGroupCount: Int
     private(set) var directoryRevision: String?
 
     init(store: (any AgendaFilterStoring)?) {
         let persisted = store?.load() ?? AgendaFilterState()
-        let availableGroups = AgendaGroupNameNormalizer.merged(
-            preferred: persisted.cachedGroups,
-            fallback: []
-        )
-        let availableGroupKeys = Set(availableGroups.map(AgendaGroupNameNormalizer.key))
+        let catalog = AgendaGroupCatalog(preferred: persisted.cachedGroups)
         self.store = store
         self.selection = persisted.selection
         self.featuredGroupKeys = persisted.featuredGroupKeys
-        self.availableGroups = availableGroups
-        self.availableGroupKeys = availableGroupKeys
-        self.selectedGroupCount = Self.selectedGroupCount(
-            for: persisted.selection,
-            availableGroupKeys: availableGroupKeys
-        )
+        self.catalog = catalog
+        self.selectedGroupCount = catalog.selectedCount(for: persisted.selection)
         self.directoryRevision = persisted.directoryRevision
+    }
+
+    var availableGroups: [String] {
+        catalog.names
     }
 
     var featuredGroups: [String] {
@@ -69,7 +64,7 @@ struct AgendaGroupFilter {
         switch selection {
         case .all:
             guard !following else { return }
-            var keys = availableGroupKeys
+            var keys = catalog.keys
             keys.remove(groupKey)
             selection = .custom(keys)
         case let .custom(currentKeys):
@@ -100,7 +95,7 @@ struct AgendaGroupFilter {
         switch selection {
         case .all:
             selection = .custom(
-                availableGroupKeys.subtracting(featuredKeys)
+                catalog.keys.subtracting(featuredKeys)
             )
         case let .custom(currentKeys):
             selection = .custom(
@@ -124,49 +119,26 @@ struct AgendaGroupFilter {
         revision: String,
         observedGroups: [String]
     ) {
-        replaceAvailableGroups(
-            AgendaGroupNameNormalizer.merged(
-                preferred: groups,
-                fallback: availableGroups + observedGroups
-            )
+        catalog.replace(
+            preferred: groups,
+            fallback: catalog.names + observedGroups
         )
+        refreshSelectedGroupCount()
         if !revision.isEmpty { directoryRevision = revision }
         persist()
     }
 
     mutating func mergeObservedGroups(_ groups: [String]) {
-        replaceAvailableGroups(
-            AgendaGroupNameNormalizer.merged(
-                preferred: availableGroups,
-                fallback: groups
-            )
+        catalog.replace(
+            preferred: catalog.names,
+            fallback: groups
         )
+        refreshSelectedGroupCount()
         persist()
     }
 
-    private mutating func replaceAvailableGroups(_ groups: [String]) {
-        availableGroups = groups
-        availableGroupKeys = Set(groups.map(AgendaGroupNameNormalizer.key))
-        refreshSelectedGroupCount()
-    }
-
     private mutating func refreshSelectedGroupCount() {
-        selectedGroupCount = Self.selectedGroupCount(
-            for: selection,
-            availableGroupKeys: availableGroupKeys
-        )
-    }
-
-    private static func selectedGroupCount(
-        for selection: AgendaGroupSelection,
-        availableGroupKeys: Set<String>
-    ) -> Int {
-        switch selection {
-        case .all:
-            availableGroupKeys.count
-        case let .custom(keys):
-            keys.intersection(availableGroupKeys).count
-        }
+        selectedGroupCount = catalog.selectedCount(for: selection)
     }
 
     private func key(for groupName: String) -> String {
@@ -178,7 +150,7 @@ struct AgendaGroupFilter {
             AgendaFilterState(
                 selection: selection,
                 featuredGroupKeys: featuredGroupKeys,
-                cachedGroups: availableGroups,
+                cachedGroups: catalog.names,
                 directoryRevision: directoryRevision
             )
         )
