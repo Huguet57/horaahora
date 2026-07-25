@@ -33,9 +33,7 @@ uv run --frozen uvicorn api.index:app --reload
 
 `pyproject.toml` és l'única font de dependències i `uv.lock` fixa tota la resolució
 transitiva. Després de modificar dependències, executa `uv lock`; CI rebutja qualsevol
-lockfile desactualitzat. Dependabot revisa setmanalment Python, Actions, Docker i
-Docker Compose. Després de fusionar aquesta configuració, cal activar **Dependabot
-alerts** i **Dependabot security updates** a **Settings → Security → Code security**.
+lockfile desactualitzat.
 
 O amb infraestructura local completa:
 
