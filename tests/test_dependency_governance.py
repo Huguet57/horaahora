@@ -32,7 +32,7 @@ def test_python_runtime_and_resolved_dependencies_are_locked() -> None:
 def test_ci_uses_the_frozen_uv_environment() -> None:
     workflow = read(".github/workflows/check.yml")
 
-    assert "astral-sh/setup-uv@v9" in workflow
+    assert "astral-sh/setup-uv@v9.0.0" in workflow
     assert "uv lock --check" in workflow
     assert "uv sync --frozen" in workflow
     assert "uv run --frozen --no-sync python -m pytest -q" in workflow
