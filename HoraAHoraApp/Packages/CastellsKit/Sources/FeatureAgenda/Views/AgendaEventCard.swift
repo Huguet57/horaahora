@@ -68,7 +68,6 @@ struct AgendaEventCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-        .opacity(isOutsideFilter ? 0.5 : 1)
         .accessibilityHint(
             isOutsideFilter ? "Aquesta actuació no coincideix amb el filtre" : ""
         )

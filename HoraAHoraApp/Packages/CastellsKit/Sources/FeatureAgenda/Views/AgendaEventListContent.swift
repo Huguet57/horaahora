@@ -11,6 +11,7 @@ struct AgendaEventListContent: View, Equatable {
     let sourceStatus: AgendaSourceStatus
     let officialURL: URL
     let refresh: () -> Void
+    let openFilter: () -> Void
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events
@@ -34,30 +35,12 @@ struct AgendaEventListContent: View, Equatable {
                 }
 
                 if !otherEvents.isEmpty {
-                    VStack(spacing: 6) {
-                        HStack(spacing: 12) {
-                            Divider()
-                            Label("Altres actuacions", systemImage: "line.3.horizontal.decrease")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .fixedSize()
-                            Divider()
-                        }
-
-                        if events.isEmpty {
-                            Text("Cap actuació coincideix amb les colles seleccionades")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
-
-                    ForEach(otherEvents) { event in
-                        AgendaEventCard(event: event, isOutsideFilter: true)
-                            .id("other:\(event.id)")
-                    }
+                    AgendaOtherEventsSection(
+                        events: otherEvents,
+                        hasMatchingEvents: !events.isEmpty,
+                        onOpenFilter: openFilter
+                    )
+                    .id(otherEventsSectionID)
                 }
             }
         } else if errorMessage != nil {
@@ -77,5 +60,9 @@ struct AgendaEventListContent: View, Equatable {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
         }
+    }
+
+    private var otherEventsSectionID: String {
+        "\(!events.isEmpty):\(otherEvents.map(\.id).joined(separator: "|"))"
     }
 }

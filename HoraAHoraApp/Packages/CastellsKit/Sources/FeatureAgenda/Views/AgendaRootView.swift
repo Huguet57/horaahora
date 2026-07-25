@@ -58,7 +58,8 @@ public struct AgendaRootView: View {
                         foldProgress: foldProgress,
                         scrollOffset: $scrollOffset,
                         scrollViewBaseHeight: $scrollViewBaseHeight,
-                        refresh: { await model.refresh() }
+                        refresh: { await model.refresh() },
+                        openFilter: { showsGroupFilter = true }
                     )
                 }
                 .agendaNavigationBarHidden()

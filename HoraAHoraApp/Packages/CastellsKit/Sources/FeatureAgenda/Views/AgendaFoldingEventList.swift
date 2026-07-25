@@ -15,6 +15,7 @@ struct AgendaFoldingEventList: View {
     @Binding var scrollOffset: CGFloat
     @Binding var scrollViewBaseHeight: CGFloat
     let refresh: () async -> Void
+    let openFilter: () -> Void
 
     var body: some View {
         ScrollView {
@@ -41,7 +42,8 @@ struct AgendaFoldingEventList: View {
                             errorMessage: errorMessage,
                             sourceStatus: sourceStatus,
                             officialURL: officialURL,
-                            refresh: { Task { await refresh() } }
+                            refresh: { Task { await refresh() } },
+                            openFilter: openFilter
                         )
                         .equatable()
                         .padding(.vertical, 16)
