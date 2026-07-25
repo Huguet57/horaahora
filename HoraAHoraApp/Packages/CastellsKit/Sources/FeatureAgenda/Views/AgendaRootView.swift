@@ -88,7 +88,8 @@ public struct AgendaRootView: View {
         .sheet(isPresented: $showsGroupFilter) {
             AgendaGroupFilterView(
                 model: model,
-                onRequestExpansion: expandGroupFilter
+                onRequestExpansion: expandGroupFilter,
+                onRequestCollapse: collapseGroupFilter
             )
                 .presentationDetents(
                     [.medium, .large],
@@ -110,6 +111,14 @@ public struct AgendaRootView: View {
 
         withAnimation(.snappy(duration: 0.25)) {
             groupFilterDetent = .large
+        }
+    }
+
+    private func collapseGroupFilter() {
+        guard groupFilterDetent != .medium else { return }
+
+        withAnimation(.snappy(duration: 0.25)) {
+            groupFilterDetent = .medium
         }
     }
 

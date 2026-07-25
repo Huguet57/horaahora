@@ -23,4 +23,22 @@ final class AgendaGroupFilterSheetInteractionTests: XCTestCase {
             )
         )
     }
+
+    func testDownwardVerticalDragAtTheTopRequestsSheetCollapse() {
+        XCTAssertTrue(
+            AgendaGroupFilterSheetInteraction.requestsCollapse(
+                translation: CGSize(width: 2, height: 12),
+                isListAtTop: true
+            )
+        )
+    }
+
+    func testDownwardDragAwayFromTheTopDoesNotRequestSheetCollapse() {
+        XCTAssertFalse(
+            AgendaGroupFilterSheetInteraction.requestsCollapse(
+                translation: CGSize(width: 2, height: 12),
+                isListAtTop: false
+            )
+        )
+    }
 }
