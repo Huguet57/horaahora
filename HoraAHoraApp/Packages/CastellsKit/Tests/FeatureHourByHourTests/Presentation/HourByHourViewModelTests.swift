@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import XCTest
 import CastellsDomain
 @testable import FeatureHourByHour
@@ -119,6 +120,70 @@ final class HourByHourViewModelTests: XCTestCase {
         )
     }
 
+    func testDayGroupsKeepTheirIdentityWhenANewerDayIsInserted() async throws {
+        let olderDate = Date(timeIntervalSince1970: 1_700_000_000)
+        let newerDate = try XCTUnwrap(
+            Calendar.autoupdatingCurrent.date(byAdding: .day, value: 1, to: olderDate)
+        )
+        let repository = SequencedHourByHourRepository(pages: [
+            page(items: [item("older", publishedAt: olderDate)]),
+            page(items: [
+                item("newer", publishedAt: newerDate),
+                item("older", publishedAt: olderDate),
+            ]),
+        ])
+        let model = HourByHourViewModel(repository: repository)
+
+        await model.loadIfNeeded()
+        let originalID = try XCTUnwrap(model.dayGroups.first?.id)
+
+        await model.revalidate()
+
+        let olderGroup = model.dayGroups.first { group in
+            group.items.contains { $0.id == "older" }
+        }
+        XCTAssertEqual(olderGroup?.id, originalID)
+    }
+
+    func testDayGroupsTrackItemsAddedByPagination() async throws {
+        let firstDate = Date(timeIntervalSince1970: 1_700_000_000)
+        let secondDate = try XCTUnwrap(
+            Calendar.autoupdatingCurrent.date(byAdding: .day, value: -1, to: firstDate)
+        )
+        let repository = SequencedHourByHourRepository(pages: [
+            page(items: [item("first", publishedAt: firstDate)], nextCursor: "page-2"),
+            page(items: [item("second", publishedAt: secondDate)]),
+        ])
+        let model = HourByHourViewModel(repository: repository)
+
+        await model.loadIfNeeded()
+        await model.loadNextIfNeeded(after: model.items.last!)
+
+        XCTAssertEqual(model.dayGroups.count, 2)
+        XCTAssertEqual(model.dayGroups.flatMap(\.items).map(\.id), ["first", "second"])
+    }
+
+    func testIdenticalRevalidationDoesNotPublishNewDayGroups() async {
+        let unchangedItems = [item("first")]
+        let repository = SequencedHourByHourRepository(pages: [
+            page(items: unchangedItems),
+            page(items: unchangedItems),
+        ])
+        let model = HourByHourViewModel(repository: repository)
+        await model.loadIfNeeded()
+        let dayGroupsChanged = expectation(description: "Els grups de dies no canvien")
+        dayGroupsChanged.isInverted = true
+        withObservationTracking {
+            _ = model.dayGroups
+        } onChange: {
+            dayGroupsChanged.fulfill()
+        }
+
+        await model.revalidate()
+
+        await fulfillment(of: [dayGroupsChanged], timeout: 0.05)
+    }
+
     func testRevalidationDoesNotOverlapAnInFlightLoad() async {
         let repository = SuspendingHourByHourRepository(result: page(items: [item("first")]))
         let model = HourByHourViewModel(repository: repository)
@@ -163,8 +228,12 @@ final class HourByHourViewModelTests: XCTestCase {
         HourByHourPage(items: items, nextCursor: nextCursor, fromCache: false)
     }
 
-    private func item(_ id: String, title: String? = nil) -> HourByHourItem {
-        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+    private func item(
+        _ id: String,
+        title: String? = nil,
+        publishedAt: Date? = nil
+    ) -> HourByHourItem {
+        let timestamp = publishedAt ?? Date(timeIntervalSince1970: 1_700_000_000)
         return HourByHourItem(
             id: id,
             sourceID: "revista-castells",

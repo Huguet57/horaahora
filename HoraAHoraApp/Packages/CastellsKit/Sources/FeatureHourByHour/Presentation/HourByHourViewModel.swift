@@ -10,6 +10,7 @@ public final class HourByHourViewModel {
     private static let minimumRefreshDuration = Duration.milliseconds(500)
 
     public private(set) var items: [HourByHourItem] = []
+    public private(set) var dayGroups: [HourByHourDayGroup] = []
     public private(set) var isLoading = false
     public private(set) var isLoadingMore = false
     public private(set) var hasCompletedInitialLoad = false
@@ -90,24 +91,6 @@ public final class HourByHourViewModel {
         }
     }
 
-    public var dayGroups: [HourByHourDayGroup] {
-        var orderedDays: [Date?] = []
-        var grouped: [Date?: [HourByHourItem]] = [:]
-        let calendar = Calendar.autoupdatingCurrent
-        for item in items {
-            let day = item.publishedAt.map { calendar.startOfDay(for: $0) }
-            if grouped[day] == nil { orderedDays.append(day) }
-            grouped[day, default: []].append(item)
-        }
-        return orderedDays.enumerated().map { index, day in
-            HourByHourDayGroup(
-                id: "\(index)-\(day?.timeIntervalSince1970 ?? -1)",
-                day: day,
-                items: grouped[day] ?? []
-            )
-        }
-    }
-
     private func load(forceRefresh: Bool, mergePolicy: MergePolicy = .replace) async {
         guard !isLoading, !isLoadingMore else { return }
         isLoading = true
@@ -139,7 +122,12 @@ public final class HourByHourViewModel {
         case .preserveExisting: source = incoming + items
         }
         var seen = Set<String>()
-        items = source.filter { seen.insert("\($0.sourceID):\($0.externalID)").inserted }
+        let mergedItems = source.filter {
+            seen.insert("\($0.sourceID):\($0.externalID)").inserted
+        }
+        guard mergedItems != items else { return }
+        items = mergedItems
+        dayGroups = HourByHourDayGrouping.groups(from: mergedItems)
     }
 
     private enum MergePolicy: Equatable {
@@ -147,10 +135,4 @@ public final class HourByHourViewModel {
         case append
         case preserveExisting
     }
-}
-
-public struct HourByHourDayGroup: Identifiable {
-    public let id: String
-    public let day: Date?
-    public let items: [HourByHourItem]
 }
