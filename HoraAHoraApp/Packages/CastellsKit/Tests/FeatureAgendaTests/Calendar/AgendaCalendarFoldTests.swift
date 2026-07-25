@@ -51,6 +51,19 @@ final class AgendaCalendarFoldTests: XCTestCase {
         XCTAssertEqual(AgendaCalendarFold.foldDistance(weekRowCount: 6), 260)
     }
 
+    func testMonthWeekRowCountMatchesTheGeneratedGridAcrossSeveralYears() {
+        for year in 2025...2028 {
+            for month in 1...12 {
+                let referenceDate = date(String(format: "%04d-%02d-15", year, month))
+                XCTAssertEqual(
+                    AgendaCalendarMath.monthWeekRowCount(containing: referenceDate),
+                    AgendaCalendarMath.monthWeekRows(containing: referenceDate).count,
+                    "Unexpected week-row count for \(year)-\(month)"
+                )
+            }
+        }
+    }
+
     func testGridHeightInterpolatesBetweenExpandedAndCollapsed() {
         XCTAssertEqual(AgendaCalendarFold.gridHeight(weekRowCount: 5, progress: 0), 276)
         XCTAssertEqual(AgendaCalendarFold.gridHeight(weekRowCount: 5, progress: 1), 68)
@@ -75,6 +88,30 @@ final class AgendaCalendarFoldTests: XCTestCase {
         XCTAssertEqual(AgendaCalendarFold.progress(scrollOffset: 600, foldDistance: 208), 1)
         // Degenerate fold distance keeps the calendar expanded instead of dividing by zero.
         XCTAssertEqual(AgendaCalendarFold.progress(scrollOffset: 100, foldDistance: 0), 0)
+    }
+
+    func testTrackedScrollOffsetIgnoresTravelThatCannotAffectAnyCalendarFold() {
+        XCTAssertEqual(AgendaCalendarFold.trackedScrollOffset(-40), 0)
+        XCTAssertEqual(AgendaCalendarFold.trackedScrollOffset(0), 0)
+        XCTAssertEqual(AgendaCalendarFold.trackedScrollOffset(104), 104)
+        XCTAssertEqual(
+            AgendaCalendarFold.trackedScrollOffset(AgendaCalendarFold.maximumFoldDistance),
+            AgendaCalendarFold.maximumFoldDistance
+        )
+        XCTAssertEqual(
+            AgendaCalendarFold.trackedScrollOffset(2_000),
+            AgendaCalendarFold.maximumFoldDistance
+        )
+    }
+
+    func testCatalanCalendarLabelsKeepTheExistingCopy() {
+        let july = date("2026-07-25")
+
+        XCTAssertEqual(AgendaCalendarMath.monthTitle(for: july), "juliol del 2026")
+        XCTAssertEqual(
+            AgendaCalendarMath.accessibilityDate(for: july),
+            "dissabte, 25 de juliol del 2026"
+        )
     }
 
     func testReduceMotionUsesDirectStateChangesInsteadOfInterpolation() {

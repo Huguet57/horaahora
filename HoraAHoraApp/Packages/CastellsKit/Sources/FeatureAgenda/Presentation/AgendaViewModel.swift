@@ -9,6 +9,8 @@ public final class AgendaViewModel {
     public private(set) var visibleMonth: Date
     public private(set) var visibleWeek: Date
     public private(set) var monthEvents: [CastellEvent] = []
+    public private(set) var events: [CastellEvent] = []
+    public private(set) var eventDateKeys: Set<String> = []
     private var eventWindow = AgendaEventWindow()
     private var monthsBeingPrefetched: Set<String> = []
     private var hasStartedInitialLoad = false
@@ -29,14 +31,6 @@ public final class AgendaViewModel {
         self.pageLoader = AgendaPageLoader(repository: repository)
         self.cacheReader = AgendaCacheWindowReader(repository: repository)
         self.officialURL = repository.officialURL
-    }
-
-    public var events: [CastellEvent] {
-        eventWindow.events(on: selectedDate)
-    }
-
-    public var eventDateKeys: Set<String> {
-        eventWindow.dateKeys
     }
 
     public func preloadFromCache() {
@@ -225,6 +219,8 @@ public final class AgendaViewModel {
     }
 
     private func updateVisibleMonthEvents() {
+        events = eventWindow.events(on: selectedDate)
+        eventDateKeys = eventWindow.dateKeys
         monthEvents = eventWindow.events(inMonthContaining: visibleMonth)
     }
 }

@@ -82,7 +82,7 @@ extension AgendaCalendarView {
 
     func gridHeight(containing referenceDate: Date) -> CGFloat {
         AgendaCalendarFold.gridHeight(
-            weekRowCount: AgendaCalendarMath.monthWeekRows(containing: referenceDate).count,
+            weekRowCount: AgendaCalendarMath.monthWeekRowCount(containing: referenceDate),
             progress: foldProgress
         )
     }

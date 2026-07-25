@@ -3,13 +3,29 @@ import Foundation
 /// Date math for the agenda: Monday-based weeks in the `Europe/Madrid`
 /// timezone, month grids and prefetch windows.
 enum AgendaCalendarMath {
-    static var calendar: Calendar {
+    static let calendar: Calendar = {
         var value = Calendar(identifier: .gregorian)
         value.locale = Locale(identifier: "ca_ES")
         value.timeZone = TimeZone(identifier: "Europe/Madrid")!
         value.firstWeekday = 2
         return value
-    }
+    }()
+
+    private static let monthRowsCache = AgendaMonthRowsCache()
+    private static let catalanMonthTitleStyle = Date.FormatStyle(
+        locale: Locale(identifier: "ca_ES"),
+        calendar: calendar,
+        timeZone: calendar.timeZone
+    )
+    .month(.wide)
+    .year()
+    private static let catalanAccessibilityDateStyle = Date.FormatStyle(
+        date: .complete,
+        time: .omitted,
+        locale: Locale(identifier: "ca_ES"),
+        calendar: calendar,
+        timeZone: calendar.timeZone
+    )
 
     static func week(containing date: Date) -> [Date] {
         let startOfDay = calendar.startOfDay(for: date)
@@ -26,9 +42,14 @@ enum AgendaCalendarMath {
     static func monthWeekRows(containing date: Date) -> [[Date]] {
         guard
             let interval = calendar.dateInterval(of: .month, for: date),
-            let lastDay = calendar.date(byAdding: .day, value: -1, to: interval.end),
-            var rowStart = week(containing: interval.start).first
+            let lastDay = calendar.date(byAdding: .day, value: -1, to: interval.end)
         else { return [] }
+
+        if let cached = monthRowsCache.rows(for: interval.start) {
+            return cached
+        }
+
+        guard var rowStart = week(containing: interval.start).first else { return [] }
 
         var rows: [[Date]] = []
         while rowStart <= lastDay {
@@ -38,7 +59,22 @@ enum AgendaCalendarMath {
             guard let next = calendar.date(byAdding: .day, value: 7, to: rowStart) else { break }
             rowStart = next
         }
+        monthRowsCache.insert(rows, for: interval.start)
         return rows
+    }
+
+    /// Counts the grid rows without allocating every date in the grid. This is
+    /// used by the scroll hot path, where only the fold distance is required.
+    static func monthWeekRowCount(containing date: Date) -> Int {
+        guard let interval = calendar.dateInterval(of: .month, for: date) else { return 0 }
+        let firstWeekday = calendar.component(.weekday, from: interval.start)
+        let leadingDays = (firstWeekday - calendar.firstWeekday + 7) % 7
+        let daysInMonth = calendar.dateComponents(
+            [.day],
+            from: interval.start,
+            to: interval.end
+        ).day ?? 0
+        return (leadingDays + daysInMonth + 6) / 7
     }
 
     /// Index of the row containing `date`, counting adjacent-month days that
@@ -74,21 +110,27 @@ enum AgendaCalendarMath {
     }
 
     static func localDateKey(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = calendar.timeZone
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        guard
+            let year = components.year,
+            let month = components.month,
+            let day = components.day
+        else { return "" }
+        return String(format: "%04d-%02d-%02d", year, month, day)
     }
 
     static func monthKey(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = calendar.timeZone
-        formatter.dateFormat = "yyyy-MM"
-        return formatter.string(from: date)
+        let components = calendar.dateComponents([.year, .month], from: date)
+        guard let year = components.year, let month = components.month else { return "" }
+        return String(format: "%04d-%02d", year, month)
+    }
+
+    static func monthTitle(for date: Date) -> String {
+        date.formatted(catalanMonthTitleStyle)
+    }
+
+    static func accessibilityDate(for date: Date) -> String {
+        date.formatted(catalanAccessibilityDateStyle)
     }
 
     static func monthStarts(from start: Date, through end: Date) -> [Date] {
