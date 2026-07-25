@@ -91,6 +91,10 @@ public final class CachedAgendaRepository: AgendaRepository {
         }
     }
 
+    public func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
+        try await remoteService.groupDirectory(forceRefresh: forceRefresh)
+    }
+
     private func store(
         _ items: [CastellEvent],
         from: Date,

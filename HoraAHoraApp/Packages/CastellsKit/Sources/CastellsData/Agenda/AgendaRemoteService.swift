@@ -11,6 +11,17 @@ public protocol AgendaRemoteService: Sendable {
         limit: Int,
         forceRefresh: Bool
     ) async throws -> AgendaPage
+    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory
+}
+
+public extension AgendaRemoteService {
+    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
+        CastellerGroupDirectory(
+            groups: [],
+            revision: "",
+            officialURL: URL(string: "https://castellscat.cat/public/ca/les-colles-llistat")!
+        )
+    }
 }
 
 public struct HTTPAgendaRemoteService: AgendaRemoteService {
@@ -43,6 +54,14 @@ public struct HTTPAgendaRemoteService: AgendaRemoteService {
         if let cursor { query.append(URLQueryItem(name: "cursor", value: cursor)) }
         if forceRefresh { query.append(URLQueryItem(name: "refresh", value: "true")) }
         return try await client.get(path: "/v1/events", queryItems: query)
+    }
+
+    public func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
+        var query: [URLQueryItem] = []
+        if forceRefresh {
+            query.append(URLQueryItem(name: "refresh", value: "true"))
+        }
+        return try await client.get(path: "/v1/groups", queryItems: query)
     }
 }
 

@@ -30,6 +30,7 @@ def test_factory_registers_the_complete_delivery_surface() -> None:
         ("GET", "/health/ready"),
         ("GET", "/v1/hour-by-hour"),
         ("GET", "/v1/events"),
+        ("GET", "/v1/groups"),
         ("POST", "/v1/chat"),
         ("PUT", "/v1/push-subscriptions/{installation_id}"),
         ("DELETE", "/v1/push-subscriptions/{installation_id}"),

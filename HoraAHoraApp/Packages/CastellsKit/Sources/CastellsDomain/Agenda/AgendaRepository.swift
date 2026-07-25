@@ -18,6 +18,7 @@ public protocol AgendaRepository: AnyObject {
         limit: Int,
         forceRefresh: Bool
     ) async throws -> AgendaPage
+    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory
 }
 
 public extension AgendaRepository {
@@ -28,5 +29,13 @@ public extension AgendaRepository {
         municipality: String?
     ) throws -> [CastellEvent] {
         []
+    }
+
+    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
+        CastellerGroupDirectory(
+            groups: [],
+            revision: "",
+            officialURL: URL(string: "https://castellscat.cat/public/ca/les-colles-llistat")!
+        )
     }
 }

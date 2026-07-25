@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import CastellsData
 import CastellsDomain
+import FeatureAgenda
 import FeatureSettings
 
 @MainActor
@@ -9,6 +10,7 @@ final class AppDependencies {
     let modelContainer: ModelContainer
     let hourByHourRepository: any HourByHourRepository
     let agendaRepository: any AgendaRepository
+    let agendaFilterStore: any AgendaFilterStoring
     let chatRepository: any ChatRepository
     let settingsModel: SettingsModel
     let settingsConfiguration: SettingsConfiguration
@@ -41,6 +43,7 @@ final class AppDependencies {
             container: modelContainer,
             remoteService: HTTPAgendaRemoteService(client: client)
         )
+        agendaFilterStore = AgendaUserDefaultsStore(userDefaults: userDefaults)
         chatRepository = SwiftDataChatRepository(
             container: modelContainer,
             remoteService: HTTPChatRemoteService(client: client),

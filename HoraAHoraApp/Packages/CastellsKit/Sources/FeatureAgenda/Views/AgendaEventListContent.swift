@@ -5,6 +5,7 @@ import CastellsDomain
 /// this subtree out of the scroll hot path while agenda changes still render.
 struct AgendaEventListContent: View, Equatable {
     let events: [CastellEvent]
+    let otherEvents: [CastellEvent]
     let isLoading: Bool
     let errorMessage: String?
     let sourceStatus: AgendaSourceStatus
@@ -13,6 +14,7 @@ struct AgendaEventListContent: View, Equatable {
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events
+            && lhs.otherEvents == rhs.otherEvents
             && lhs.isLoading == rhs.isLoading
             && lhs.errorMessage == rhs.errorMessage
             && lhs.sourceStatus == rhs.sourceStatus
@@ -21,13 +23,41 @@ struct AgendaEventListContent: View, Equatable {
 
     @ViewBuilder
     var body: some View {
-        if isLoading && events.isEmpty {
+        if isLoading && events.isEmpty && otherEvents.isEmpty {
             ProgressView()
                 .frame(maxWidth: .infinity)
-        } else if !events.isEmpty {
+        } else if !events.isEmpty || !otherEvents.isEmpty {
             LazyVStack(alignment: .leading, spacing: 12) {
                 ForEach(events) { event in
                     AgendaEventCard(event: event)
+                        .id("selected:\(event.id)")
+                }
+
+                if !otherEvents.isEmpty {
+                    VStack(spacing: 6) {
+                        HStack(spacing: 12) {
+                            Divider()
+                            Label("Altres actuacions", systemImage: "line.3.horizontal.decrease")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .fixedSize()
+                            Divider()
+                        }
+
+                        if events.isEmpty {
+                            Text("Cap actuació coincideix amb les colles seleccionades")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+
+                    ForEach(otherEvents) { event in
+                        AgendaEventCard(event: event, isOutsideFilter: true)
+                            .id("other:\(event.id)")
+                    }
                 }
             }
         } else if errorMessage != nil {

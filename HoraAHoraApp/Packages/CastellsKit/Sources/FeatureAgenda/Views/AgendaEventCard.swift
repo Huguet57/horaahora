@@ -4,6 +4,12 @@ import CastellsDomain
 
 struct AgendaEventCard: View {
     let event: CastellEvent
+    let isOutsideFilter: Bool
+
+    init(event: CastellEvent, isOutsideFilter: Bool = false) {
+        self.event = event
+        self.isOutsideFilter = isOutsideFilter
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -62,6 +68,10 @@ struct AgendaEventCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .opacity(isOutsideFilter ? 0.5 : 1)
+        .accessibilityHint(
+            isOutsideFilter ? "Aquesta actuació no coincideix amb el filtre" : ""
+        )
     }
 }
 

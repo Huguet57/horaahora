@@ -4,10 +4,25 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 
 from backend.api.dependencies import get_container
-from backend.api.schemas.content import AgendaPageSchema, CastellEventSchema
+from backend.adapters.content.group_directory import load_group_directory
+from backend.api.schemas.content import (
+    AgendaPageSchema,
+    CastellerGroupDirectorySchema,
+    CastellEventSchema,
+)
 from backend.composition.container import ApplicationContainer
 
 router = APIRouter()
+
+
+@router.get("/v1/groups", response_model=CastellerGroupDirectorySchema)
+def groups(response: Response, refresh: bool = False) -> CastellerGroupDirectorySchema:
+    response.headers["Cache-Control"] = (
+        "no-store"
+        if refresh
+        else "public, s-maxage=86400, stale-while-revalidate=604800"
+    )
+    return CastellerGroupDirectorySchema.from_domain(load_group_directory())
 
 
 @router.get("/v1/events", response_model=AgendaPageSchema)

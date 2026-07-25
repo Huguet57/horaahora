@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from backend.domain.content.models import CastellEvent, HourByHourItem
+from backend.domain.content.models import CastellerGroupDirectory, CastellEvent, HourByHourItem
 
 
 class HourByHourItemSchema(BaseModel):
@@ -66,3 +66,17 @@ class AgendaPageSchema(BaseModel):
     official_url: str = "https://castellscat.cat/ca/agenda"
     from_cache: bool
     source_status: Literal["active", "unavailable"]
+
+
+class CastellerGroupDirectorySchema(BaseModel):
+    groups: list[str]
+    revision: str
+    official_url: str
+
+    @classmethod
+    def from_domain(cls, directory: CastellerGroupDirectory) -> "CastellerGroupDirectorySchema":
+        return cls(
+            groups=directory.groups,
+            revision=directory.revision,
+            official_url=directory.official_url,
+        )

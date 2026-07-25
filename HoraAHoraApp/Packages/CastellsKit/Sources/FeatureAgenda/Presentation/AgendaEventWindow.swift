@@ -13,6 +13,14 @@ struct AgendaEventWindow {
         Set(allEvents.map(\.localDate))
     }
 
+    var participatingGroupNames: [String] {
+        allEvents.flatMap(\.participatingGroups)
+    }
+
+    func dateKeys(matching predicate: (CastellEvent) -> Bool) -> Set<String> {
+        Set(allEvents.lazy.filter(predicate).map(\.localDate))
+    }
+
     func containsMonth(_ date: Date) -> Bool {
         loadedMonthKeys.contains(AgendaCalendarMath.monthKey(date))
     }
