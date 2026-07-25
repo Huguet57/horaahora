@@ -28,7 +28,7 @@ struct AgendaOtherEventsSection: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 5)
             }
 
             disclosureButton
