@@ -37,8 +37,8 @@ struct ContentView: View {
             agendaModel.preloadFromCache()
             await settingsModel.refreshNotificationStatus()
         }
-        .task(id: scenePhase) {
-            guard scenePhase == .active else { return }
+        .task(id: shouldRunHourByHourAutoRefresh) {
+            guard shouldRunHourByHourAutoRefresh else { return }
             await hourByHourModel.runAutoRefresh(every: .seconds(60))
         }
         .onAppear {
@@ -101,6 +101,10 @@ struct ContentView: View {
             .tabItem { Label("Ajustos", systemImage: "gearshape") }
             .tag(AppSection.settings)
         }
+    }
+
+    private var shouldRunHourByHourAutoRefresh: Bool {
+        scenePhase == .active && selectedSection == .hourByHour
     }
 
     private func openHourByHourLink(_ url: URL) {

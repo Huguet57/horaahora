@@ -120,6 +120,41 @@ final class HourByHourViewModelTests: XCTestCase {
         )
     }
 
+    func testRevalidationPublishesAnimationRevisionOnlyForNewItems() async {
+        let repository = SequencedHourByHourRepository(pages: [
+            page(items: [item("first", title: "Original")]),
+            page(items: [item("first", title: "Original")]),
+            page(items: [item("first", title: "Actualitzat")]),
+            page(items: [item("second"), item("first", title: "Actualitzat")]),
+        ])
+        let model = HourByHourViewModel(repository: repository)
+
+        await model.loadIfNeeded()
+        XCTAssertEqual(model.newContentAnimationRevision, 0)
+
+        await model.revalidate()
+        XCTAssertEqual(model.newContentAnimationRevision, 0)
+
+        await model.revalidate()
+        XCTAssertEqual(model.newContentAnimationRevision, 0)
+
+        await model.revalidate()
+        XCTAssertEqual(model.newContentAnimationRevision, 1)
+    }
+
+    func testPaginationDoesNotPublishNewContentAnimation() async {
+        let repository = SequencedHourByHourRepository(pages: [
+            page(items: [item("first")], nextCursor: "page-2"),
+            page(items: [item("older")]),
+        ])
+        let model = HourByHourViewModel(repository: repository)
+
+        await model.loadIfNeeded()
+        await model.loadNextIfNeeded(after: model.items.last!)
+
+        XCTAssertEqual(model.newContentAnimationRevision, 0)
+    }
+
     func testDayGroupsKeepTheirIdentityWhenANewerDayIsInserted() async throws {
         let olderDate = Date(timeIntervalSince1970: 1_700_000_000)
         let newerDate = try XCTUnwrap(
