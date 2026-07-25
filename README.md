@@ -20,18 +20,22 @@ El nom visible i definitiu de l'app és **Castells en vena** i el Bundle ID de d
 
 ## Backend local
 
-Amb Python 3.11 o posterior:
+Amb Python 3.12 i [uv](https://docs.astral.sh/uv/):
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
+uv sync --frozen
 cp .env.example .env
 docker compose up -d db
 set -a && source .env && set +a
-alembic upgrade head
-uvicorn api.index:app --reload
+uv run --frozen alembic upgrade head
+uv run --frozen uvicorn api.index:app --reload
 ```
+
+`pyproject.toml` és l'única font de dependències i `uv.lock` fixa tota la resolució
+transitiva. Després de modificar dependències, executa `uv lock`; CI rebutja qualsevol
+lockfile desactualitzat. Dependabot revisa setmanalment Python, Actions, Docker i
+Docker Compose. Després de fusionar aquesta configuració, cal activar **Dependabot
+alerts** i **Dependabot security updates** a **Settings → Security → Code security**.
 
 O amb infraestructura local completa:
 
@@ -129,24 +133,27 @@ Passos de preparació de producció:
 3. Executa les migracions abans de desplegar codi que depengui del nou esquema:
 
 ```bash
-vercel env run -e production -- alembic upgrade head
-vercel env run -e production -- alembic current
+vercel env run -e production -- uv run --frozen alembic upgrade head
+vercel env run -e production -- uv run --frozen alembic current
 ```
 
 Per validar una migració en una Preview concreta, aplica-la de manera controlada a la
 branca Neon que la integració hagi creat, abans de provar el codi dependent:
 
 ```bash
-vercel env run -e preview --git-branch nom-de-la-branca -- alembic upgrade head
+vercel env run -e preview --git-branch nom-de-la-branca -- \
+  uv run --frozen alembic upgrade head
 ```
 
 4. Sembra l'estat inicial de l'Hora a Hora sense enviar notificacions antigues i carrega l'instantània autoritzada de l'agenda:
 
 ```bash
-vercel env run -e production -- python -m backend.jobs.sync_hour_by_hour
+vercel env run -e production -- \
+  uv run --frozen python -m backend.jobs.sync_hour_by_hour
 vercel env run -e production -- \
   env AGENDA_SOURCE=cccc_snapshot CCCC_AGENDA_AUTHORIZED=true \
-  python -m backend.jobs.sync_agenda --from-month 2026-07 --to-month 2026-07
+  uv run --frozen python -m backend.jobs.sync_agenda \
+  --from-month 2026-07 --to-month 2026-07
 ```
 
 5. Desplega, comprova `/health/ready`, publica la beta que registra tokens i fes una prova dirigida abans d'activar `PUSH_DELIVERY_ENABLED=true`.
@@ -158,7 +165,8 @@ i l'advisory lock de PostgreSQL fan que execucions duplicades siguin idempotents
 ## Proves
 
 ```bash
-python3 -m pytest -q
+uv sync --frozen
+uv run --frozen --no-sync python -m pytest -q
 cd HoraAHoraApp/Packages/CastellsKit
 swift test
 ```
