@@ -29,6 +29,40 @@ struct ContentView: View {
     }
 
     var body: some View {
+        StartupLoadingContainer(
+            initialLoadHasCompleted: hourByHourModel.hasCompletedInitialLoad
+        ) {
+            tabView
+        }
+        .task {
+            agendaModel.preloadFromCache()
+            await settingsModel.refreshNotificationStatus()
+        }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            await hourByHourModel.runAutoRefresh(every: .seconds(60))
+        }
+        .onAppear {
+            if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {
+                openHourByHourLink(pendingURL)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .hourByHourDeepLink)) { notification in
+            guard let url = notification.userInfo?[AppDelegate.deepLinkURLKey] as? URL else { return }
+            _ = AppDelegate.shared?.consumePendingDeepLinkURL()
+            openHourByHourLink(url)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { await settingsModel.refreshNotificationStatus() }
+        }
+        .sheet(item: $presentedLink) { link in
+            InAppBrowser(url: link.url)
+                .ignoresSafeArea()
+        }
+    }
+
+    private var tabView: some View {
         TabView(selection: $selectedSection) {
             HourByHourRootView(
                 model: hourByHourModel,
@@ -73,32 +107,6 @@ struct ContentView: View {
             )
             .tabItem { Label("Ajustos", systemImage: "gearshape") }
             .tag(AppSection.settings)
-        }
-        .task {
-            agendaModel.preloadFromCache()
-            await settingsModel.refreshNotificationStatus()
-        }
-        .task(id: scenePhase) {
-            guard scenePhase == .active else { return }
-            await hourByHourModel.runAutoRefresh(every: .seconds(60))
-        }
-        .onAppear {
-            if let pendingURL = AppDelegate.shared?.consumePendingDeepLinkURL() {
-                openHourByHourLink(pendingURL)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .hourByHourDeepLink)) { notification in
-            guard let url = notification.userInfo?[AppDelegate.deepLinkURLKey] as? URL else { return }
-            _ = AppDelegate.shared?.consumePendingDeepLinkURL()
-            openHourByHourLink(url)
-        }
-        .onChange(of: scenePhase) { _, phase in
-            guard phase == .active else { return }
-            Task { await settingsModel.refreshNotificationStatus() }
-        }
-        .sheet(item: $presentedLink) { link in
-            InAppBrowser(url: link.url)
-                .ignoresSafeArea()
         }
     }
 

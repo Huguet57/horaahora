@@ -5,6 +5,35 @@ import CastellsDomain
 
 @MainActor
 final class HourByHourViewModelTests: XCTestCase {
+    func testInitialLoadCompletesOnlyAfterTheRepositoryReturns() async {
+        let repository = SuspendingHourByHourRepository(result: page(items: [item("first")]))
+        let model = HourByHourViewModel(repository: repository)
+
+        XCTAssertFalse(model.hasCompletedInitialLoad)
+
+        let initialLoad = Task { await model.loadIfNeeded() }
+        while repository.requests.isEmpty {
+            await Task.yield()
+        }
+
+        XCTAssertFalse(model.hasCompletedInitialLoad)
+
+        repository.resume()
+        await initialLoad.value
+
+        XCTAssertTrue(model.hasCompletedInitialLoad)
+    }
+
+    func testInitialLoadCompletesAfterAnError() async {
+        let repository = SequencedHourByHourRepository(pages: [])
+        let model = HourByHourViewModel(repository: repository)
+
+        await model.loadIfNeeded()
+
+        XCTAssertTrue(model.hasCompletedInitialLoad)
+        XCTAssertNotNil(model.errorMessage)
+    }
+
     func testRefreshStaysVisibleLongEnoughToAcknowledgeTheGesture() async {
         let repository = SequencedHourByHourRepository(pages: [page(items: [])])
         let model = HourByHourViewModel(repository: repository)

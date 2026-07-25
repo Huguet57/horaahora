@@ -16,6 +16,7 @@ public final class HourByHourViewModel {
     public private(set) var items: [HourByHourItem] = []
     public private(set) var isLoading = false
     public private(set) var isLoadingMore = false
+    public private(set) var hasCompletedInitialLoad = false
     public private(set) var isFromCache = false
     public private(set) var errorMessage: String?
     private var nextCursor: String?
@@ -40,6 +41,8 @@ public final class HourByHourViewModel {
     public func loadIfNeeded() async {
         guard items.isEmpty, !isLoading else { return }
         await load(forceRefresh: false)
+        guard !Task.isCancelled else { return }
+        hasCompletedInitialLoad = true
     }
 
     public func refresh() async {
@@ -181,7 +184,7 @@ public struct HourByHourRootView: View {
                 if model.items.isEmpty {
                     Group {
                         if model.isLoading {
-                            ProgressView("Carregant l'Hora a Hora…")
+                            HourByHourSkeletonView()
                         } else if let error = model.errorMessage {
                             ContentUnavailableView {
                                 Label("No s'ha pogut carregar", systemImage: "wifi.exclamationmark")
@@ -246,7 +249,7 @@ public struct HourByHourRootView: View {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
     func hourByHourListStyle() -> some View {
         #if os(iOS)
