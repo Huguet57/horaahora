@@ -17,10 +17,12 @@ def _app():
 
 
 def test_factory_registers_the_complete_delivery_surface() -> None:
+    app = _app()
     routes = {
-        (method, route.path)
-        for route in _app().routes
-        for method in getattr(route, "methods", set())
+        (method.upper(), path)
+        for path, operations in app.openapi()["paths"].items()
+        for method in operations
+        if method in {"get", "post", "put", "delete", "patch"}
     }
 
     assert {
@@ -33,9 +35,11 @@ def test_factory_registers_the_complete_delivery_surface() -> None:
         ("DELETE", "/v1/push-subscriptions/{installation_id}"),
         ("GET", "/internal/cron/hour-by-hour"),
         ("GET", "/internal/cron/maintenance"),
-        ("GET", "/privacy"),
-        ("GET", "/privacy/{locale}"),
     }.issubset(routes)
+
+    client = TestClient(app)
+    assert client.get("/privacy").status_code == 200
+    assert client.get("/privacy/ca").status_code == 200
 
 
 def test_router_error_mapping_keeps_validation_and_domain_errors_distinct() -> None:
