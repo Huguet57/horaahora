@@ -5,9 +5,7 @@ from pathlib import Path
 
 from backend.domain.content.group_directory import CastellerGroupDirectory
 
-DEFAULT_DIRECTORY_PATH = (
-    Path(__file__).parents[2] / "data" / "cccc_group_directory_2026_07_25.json"
-)
+DEFAULT_DIRECTORY_PATH = Path(__file__).parents[2] / "data" / "cccc_group_directory_2026_07_25.json"
 
 
 def load_group_directory(path: Path = DEFAULT_DIRECTORY_PATH) -> CastellerGroupDirectory:
