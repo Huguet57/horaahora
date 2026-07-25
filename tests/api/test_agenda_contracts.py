@@ -23,9 +23,7 @@ def test_disabled_agenda_has_a_neutral_unavailable_contract() -> None:
 
 
 def test_forced_agenda_refresh_is_not_http_cached() -> None:
-    response = make_test_client().get(
-        "/v1/events?from=2026-07-21&to=2026-07-21&refresh=true"
-    )
+    response = make_test_client().get("/v1/events?from=2026-07-21&to=2026-07-21&refresh=true")
 
     assert response.status_code == 200
     assert response.headers["cache-control"] == "no-store"
@@ -52,12 +50,8 @@ def test_agenda_fixture_contract_supports_cache_and_filters() -> None:
         agenda_source=CCCCAgendaFixtureSource(fixture),
     )
 
-    first = client.get(
-        "/v1/events?from=2026-07-21&to=2026-07-21&municipality=Vàlls&limit=50"
-    )
-    second = client.get(
-        "/v1/events?from=2026-07-21&to=2026-07-21&municipality=Vàlls&limit=50"
-    )
+    first = client.get("/v1/events?from=2026-07-21&to=2026-07-21&municipality=Vàlls&limit=50")
+    second = client.get("/v1/events?from=2026-07-21&to=2026-07-21&municipality=Vàlls&limit=50")
 
     assert first.status_code == 200
     payload = first.json()

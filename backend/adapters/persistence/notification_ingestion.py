@@ -19,9 +19,7 @@ from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import NotificationIngestionResult
 
 
-def ingest_hour_by_hour(
-    engine: Engine, items: list[HourByHourItem]
-) -> NotificationIngestionResult:
+def ingest_hour_by_hour(engine: Engine, items: list[HourByHourItem]) -> NotificationIngestionResult:
     now = datetime.now(UTC)
     baseline_created = False
     notifications_created = 0

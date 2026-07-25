@@ -57,16 +57,15 @@ class AgendaService:
                         )
                         refreshed = True
                     except Exception:
-                        if self.repository.count_agenda(
-                            date_from, date_to, group, municipality
-                        ) == 0:
+                        if (
+                            self.repository.count_agenda(date_from, date_to, group, municipality)
+                            == 0
+                        ):
                             raise
 
         offset = decode_cursor(cursor)
         count = self.repository.count_agenda(date_from, date_to, group, municipality)
-        items = self.repository.list_agenda(
-            date_from, date_to, group, municipality, offset, limit
-        )
+        items = self.repository.list_agenda(date_from, date_to, group, municipality, offset, limit)
         next_offset = offset + len(items)
         return AgendaPage(
             items=items,

@@ -1,10 +1,10 @@
 from fastapi.testclient import TestClient
 
-from backend.app import create_app
 from backend.adapters.ai.local import RegexQueryInterpreter
 from backend.adapters.persistence.in_memory.agenda import InMemoryAgendaRepository
 from backend.adapters.persistence.in_memory.hour_by_hour import InMemoryHourByHourRepository
 from backend.adapters.rate_limit.memory import InMemoryRateLimiter
+from backend.app import create_app
 from backend.composition.container import ApplicationOverrides
 from backend.config import Settings
 

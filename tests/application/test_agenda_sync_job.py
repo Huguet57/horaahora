@@ -49,9 +49,7 @@ def test_default_range_uses_configured_month_window() -> None:
     assert date_to == date(2026, 4, 1)
 
 
-def test_manual_job_prefetches_complete_months_and_reports_result(
-    monkeypatch, capsys
-) -> None:
+def test_manual_job_prefetches_complete_months_and_reports_result(monkeypatch, capsys) -> None:
     source = RecordingAgendaSource()
     repository = InMemoryAgendaRepository()
     monkeypatch.setattr(sync_agenda, "build_agenda_source", lambda settings: source)

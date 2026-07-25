@@ -24,7 +24,6 @@ from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import PushSubscriptionRegistration
 
-
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "")
 pytestmark = pytest.mark.skipif(
     not TEST_DATABASE_URL,
@@ -124,9 +123,7 @@ def test_postgres_skip_locked_claims_each_delivery_once(
         topic="com.example.integration",
     )
     repository.ingest_hour_by_hour([_item("postgres-baseline")])
-    repository.ingest_hour_by_hour(
-        [_item("postgres-new-item"), _item("postgres-baseline")]
-    )
+    repository.ingest_hour_by_hour([_item("postgres-new-item"), _item("postgres-baseline")])
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         claims = list(executor.map(lambda _: repository.claim_deliveries(limit=1), range(2)))

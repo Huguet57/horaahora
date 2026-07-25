@@ -62,7 +62,11 @@ class CCCCAgendaHTMLSource:
             )
             detail_lines = [value.strip() for value in cells[0].stripped_strings if value.strip()]
             date_index = next(
-                (index for index, value in enumerate(detail_lines) if self._DATE_PATTERN.match(value)),
+                (
+                    index
+                    for index, value in enumerate(detail_lines)
+                    if self._DATE_PATTERN.match(value)
+                ),
                 None,
             )
             if date_index is None or date_index + 1 >= len(detail_lines):
@@ -164,7 +168,7 @@ class CCCCAgendaHTMLSource:
         desktop = select_one(".d-none.d-md-block") if select_one else None
         if desktop is not None:
             return desktop.get_text(" ", strip=True)
-        get_text = getattr(header, "get_text")
+        get_text = header.get_text
         return get_text(" ", strip=True)
 
     @staticmethod

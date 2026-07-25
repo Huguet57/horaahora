@@ -7,7 +7,6 @@ from backend.api.dependencies import get_container
 from backend.api.schemas.content import AgendaPageSchema, CastellEventSchema
 from backend.composition.container import ApplicationContainer
 
-
 router = APIRouter()
 
 

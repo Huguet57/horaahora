@@ -5,7 +5,6 @@ from backend.adapters.content.revista_castells import (
     clean_hour_by_hour_display_title,
 )
 
-
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "revista_hour_by_hour.html"
 
 
@@ -14,7 +13,10 @@ def test_extracts_items_in_source_order_with_embedded_link() -> None:
 
     items = source.parse(FIXTURE.read_text(encoding="utf-8"))
 
-    assert [item.title for item in items] == ["Dilluns 20, 12h. Segona notícia", "Dilluns 20, 10h. Primera notícia"]
+    assert [item.title for item in items] == [
+        "Dilluns 20, 12h. Segona notícia",
+        "Dilluns 20, 10h. Primera notícia",
+    ]
     assert [item.display_title for item in items] == ["Segona notícia", "Primera notícia"]
     assert [item.source_order for item in items] == [0, 1]
     assert items[0].published_at.isoformat() == "2026-07-20T12:00:00+02:00"
@@ -61,6 +63,4 @@ def test_display_title_handles_editorial_time_variants_without_changing_plain_ti
         "Dilluns 20, 14h.": "Dilluns 20, 14h.",
     }
 
-    assert {
-        title: clean_hour_by_hour_display_title(title) for title in examples
-    } == examples
+    assert {title: clean_hour_by_hour_display_title(title) for title in examples} == examples

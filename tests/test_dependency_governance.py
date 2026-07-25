@@ -4,7 +4,6 @@ import re
 import tomllib
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).parents[1]
 
 
@@ -51,9 +50,7 @@ def test_container_uses_only_locked_runtime_dependencies() -> None:
 
 def test_dependabot_checks_every_versioned_dependency_source_weekly() -> None:
     configuration = read(".github/dependabot.yml")
-    ecosystems = set(
-        re.findall(r'package-ecosystem:\s*["\']([^"\']+)["\']', configuration)
-    )
+    ecosystems = set(re.findall(r'package-ecosystem:\s*["\']([^"\']+)["\']', configuration))
 
     assert ecosystems == {"uv", "github-actions", "docker", "docker-compose"}
     assert configuration.count('interval: "weekly"') == len(ecosystems)

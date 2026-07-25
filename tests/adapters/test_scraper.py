@@ -28,5 +28,6 @@ class EntryDestinationTests(unittest.TestCase):
 
         self.assertEqual(entry.destination_url, "")
 
+
 if __name__ == "__main__":
     unittest.main()

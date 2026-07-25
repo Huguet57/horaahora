@@ -79,9 +79,7 @@ def test_subscription_registration_is_idempotent_and_rotates_the_token() -> None
     assert len(active) == 1
     assert active[0].device_token == "cd" * 32
 
-    subscriptions.unregister(
-        "installation-1", environment="production", topic="com.example.app"
-    )
+    subscriptions.unregister("installation-1", environment="production", topic="com.example.app")
     assert subscriptions.list_active_subscriptions() == []
     with Session(subscriptions.engine) as session:
         stored_token = session.scalar(select(PushSubscriptionRecord.device_token))
@@ -153,12 +151,8 @@ def test_interrupted_claim_becomes_available_after_its_lock_expires() -> None:
     claimed_at = datetime.now(UTC)
 
     first = repo.claim_deliveries(limit=1, now=claimed_at, lock_seconds=60)
-    while_locked = repo.claim_deliveries(
-        limit=1, now=claimed_at + timedelta(seconds=59)
-    )
-    recovered = repo.claim_deliveries(
-        limit=1, now=claimed_at + timedelta(seconds=61)
-    )
+    while_locked = repo.claim_deliveries(limit=1, now=claimed_at + timedelta(seconds=59))
+    recovered = repo.claim_deliveries(limit=1, now=claimed_at + timedelta(seconds=61))
 
     assert len(first) == 1
     assert while_locked == []
@@ -191,9 +185,7 @@ def test_maintenance_expires_personal_state_but_keeps_outbox_deduplication() -> 
         "outboxes_deleted": 0,
     }
     with Session(repo.engine) as session:
-        outbox_count = session.scalar(
-            select(func.count()).select_from(NotificationOutboxRecord)
-        )
+        outbox_count = session.scalar(select(func.count()).select_from(NotificationOutboxRecord))
     assert outbox_count == 2
     assert subscriptions.list_active_subscriptions() == []
 

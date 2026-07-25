@@ -15,7 +15,9 @@ def make_engine() -> ScoringEngine:
 def performance(label: str, *castells: tuple[str, Outcome]) -> ParsedPerformance:
     return ParsedPerformance(
         label=label,
-        castells=[ParsedCastell(notation=notation, outcome=outcome) for notation, outcome in castells],
+        castells=[
+            ParsedCastell(notation=notation, outcome=outcome) for notation, outcome in castells
+        ],
     )
 
 
@@ -131,7 +133,9 @@ def test_only_best_result_for_same_structure_counts() -> None:
 
     castells = result.performances[0].castells
     assert next(item for item in castells if item.canonical == "4de9sf").counted
-    assert next(item for item in castells if item.canonical == "4de9f").reason == "duplicate_structure"
+    assert (
+        next(item for item in castells if item.canonical == "4de9f").reason == "duplicate_structure"
+    )
 
 
 def test_attempt_scores_zero_and_unknown_prevents_a_winner() -> None:
@@ -168,8 +172,7 @@ def test_multiple_unknown_castells_ask_one_short_natural_follow_up() -> None:
     assert result.needs_clarification
     assert result.performances == []
     assert result.reply == (
-        "No acabo d’identificar «10d10» ni «torrevolada». "
-        "A quins castells et refereixes?"
+        "No acabo d’identificar «10d10» ni «torrevolada». A quins castells et refereixes?"
     )
 
 

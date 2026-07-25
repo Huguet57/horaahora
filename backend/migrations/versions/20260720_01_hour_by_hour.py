@@ -1,8 +1,7 @@
 """Create the provider-neutral Hour by Hour cache."""
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "20260720_01"
 down_revision = None

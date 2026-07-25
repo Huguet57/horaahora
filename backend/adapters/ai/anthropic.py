@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 from pydantic import ValidationError
 
-from backend.adapters.ai.schema import ParsedQueryPayload, SYSTEM_PROMPT
+from backend.adapters.ai.schema import SYSTEM_PROMPT, ParsedQueryPayload
 from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery
 
 
@@ -36,8 +36,12 @@ class AnthropicQueryInterpreter:
                 return ParsedQueryPayload.model_validate(raw).to_domain()
             except (ValidationError, ValueError) as error:
                 if attempt == 1:
-                    raise ValueError("El proveïdor no ha retornat una interpretació vàlida") from error
-                feedback = f"La resposta anterior no complia l'esquema: {error}. Torna-la a generar."
+                    raise ValueError(
+                        "El proveïdor no ha retornat una interpretació vàlida"
+                    ) from error
+                feedback = (
+                    f"La resposta anterior no complia l'esquema: {error}. Torna-la a generar."
+                )
         raise AssertionError("unreachable")
 
     async def _request(self, history: list[ChatTurn], message: str, feedback: str | None) -> dict:

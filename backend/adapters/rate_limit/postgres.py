@@ -38,13 +38,9 @@ class PostgresRateLimiter:
             self.hash_secret, identifier.encode("utf-8"), hashlib.sha256
         ).hexdigest()
         if self.database.engine.dialect.name == "postgresql":
-            count, stored_expiry = self._allow_postgres(
-                identifier_hash, now, expires_at
-            )
+            count, stored_expiry = self._allow_postgres(identifier_hash, now, expires_at)
         else:
-            count, stored_expiry = self._allow_sqlite_for_tests(
-                identifier_hash, now, expires_at
-            )
+            count, stored_expiry = self._allow_sqlite_for_tests(identifier_hash, now, expires_at)
         retry_after = max(1, math.ceil((_utc(stored_expiry) - now).total_seconds()))
         return count <= self.max_requests, retry_after
 
@@ -52,9 +48,7 @@ class PostgresRateLimiter:
         cutoff = _database_datetime(now or self.clock())
         with Session(self.database.engine) as session, session.begin():
             result = session.execute(
-                delete(RateLimitBucketRecord).where(
-                    RateLimitBucketRecord.expires_at <= cutoff
-                )
+                delete(RateLimitBucketRecord).where(RateLimitBucketRecord.expires_at <= cutoff)
             )
             return result.rowcount or 0
 

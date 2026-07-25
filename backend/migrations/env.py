@@ -6,9 +6,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from backend.adapters.persistence.models import Base
 from backend.adapters.persistence.database import normalize_database_url
-
+from backend.adapters.persistence.models import Base
 
 config = context.config
 if config.config_file_name is not None:

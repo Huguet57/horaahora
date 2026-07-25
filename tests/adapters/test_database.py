@@ -11,8 +11,7 @@ def test_neon_url_uses_the_installed_psycopg3_driver() -> None:
     assert normalize_database_url(
         "postgresql://user:secret@ep-example.eu-central-1.aws.neon.tech/app?sslmode=require"
     ) == (
-        "postgresql+psycopg://user:secret@"
-        "ep-example.eu-central-1.aws.neon.tech/app?sslmode=require"
+        "postgresql+psycopg://user:secret@ep-example.eu-central-1.aws.neon.tech/app?sslmode=require"
     )
     assert normalize_database_url("postgres://user:secret@host/app") == (
         "postgresql+psycopg://user:secret@host/app"

@@ -23,9 +23,7 @@ class SQLAlchemyNotificationRepository:
     def __init__(self, database: Database) -> None:
         self.database, self.engine = resolve_engine(database)
 
-    def ingest_hour_by_hour(
-        self, items: list[HourByHourItem]
-    ) -> NotificationIngestionResult:
+    def ingest_hour_by_hour(self, items: list[HourByHourItem]) -> NotificationIngestionResult:
         return ingest_hour_by_hour(self.engine, items)
 
     def claim_deliveries(
@@ -122,9 +120,7 @@ class SQLAlchemyNotificationRepository:
                 delivery.last_error = reason
                 delivery.updated_at = database_datetime(datetime.now(UTC))
 
-    def mark_invalid_token(
-        self, delivery: PendingNotificationDelivery, *, reason: str
-    ) -> None:
+    def mark_invalid_token(self, delivery: PendingNotificationDelivery, *, reason: str) -> None:
         now = database_datetime(datetime.now(UTC))
         with Session(self.engine) as session, session.begin():
             subscription = session.get(PushSubscriptionRecord, delivery.subscription_id)

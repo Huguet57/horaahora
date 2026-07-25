@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from backend.api.dependencies import get_container
 from backend.composition.container import ApplicationContainer
 
-
 router = APIRouter()
 
 

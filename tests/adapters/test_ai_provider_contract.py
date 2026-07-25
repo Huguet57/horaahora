@@ -5,8 +5,7 @@ import httpx
 
 from backend.adapters.ai.anthropic import AnthropicQueryInterpreter
 from backend.adapters.ai.openai import OpenAIQueryInterpreter
-from backend.adapters.ai.schema import ParsedQueryPayload, SYSTEM_PROMPT
-
+from backend.adapters.ai.schema import SYSTEM_PROMPT, ParsedQueryPayload
 
 EXPECTED = {
     "intent": "comparació",
@@ -103,7 +102,9 @@ def test_openai_adapter_repairs_invalid_structured_output_once() -> None:
         text = "not-json" if calls == 1 else json.dumps(EXPECTED)
         return httpx.Response(
             200,
-            json={"output": [{"type": "message", "content": [{"type": "output_text", "text": text}]}]},
+            json={
+                "output": [{"type": "message", "content": [{"type": "output_text", "text": text}]}]
+            },
         )
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))

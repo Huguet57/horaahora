@@ -166,6 +166,8 @@ i l'advisory lock de PostgreSQL fan que execucions duplicades siguin idempotents
 
 ```bash
 uv sync --frozen
+uvx ruff==0.16.0 check .
+uvx ruff==0.16.0 format --check .
 uv run --frozen --no-sync python -m pytest -q
 cd HoraAHoraApp/Packages/CastellsKit
 swift test

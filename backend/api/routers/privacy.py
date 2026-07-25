@@ -3,7 +3,6 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
-
 PRIVACY_PAGES_DIRECTORY = Path(__file__).parents[2] / "static" / "privacy"
 SUPPORTED_PRIVACY_LOCALES = frozenset({"ca", "es", "en"})
 PRIVACY_RESPONSE_HEADERS = {"Cache-Control": "public, max-age=3600"}

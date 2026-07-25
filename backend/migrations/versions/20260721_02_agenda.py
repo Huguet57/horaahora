@@ -1,8 +1,7 @@
 """Create the provider-neutral agenda cache and synchronization metadata."""
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "20260721_02"
 down_revision = "20260720_01"

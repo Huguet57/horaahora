@@ -15,10 +15,14 @@ WORKDIR /app
 COPY pyproject.toml uv.lock .python-version ./
 RUN uv sync --frozen --no-dev --no-install-project
 
+RUN useradd --system --uid 10001 --create-home app
+
 COPY backend ./backend
 COPY api ./api
 COPY alembic.ini ./
 
 EXPOSE 8000
+
+USER app
 
 CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
