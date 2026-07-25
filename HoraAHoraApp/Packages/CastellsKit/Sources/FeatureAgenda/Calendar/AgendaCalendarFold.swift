@@ -11,6 +11,9 @@ enum AgendaCalendarFold {
     static let weekRowSlotHeight: CGFloat = weekRowSpacing + weekRowHeight
     /// Weekday header plus the single remaining (active) week row.
     static let collapsedGridHeight: CGFloat = weekdayHeaderHeight + weekRowSlotHeight
+    /// A Gregorian month shown in complete Monday-based weeks needs at most six rows.
+    /// Scroll travel beyond this point cannot alter the fold for any visible month.
+    static let maximumFoldDistance = foldDistance(weekRowCount: 6)
 
     static func expandedGridHeight(weekRowCount: Int) -> CGFloat {
         weekdayHeaderHeight + CGFloat(max(weekRowCount, 1)) * weekRowSlotHeight
@@ -32,6 +35,13 @@ enum AgendaCalendarFold {
     static func progress(scrollOffset: CGFloat, foldDistance: CGFloat) -> CGFloat {
         guard foldDistance > 0 else { return 0 }
         return clamped(scrollOffset / foldDistance)
+    }
+
+    /// Keeps scroll-driven view state inside the only range that can affect the
+    /// calendar. Returning the same value once the list is past the fold lets
+    /// `onGeometryChange` suppress redundant root-view updates while cards scroll.
+    static func trackedScrollOffset(_ rawOffset: CGFloat) -> CGFloat {
+        min(max(rawOffset, 0), maximumFoldDistance)
     }
 
     /// With Reduce Motion the calendar never interpolates: it switches state

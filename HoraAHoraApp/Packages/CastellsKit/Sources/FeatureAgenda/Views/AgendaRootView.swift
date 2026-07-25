@@ -70,7 +70,7 @@ public struct AgendaRootView: View {
 
     private var foldDistance: CGFloat {
         AgendaCalendarFold.foldDistance(
-            weekRowCount: AgendaCalendarMath.monthWeekRows(containing: model.visibleMonth).count
+            weekRowCount: AgendaCalendarMath.monthWeekRowCount(containing: model.visibleMonth)
         )
     }
 
@@ -105,13 +105,23 @@ public struct AgendaRootView: View {
                                 )
                             )
 
-                        AgendaEventListContent(model: model)
+                        AgendaEventListContent(
+                            events: model.events,
+                            isLoading: model.isLoading,
+                            errorMessage: model.errorMessage,
+                            sourceStatus: model.sourceStatus,
+                            officialURL: model.officialURL,
+                            refresh: { Task { await model.refresh() } }
+                        )
+                        .equatable()
                             .padding(.vertical, 16)
                     }
                 }
             }
             .onGeometryChange(for: CGFloat.self) { geometry in
-                -geometry.frame(in: .named(agendaScrollSpaceName)).minY
+                AgendaCalendarFold.trackedScrollOffset(
+                    -geometry.frame(in: .named(agendaScrollSpaceName)).minY
+                )
             } action: { offset in
                 // The fold must track the raw offset 1:1; an inherited animated
                 // transaction here would pile up overlapping springs.
