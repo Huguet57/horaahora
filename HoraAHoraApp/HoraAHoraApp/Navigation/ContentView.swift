@@ -22,7 +22,11 @@ struct ContentView: View {
             initialValue: HourByHourViewModel(repository: dependencies.hourByHourRepository)
         )
         _agendaModel = State(
-            initialValue: AgendaViewModel(repository: dependencies.agendaRepository)
+            initialValue: AgendaViewModel(
+                repository: dependencies.agendaRepository,
+                groupDirectoryRepository: dependencies.groupDirectoryRepository,
+                filterStore: dependencies.agendaFilterStore
+            )
         )
         _settingsModel = State(initialValue: dependencies.settingsModel)
     }

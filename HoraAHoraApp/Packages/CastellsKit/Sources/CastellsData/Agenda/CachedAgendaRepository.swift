@@ -6,7 +6,7 @@ import CastellsDomain
 public final class CachedAgendaRepository: AgendaRepository {
     public let officialURL = URL(string: "https://castellscat.cat/ca/agenda")!
     private let context: ModelContext
-    private let remoteService: any AgendaRemoteService
+    let remoteService: any AgendaRemoteService
 
     public init(container: ModelContainer, remoteService: any AgendaRemoteService) {
         self.context = ModelContext(container)

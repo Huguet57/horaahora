@@ -5,6 +5,7 @@ import CastellsDomain
 /// this subtree out of the scroll hot path while agenda changes still render.
 struct AgendaEventListContent: View, Equatable {
     let events: [CastellEvent]
+    let otherEvents: [CastellEvent]
     let isLoading: Bool
     let errorMessage: String?
     let sourceStatus: AgendaSourceStatus
@@ -13,6 +14,7 @@ struct AgendaEventListContent: View, Equatable {
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.events == rhs.events
+            && lhs.otherEvents == rhs.otherEvents
             && lhs.isLoading == rhs.isLoading
             && lhs.errorMessage == rhs.errorMessage
             && lhs.sourceStatus == rhs.sourceStatus
@@ -21,13 +23,22 @@ struct AgendaEventListContent: View, Equatable {
 
     @ViewBuilder
     var body: some View {
-        if isLoading && events.isEmpty {
+        if isLoading && events.isEmpty && otherEvents.isEmpty {
             ProgressView()
                 .frame(maxWidth: .infinity)
-        } else if !events.isEmpty {
+        } else if !events.isEmpty || !otherEvents.isEmpty {
             LazyVStack(alignment: .leading, spacing: 12) {
                 ForEach(events) { event in
                     AgendaEventCard(event: event)
+                        .id("selected:\(event.id)")
+                }
+
+                if !otherEvents.isEmpty {
+                    AgendaOtherEventsSection(
+                        events: otherEvents,
+                        hasMatchingEvents: !events.isEmpty
+                    )
+                    .id(otherEventsSectionID)
                 }
             }
         } else if errorMessage != nil {
@@ -47,5 +58,9 @@ struct AgendaEventListContent: View, Equatable {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
         }
+    }
+
+    private var otherEventsSectionID: String {
+        "\(!events.isEmpty):\(otherEvents.map(\.id).joined(separator: "|"))"
     }
 }

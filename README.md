@@ -69,6 +69,12 @@ AGENDA_SOURCE=cccc_snapshot CCCC_AGENDA_AUTHORIZED=true \
 python -m backend.jobs.sync_agenda --from-month 2026-07 --to-month 2026-07
 ```
 
+`GET /v1/groups` serveix un snapshot versionat dels noms del directori públic de colles,
+incloses les categories actives, discontínues, en formació, universitàries i de l'exterior.
+No consulta la web de la CCCC en temps d'execució. L'app en conserva una còpia a
+`UserDefaults`, la combina amb les colles observades a l'agenda i aplica el filtre només al
+dispositiu; les preferències de seguiment no s'envien al backend.
+
 ### Interpretació de consultes
 
 `AI_PROVIDER=local` usa l'intèrpret determinista inclòs, sense claus externes. També hi ha adaptadors desacoblats per `openai` i `anthropic`; el model, la clau i un endpoint compatible es configuren amb `AI_MODEL`, `AI_API_KEY` i `AI_BASE_URL`. Tots validen la mateixa sortida estructurada abans d'invocar el motor de puntuació.

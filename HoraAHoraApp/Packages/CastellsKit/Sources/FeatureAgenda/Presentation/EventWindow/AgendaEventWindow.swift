@@ -3,6 +3,7 @@ import CastellsDomain
 
 struct AgendaEventWindow {
     private var allEvents: [CastellEvent] = []
+    private var index = AgendaEventIndex(events: [])
     private var loadedMonthKeys: Set<String> = []
 
     var isEmpty: Bool {
@@ -10,7 +11,11 @@ struct AgendaEventWindow {
     }
 
     var dateKeys: Set<String> {
-        Set(allEvents.map(\.localDate))
+        index.dateKeys
+    }
+
+    var participatingGroupNames: [String] {
+        allEvents.flatMap(\.participatingGroups)
     }
 
     func containsMonth(_ date: Date) -> Bool {
@@ -18,15 +23,23 @@ struct AgendaEventWindow {
     }
 
     func events(on date: Date) -> [CastellEvent] {
-        let dateKey = AgendaCalendarMath.localDateKey(date)
-        return allEvents.filter { $0.localDate == dateKey }
+        index.events(on: date)
     }
 
     func events(inMonthContaining date: Date) -> [CastellEvent] {
-        guard let range = AgendaCalendarMath.monthRange(containing: date) else { return [] }
-        let lower = AgendaCalendarMath.localDateKey(range.start)
-        let upper = AgendaCalendarMath.localDateKey(range.end)
-        return allEvents.filter { lower <= $0.localDate && $0.localDate <= upper }
+        index.events(inMonthContaining: date)
+    }
+
+    func projection(
+        on selectedDate: Date,
+        inMonthContaining visibleMonth: Date,
+        matchingGroupKeys matches: (Set<String>) -> Bool
+    ) -> AgendaEventWindowProjection {
+        index.projection(
+            on: selectedDate,
+            inMonthContaining: visibleMonth,
+            matchingGroupKeys: matches
+        )
     }
 
     mutating func replace(from start: Date, through end: Date, with events: [CastellEvent]) {
@@ -35,6 +48,7 @@ struct AgendaEventWindow {
         allEvents.removeAll { lower <= $0.localDate && $0.localDate <= upper }
         allEvents.append(contentsOf: events)
         allEvents = Self.uniqueAndSorted(allEvents)
+        index = AgendaEventIndex(events: allEvents)
     }
 
     mutating func markLoaded(from start: Date, through end: Date) {

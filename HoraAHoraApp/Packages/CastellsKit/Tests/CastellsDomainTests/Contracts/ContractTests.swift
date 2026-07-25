@@ -139,4 +139,5 @@ final class ContractTests: XCTestCase {
         XCTAssertNil(page.items.first?.startsAt)
         XCTAssertEqual(page.sourceStatus, .active)
     }
+
 }

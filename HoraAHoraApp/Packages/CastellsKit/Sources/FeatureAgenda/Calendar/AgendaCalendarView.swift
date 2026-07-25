@@ -9,7 +9,10 @@ struct AgendaCalendarView: View {
     /// Normalized fold progress `0...1`: 0 shows the whole month, 1 keeps only
     /// the visible week in the compact position.
     let foldProgress: CGFloat
+    let isGroupFilterActive: Bool
+    let selectedGroupCount: Int
     let onToggle: () -> Void
+    let onOpenFilter: () -> Void
     let onSelect: (Date) -> Void
     let onChangeWeek: (Int) -> Void
     let onChangeMonth: (Int) -> Void
@@ -39,8 +42,12 @@ struct AgendaCalendarView: View {
             }
         }
         .contentShape(Rectangle())
-        .accessibilityAction(named: "Setmana anterior") { onChangeWeek(-1) }
-        .accessibilityAction(named: "Setmana següent") { onChangeWeek(1) }
+        .accessibilityAction(
+            named: isCollapsed ? "Setmana anterior" : "Mes anterior"
+        ) { changeVisiblePeriod(by: -1) }
+        .accessibilityAction(
+            named: isCollapsed ? "Setmana següent" : "Mes següent"
+        ) { changeVisiblePeriod(by: 1) }
         .onChange(of: visibleWeek) { _, _ in
             var transaction = Transaction()
             transaction.disablesAnimations = true
@@ -75,21 +82,31 @@ struct AgendaCalendarView: View {
             )
             .accessibilityValue(isCollapsed ? "Plegat" : "Desplegat")
             Spacer()
-            Button { changeVisiblePeriod(by: -1) } label: {
-                Image(systemName: "chevron.left")
-                    .font(.title2.weight(.semibold))
-                    .frame(width: 44, height: 44)
+            Button(action: onOpenFilter) {
+                Image(
+                    systemName: isGroupFilterActive
+                        ? "line.3.horizontal.decrease.circle.fill"
+                        : "line.3.horizontal.decrease.circle"
+                )
+                .font(.title2)
+                .frame(width: 44, height: 44)
             }
-            .accessibilityLabel(isCollapsed ? "Setmana anterior" : "Mes anterior")
-            Button { changeVisiblePeriod(by: 1) } label: {
-                Image(systemName: "chevron.right")
-                    .font(.title2.weight(.semibold))
-                    .frame(width: 44, height: 44)
-            }
-            .accessibilityLabel(isCollapsed ? "Setmana següent" : "Mes següent")
+            .accessibilityLabel("Filtra l'agenda per colles")
+            .accessibilityValue(
+                isGroupFilterActive
+                    ? "\(selectedGroupCount) colles seleccionades"
+                    : "Totes les colles"
+            )
         }
         .contentShape(Rectangle())
         .highPriorityGesture(calendarVerticalDragGesture)
+    }
+
+    private var calendarVerticalDragGesture: some Gesture {
+        DragGesture(minimumDistance: 24)
+            .onEnded { value in
+                handleVerticalDrag(value.translation)
+            }
     }
 
     private func changeVisiblePeriod(by offset: Int) {
@@ -98,13 +115,6 @@ struct AgendaCalendarView: View {
         } else {
             onChangeMonth(offset)
         }
-    }
-
-    private var calendarVerticalDragGesture: some Gesture {
-        DragGesture(minimumDistance: 24)
-            .onEnded { value in
-                handleVerticalDrag(value.translation)
-            }
     }
 
     func handleVerticalDrag(_ translation: CGSize) {

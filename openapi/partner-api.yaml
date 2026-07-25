@@ -7,6 +7,19 @@ servers:
   - url: https://api.example.cat
   - url: http://127.0.0.1:8000
 paths:
+  /v1/groups:
+    get:
+      summary: Directori versionat de colles castelleres
+      parameters:
+        - name: refresh
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Directori oficial utilitzat pels filtres de l'agenda
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CastellerGroupDirectory' }
   /v1/hour-by-hour:
     get:
       operationId: listHourByHour
@@ -81,6 +94,15 @@ components:
       in: query
       schema: { type: string }
   schemas:
+    CastellerGroupDirectory:
+      type: object
+      required: [groups, revision, official_url]
+      properties:
+        groups:
+          type: array
+          items: { type: string }
+        revision: { type: string, example: '2026-07-25' }
+        official_url: { type: string, format: uri }
     HourByHourPage:
       type: object
       required: [items, from_cache]

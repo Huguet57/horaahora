@@ -5,6 +5,7 @@ import CastellsDomain
 /// drive the calendar fold instead of moving the cards.
 struct AgendaFoldingEventList: View {
     let events: [CastellEvent]
+    let otherEvents: [CastellEvent]
     let isLoading: Bool
     let errorMessage: String?
     let sourceStatus: AgendaSourceStatus
@@ -35,6 +36,7 @@ struct AgendaFoldingEventList: View {
 
                         AgendaEventListContent(
                             events: events,
+                            otherEvents: otherEvents,
                             isLoading: isLoading,
                             errorMessage: errorMessage,
                             sourceStatus: sourceStatus,

@@ -10,8 +10,9 @@ public final class AgendaViewModel {
     public private(set) var visibleWeek: Date
     public private(set) var monthEvents: [CastellEvent] = []
     public private(set) var events: [CastellEvent] = []
+    public private(set) var otherEvents: [CastellEvent] = []
     public private(set) var eventDateKeys: Set<String> = []
-    private var eventWindow = AgendaEventWindow()
+    var eventWindow = AgendaEventWindow()
     private var monthsBeingPrefetched: Set<String> = []
     private var hasStartedInitialLoad = false
     private var isLoadInFlight = false
@@ -19,18 +20,29 @@ public final class AgendaViewModel {
     public private(set) var errorMessage: String?
     public private(set) var isFromCache = false
     public private(set) var sourceStatus: AgendaSourceStatus = .unavailable
+    public internal(set) var groupDirectoryErrorMessage: String?
     public let officialURL: URL
+    let repository: any AgendaRepository
+    let groupDirectoryRepository: (any GroupDirectoryRepository)?
     private let pageLoader: AgendaPageLoader
     private let cacheReader: AgendaCacheWindowReader
+    var groupFilter: AgendaGroupFilter
 
-    public init(repository: any AgendaRepository) {
+    public init(
+        repository: any AgendaRepository,
+        groupDirectoryRepository: (any GroupDirectoryRepository)? = nil,
+        filterStore: (any AgendaFilterStoring)? = nil
+    ) {
         let now = Date()
         self.selectedDate = now
         self.visibleMonth = now
         self.visibleWeek = now
+        self.repository = repository
+        self.groupDirectoryRepository = groupDirectoryRepository
         self.pageLoader = AgendaPageLoader(repository: repository)
         self.cacheReader = AgendaCacheWindowReader(repository: repository)
         self.officialURL = repository.officialURL
+        self.groupFilter = AgendaGroupFilter(store: filterStore)
     }
 
     public func preloadFromCache() {
@@ -195,6 +207,7 @@ public final class AgendaViewModel {
                 let result = try await pageLoader.fetch(range: range, forceRefresh: false)
                 eventWindow.replace(from: range.start, through: range.end, with: result.items)
                 eventWindow.markLoaded(monthStartingAt: monthStart)
+                mergeObservedGroups()
                 updateVisibleMonthEvents()
             } catch {
                 // The selected month is already in the prefetched window. A failed edge
@@ -213,14 +226,21 @@ public final class AgendaViewModel {
     ) {
         eventWindow.replace(from: start, through: end, with: items)
         eventWindow.markLoaded(from: start, through: end)
+        mergeObservedGroups()
         self.sourceStatus = sourceStatus
         isFromCache = fromCache
         updateVisibleMonthEvents()
     }
 
-    private func updateVisibleMonthEvents() {
-        events = eventWindow.events(on: selectedDate)
-        eventDateKeys = eventWindow.dateKeys
-        monthEvents = eventWindow.events(inMonthContaining: visibleMonth)
+    func updateVisibleMonthEvents() {
+        let projection = eventWindow.projection(
+            on: selectedDate,
+            inMonthContaining: visibleMonth,
+            matchingGroupKeys: groupFilter.matches
+        )
+        events = projection.events
+        otherEvents = projection.otherEvents
+        eventDateKeys = projection.eventDateKeys
+        monthEvents = projection.monthEvents
     }
 }

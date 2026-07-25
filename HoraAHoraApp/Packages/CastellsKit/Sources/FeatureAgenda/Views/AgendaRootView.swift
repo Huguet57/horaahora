@@ -4,6 +4,7 @@ public struct AgendaRootView: View {
     private let model: AgendaViewModel
     @State private var scrollOffset: CGFloat = 0
     @State private var scrollViewBaseHeight: CGFloat = 0
+    @State private var showsGroupFilter = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(model: AgendaViewModel) {
@@ -26,7 +27,10 @@ public struct AgendaRootView: View {
                         visibleWeek: model.visibleWeek,
                         eventDateKeys: model.eventDateKeys,
                         foldProgress: foldProgress,
+                        isGroupFilterActive: model.isGroupFilterActive,
+                        selectedGroupCount: model.selectedGroupCount,
                         onToggle: { toggleFold(with: proxy) },
+                        onOpenFilter: { showsGroupFilter = true },
                         onSelect: { date in
                             Task { await model.selectAndLoad(date) }
                         },
@@ -45,6 +49,7 @@ public struct AgendaRootView: View {
 
                     AgendaFoldingEventList(
                         events: model.events,
+                        otherEvents: model.otherEvents,
                         isLoading: model.isLoading,
                         errorMessage: model.errorMessage,
                         sourceStatus: model.sourceStatus,
@@ -58,6 +63,10 @@ public struct AgendaRootView: View {
                 }
                 .agendaNavigationBarHidden()
                 .task { await model.load() }
+                .task { await model.loadGroupDirectory() }
+                .onChange(of: model.groupSelection) {
+                    resetScrollAfterGroupSelectionChange(with: proxy)
+                }
                 .onChange(of: foldDistance) { oldDistance, newDistance in
                     scrollViewBaseHeight = AgendaCalendarFold.rebasedScrollViewBaseHeight(
                         scrollViewBaseHeight,
@@ -71,6 +80,11 @@ public struct AgendaRootView: View {
                     )
                 }
             }
+        }
+        .sheet(isPresented: $showsGroupFilter) {
+            AgendaGroupFilterView(model: model)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 
@@ -101,6 +115,15 @@ public struct AgendaRootView: View {
             withAnimation(.snappy(duration: 0.3)) {
                 proxy.scrollTo(anchorID, anchor: .top)
             }
+        }
+    }
+
+    private func resetScrollAfterGroupSelectionChange(with proxy: ScrollViewProxy) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            scrollOffset = 0
+            proxy.scrollTo(AgendaScrollIdentifiers.top, anchor: .top)
         }
     }
 

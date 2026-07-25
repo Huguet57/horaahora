@@ -14,7 +14,7 @@ public protocol AgendaRemoteService: Sendable {
 }
 
 public struct HTTPAgendaRemoteService: AgendaRemoteService {
-    private let client: APIClient
+    let client: APIClient
 
     public init(client: APIClient) {
         self.client = client
