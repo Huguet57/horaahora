@@ -2,8 +2,12 @@ import SwiftUI
 
 struct AgendaGroupFilterView: View {
     let model: AgendaViewModel
+    let onRequestExpansion: () -> Void
+    let onRequestCollapse: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
+    @State private var groupListTopReferenceOffset: CGFloat?
+    @State private var isGroupListAtTop = true
 
     var body: some View {
         NavigationStack {
@@ -37,6 +41,7 @@ struct AgendaGroupFilterView: View {
                         isSelected: !model.isGroupFilterActive,
                         action: model.toggleFollowingAllGroups
                     )
+                    .background(groupListTopTracker)
                 }
 
                 featuredSection
@@ -50,10 +55,18 @@ struct AgendaGroupFilterView: View {
 
             directoryErrorSection
         }
-        .refreshable { await model.loadGroupDirectory(forceRefresh: true) }
         .contentMargins(.top, 8, for: .scrollContent)
         .scrollContentBackground(.hidden)
         .background(agendaGroupFilterBackground)
+        .coordinateSpace(name: AgendaGroupFilterListCoordinateSpace.name)
+        .onPreferenceChange(AgendaGroupFilterListTopPreferenceKey.self) {
+            updateGroupListTop(offset: $0)
+        }
+        .onChange(of: searchText) {
+            groupListTopReferenceOffset = nil
+            isGroupListAtTop = true
+        }
+        .simultaneousGesture(groupListExpansionGesture)
     }
 
     @ViewBuilder
@@ -71,13 +84,16 @@ struct AgendaGroupFilterView: View {
     }
 
     private var searchResultsSection: some View {
-        Section("Resultats") {
+        Section {
             if filteredGroups.isEmpty {
                 Text("No s'ha trobat cap colla")
                     .foregroundStyle(.secondary)
             } else {
                 groupRows(filteredGroups)
             }
+        } header: {
+            Text("Resultats")
+                .background(groupListTopTracker)
         }
     }
 
@@ -133,5 +149,76 @@ struct AgendaGroupFilterView: View {
                 locale: Locale(identifier: "ca_ES")
             ) != nil
         }
+    }
+
+    private var groupListExpansionGesture: some Gesture {
+        DragGesture(minimumDistance: AgendaGroupFilterSheetInteraction.minimumDragDistance)
+            .onChanged { value in
+                if AgendaGroupFilterSheetInteraction.requestsExpansion(
+                    translation: value.translation
+                ) {
+                    onRequestExpansion()
+                    return
+                }
+
+                guard AgendaGroupFilterSheetInteraction.requestsCollapse(
+                    translation: value.translation,
+                    isListAtTop: isGroupListAtTop
+                ) else { return }
+
+                onRequestCollapse()
+            }
+    }
+
+    private var groupListTopTracker: some View {
+        GeometryReader { proxy in
+            Color.clear.preference(
+                key: AgendaGroupFilterListTopPreferenceKey.self,
+                value: proxy.frame(
+                    in: .named(AgendaGroupFilterListCoordinateSpace.name)
+                ).minY
+            )
+        }
+    }
+
+    private func updateGroupListTop(offset: CGFloat?) {
+        guard let offset else {
+            isGroupListAtTop = false
+            return
+        }
+
+        guard let referenceOffset = groupListTopReferenceOffset else {
+            groupListTopReferenceOffset = offset
+            isGroupListAtTop = true
+            return
+        }
+
+        isGroupListAtTop = offset >= referenceOffset - 1
+    }
+}
+
+enum AgendaGroupFilterSheetInteraction {
+    static let minimumDragDistance: CGFloat = 8
+
+    static func requestsExpansion(translation: CGSize) -> Bool {
+        translation.height < 0 && abs(translation.height) > abs(translation.width)
+    }
+
+    static func requestsCollapse(translation: CGSize, isListAtTop: Bool) -> Bool {
+        isListAtTop
+            && translation.height > 0
+            && abs(translation.height) > abs(translation.width)
+    }
+}
+
+private enum AgendaGroupFilterListCoordinateSpace {
+    static let name = "agendaGroupFilterList"
+}
+
+private struct AgendaGroupFilterListTopPreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat? = nil
+
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        value = nextValue() ?? value
     }
 }
