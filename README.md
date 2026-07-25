@@ -94,6 +94,25 @@ La política de privacitat es publica a `/privacy` en català, amb selector cap 
 
 El projecte inclou App Icon, privacy manifest, declaració d'exempció de xifrat i configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md), la [política de privacitat](docs/privacy-policy-ca.md) es publica des del backend i els [canvis futurs de privacitat de l'app](docs/privacy-app-followups.md) queden documentats separadament.
 
+Per provar, arxivar i pujar l'últim `origin/main` amb un número de build únic:
+
+```bash
+make deploy-testflight
+```
+
+El script actualitza `origin/main`, crea un worktree temporal del commit exacte i utilitza
+els segons Unix UTC com a `CURRENT_PROJECT_VERSION`; així el build creix sense modificar
+el projecte ni crear un commit només per canviar-ne el número. Requereix el compte Apple
+configurat a Xcode. El target de `make` delega a `scripts/deploy-testflight.sh` i permet
+passar-li opcions amb `ARGS`. Per inspeccionar el pla, ometre proves o fixar
+excepcionalment el build:
+
+```bash
+make deploy-testflight ARGS="--dry-run"
+make deploy-testflight ARGS="--skip-tests"
+make deploy-testflight ARGS="--build-number 1774400000"
+```
+
 ### Desplegament a Vercel i Neon
 
 `api/index.py` és un adaptador de lliurament prim que exposa la mateixa aplicació ASGI.
