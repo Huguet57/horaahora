@@ -38,7 +38,7 @@ enum AgendaGroupFilterTestFixture {
 }
 
 @MainActor
-final class GroupAgendaRepositoryStub: AgendaRepository {
+final class GroupAgendaRepositoryStub: AgendaRepository, GroupDirectoryRepository {
     let officialURL = URL(string: "https://castellscat.cat/ca/agenda")!
     let suppliedItems: [CastellEvent]
     var directoryGroups: [String]
@@ -72,6 +72,31 @@ final class GroupAgendaRepositoryStub: AgendaRepository {
         CastellerGroupDirectory(
             groups: directoryGroups,
             revision: "test",
+            officialURL: URL(string: "https://castellscat.cat/public/ca/les-colles-llistat")!
+        )
+    }
+
+    func makeModel(filterStore: (any AgendaFilterStoring)? = nil) -> AgendaViewModel {
+        AgendaViewModel(
+            repository: self,
+            groupDirectoryRepository: self,
+            filterStore: filterStore
+        )
+    }
+}
+
+@MainActor
+final class GroupDirectoryRepositoryStub: GroupDirectoryRepository {
+    var groups: [String]
+
+    init(groups: [String]) {
+        self.groups = groups
+    }
+
+    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
+        CastellerGroupDirectory(
+            groups: groups,
+            revision: "dedicated-test",
             officialURL: URL(string: "https://castellscat.cat/public/ca/les-colles-llistat")!
         )
     }

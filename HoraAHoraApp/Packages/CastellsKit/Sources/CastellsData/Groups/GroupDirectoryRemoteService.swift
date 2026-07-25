@@ -5,18 +5,14 @@ public protocol GroupDirectoryRemoteService: Sendable {
     func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory
 }
 
-public extension GroupDirectoryRemoteService {
-    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
-        CastellerGroupDirectory(
-            groups: [],
-            revision: "",
-            officialURL: URL(string: "https://castellscat.cat/public/ca/les-colles-llistat")!
-        )
-    }
-}
+public struct HTTPGroupDirectoryRemoteService: GroupDirectoryRemoteService {
+    private let client: APIClient
 
-public extension HTTPAgendaRemoteService {
-    func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
+    public init(client: APIClient) {
+        self.client = client
+    }
+
+    public func groupDirectory(forceRefresh: Bool) async throws -> CastellerGroupDirectory {
         let query = forceRefresh
             ? [URLQueryItem(name: "refresh", value: "true")]
             : []

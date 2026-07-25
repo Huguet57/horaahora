@@ -10,6 +10,7 @@ final class AppDependencies {
     let modelContainer: ModelContainer
     let hourByHourRepository: any HourByHourRepository
     let agendaRepository: any AgendaRepository
+    let groupDirectoryRepository: any GroupDirectoryRepository
     let agendaFilterStore: any AgendaFilterStoring
     let chatRepository: any ChatRepository
     let settingsModel: SettingsModel
@@ -42,6 +43,9 @@ final class AppDependencies {
         agendaRepository = CachedAgendaRepository(
             container: modelContainer,
             remoteService: HTTPAgendaRemoteService(client: client)
+        )
+        groupDirectoryRepository = RemoteGroupDirectoryRepository(
+            remoteService: HTTPGroupDirectoryRemoteService(client: client)
         )
         agendaFilterStore = AgendaUserDefaultsStore(userDefaults: userDefaults)
         chatRepository = SwiftDataChatRepository(

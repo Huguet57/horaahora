@@ -1,7 +1,7 @@
 import Foundation
 import CastellsDomain
 
-public protocol AgendaRemoteService: GroupDirectoryRemoteService {
+public protocol AgendaRemoteService: Sendable {
     func events(
         from: Date,
         to: Date,
@@ -44,7 +44,6 @@ public struct HTTPAgendaRemoteService: AgendaRemoteService {
         if forceRefresh { query.append(URLQueryItem(name: "refresh", value: "true")) }
         return try await client.get(path: "/v1/events", queryItems: query)
     }
-
 }
 
 func agendaDateString(_ date: Date) -> String {

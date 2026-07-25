@@ -1,7 +1,7 @@
 import Foundation
 
 @MainActor
-public protocol AgendaRepository: GroupDirectoryRepository {
+public protocol AgendaRepository: AnyObject {
     var officialURL: URL { get }
     func cachedEvents(
         from: Date,
@@ -29,5 +29,4 @@ public extension AgendaRepository {
     ) throws -> [CastellEvent] {
         []
     }
-
 }

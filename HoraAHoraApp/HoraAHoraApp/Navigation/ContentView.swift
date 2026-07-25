@@ -24,6 +24,7 @@ struct ContentView: View {
         _agendaModel = State(
             initialValue: AgendaViewModel(
                 repository: dependencies.agendaRepository,
+                groupDirectoryRepository: dependencies.groupDirectoryRepository,
                 filterStore: dependencies.agendaFilterStore
             )
         )

@@ -12,7 +12,7 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
             ],
             groups: ["Colla Oficial", "Colla Observada"]
         )
-        let model = AgendaViewModel(repository: repository)
+        let model = repository.makeModel()
         model.selectedDate = fixture.day
 
         await model.load()
@@ -25,6 +25,34 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
         XCTAssertTrue(model.isFollowing(groupName: "Una colla futura"))
     }
 
+    func testLoadsTheDirectoryFromItsDedicatedRepository() async {
+        let agendaRepository = GroupAgendaRepositoryStub(items: [], groups: ["Colla Agenda"])
+        let directoryRepository = GroupDirectoryRepositoryStub(groups: ["Colla Directori"])
+        let model = AgendaViewModel(
+            repository: agendaRepository,
+            groupDirectoryRepository: directoryRepository
+        )
+
+        await model.loadGroupDirectory()
+
+        XCTAssertEqual(model.availableGroups, ["Colla Directori"])
+    }
+
+    func testMissingDirectoryRepositoryKeepsGroupsObservedInAgendaEvents() async {
+        let agendaRepository = GroupAgendaRepositoryStub(
+            items: [fixture.event(id: "observed", groups: ["Colla Observada"])],
+            groups: []
+        )
+        let model = AgendaViewModel(repository: agendaRepository)
+        model.selectedDate = fixture.day
+
+        await model.load()
+        await model.loadGroupDirectory()
+
+        XCTAssertEqual(model.availableGroups, ["Colla Observada"])
+        XCTAssertNil(model.groupDirectoryErrorMessage)
+    }
+
     func testCustomSelectionSplitsMatchingAndOtherEvents() async {
         let repository = GroupAgendaRepositoryStub(
             items: [
@@ -34,7 +62,7 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
             ],
             groups: ["Colla A", "Colla B"]
         )
-        let model = AgendaViewModel(repository: repository)
+        let model = repository.makeModel()
         model.selectedDate = fixture.day
         await model.load()
         await model.loadGroupDirectory()
@@ -56,7 +84,7 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
             ],
             groups: ["Castellers de la Vila de Gràcia", "Colla Castellera de l'Alt Maresme"]
         )
-        let model = AgendaViewModel(repository: repository)
+        let model = repository.makeModel()
         model.selectedDate = fixture.day
         await model.load()
         await model.loadGroupDirectory()
@@ -68,35 +96,37 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
         XCTAssertEqual(model.otherEvents.map(\.id), ["blanes"])
     }
 
-    func testSelectionRevisionChangesOnlyWhenTheFilterSelectionChanges() async {
-        let model = AgendaViewModel(
-            repository: GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
-        )
+    func testSelectionSnapshotChangesOnlyWhenTheFilterSelectionChanges() async {
+        let model = GroupAgendaRepositoryStub(
+            items: [],
+            groups: ["Colla A", "Colla B"]
+        ).makeModel()
         await model.loadGroupDirectory()
 
-        XCTAssertEqual(model.groupSelectionRevision, 0)
+        let initialSelection = model.groupSelection
 
         model.setFeatured(true, groupName: "Colla A")
         model.setFollowing(true, groupName: "Colla A")
 
-        XCTAssertEqual(model.groupSelectionRevision, 0)
+        XCTAssertEqual(model.groupSelection, initialSelection)
 
         model.setFollowing(false, groupName: "Colla B")
 
-        XCTAssertEqual(model.groupSelectionRevision, 1)
+        let customSelection = model.groupSelection
+        XCTAssertNotEqual(customSelection, initialSelection)
 
         model.setFollowing(false, groupName: "Colla B")
 
-        XCTAssertEqual(model.groupSelectionRevision, 1)
+        XCTAssertEqual(model.groupSelection, customSelection)
 
         model.setFollowing(true, groupName: "Colla B")
 
-        XCTAssertEqual(model.groupSelectionRevision, 2)
+        XCTAssertNotEqual(model.groupSelection, customSelection)
     }
 
     func testNewGroupsStayUnselectedInCustomModeButFollowAllRestoresAutomaticSelection() async {
         let repository = GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
-        let model = AgendaViewModel(repository: repository)
+        let model = repository.makeModel()
         await model.loadGroupDirectory()
 
         model.setFollowing(false, groupName: "Colla B")
@@ -110,9 +140,10 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
     }
 
     func testTogglingAllGroupsOffClearsSelectionAndTogglingAgainFollowsAll() async {
-        let model = AgendaViewModel(
-            repository: GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
-        )
+        let model = GroupAgendaRepositoryStub(
+            items: [],
+            groups: ["Colla A", "Colla B"]
+        ).makeModel()
         await model.loadGroupDirectory()
 
         model.toggleFollowingAllGroups()
@@ -130,12 +161,10 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
     }
 
     func testTogglingFeaturedGroupsChangesSelectionWithoutRemovingStars() async {
-        let model = AgendaViewModel(
-            repository: GroupAgendaRepositoryStub(
-                items: [],
-                groups: ["Colla A", "Colla B", "Colla C"]
-            )
-        )
+        let model = GroupAgendaRepositoryStub(
+            items: [],
+            groups: ["Colla A", "Colla B", "Colla C"]
+        ).makeModel()
         await model.loadGroupDirectory()
         model.setFeatured(true, groupName: "Colla A")
         model.setFeatured(true, groupName: "Colla B")
@@ -159,9 +188,10 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
     }
 
     func testFeaturingKeepsTheGroupInTheCompleteList() async {
-        let model = AgendaViewModel(
-            repository: GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"])
-        )
+        let model = GroupAgendaRepositoryStub(
+            items: [],
+            groups: ["Colla A", "Colla B"]
+        ).makeModel()
         await model.loadGroupDirectory()
 
         model.setFeatured(true, groupName: "Colla B")
@@ -176,18 +206,16 @@ final class AgendaGroupFilterViewModelTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let store = AgendaUserDefaultsStore(userDefaults: defaults, key: "agenda-test")
-        let first = AgendaViewModel(
-            repository: GroupAgendaRepositoryStub(items: [], groups: ["Colla A", "Colla B"]),
-            filterStore: store
-        )
+        let first = GroupAgendaRepositoryStub(
+            items: [],
+            groups: ["Colla A", "Colla B"]
+        ).makeModel(filterStore: store)
         await first.loadGroupDirectory()
         first.setFollowing(false, groupName: "Colla A")
         first.setFeatured(true, groupName: "Colla B")
 
-        let restored = AgendaViewModel(
-            repository: GroupAgendaRepositoryStub(items: [], groups: []),
-            filterStore: store
-        )
+        let restored = GroupAgendaRepositoryStub(items: [], groups: [])
+            .makeModel(filterStore: store)
 
         XCTAssertTrue(restored.isGroupFilterActive)
         XCTAssertFalse(restored.isFollowing(groupName: "Colla A"))

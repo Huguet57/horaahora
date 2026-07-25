@@ -12,7 +12,6 @@ public final class AgendaViewModel {
     public private(set) var events: [CastellEvent] = []
     public private(set) var otherEvents: [CastellEvent] = []
     public private(set) var eventDateKeys: Set<String> = []
-    var groupSelectionRevision: UInt = 0
     var eventWindow = AgendaEventWindow()
     private var monthsBeingPrefetched: Set<String> = []
     private var hasStartedInitialLoad = false
@@ -24,12 +23,14 @@ public final class AgendaViewModel {
     public internal(set) var groupDirectoryErrorMessage: String?
     public let officialURL: URL
     let repository: any AgendaRepository
+    let groupDirectoryRepository: (any GroupDirectoryRepository)?
     private let pageLoader: AgendaPageLoader
     private let cacheReader: AgendaCacheWindowReader
     var groupFilter: AgendaGroupFilter
 
     public init(
         repository: any AgendaRepository,
+        groupDirectoryRepository: (any GroupDirectoryRepository)? = nil,
         filterStore: (any AgendaFilterStoring)? = nil
     ) {
         let now = Date()
@@ -37,6 +38,7 @@ public final class AgendaViewModel {
         self.visibleMonth = now
         self.visibleWeek = now
         self.repository = repository
+        self.groupDirectoryRepository = groupDirectoryRepository
         self.pageLoader = AgendaPageLoader(repository: repository)
         self.cacheReader = AgendaCacheWindowReader(repository: repository)
         self.officialURL = repository.officialURL

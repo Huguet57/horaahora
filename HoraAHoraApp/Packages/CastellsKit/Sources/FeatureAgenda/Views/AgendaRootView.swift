@@ -64,7 +64,7 @@ public struct AgendaRootView: View {
                 .agendaNavigationBarHidden()
                 .task { await model.load() }
                 .task { await model.loadGroupDirectory() }
-                .onChange(of: model.groupSelectionRevision) {
+                .onChange(of: model.groupSelection) {
                     resetScrollAfterGroupSelectionChange(with: proxy)
                 }
                 .onChange(of: foldDistance) { oldDistance, newDistance in

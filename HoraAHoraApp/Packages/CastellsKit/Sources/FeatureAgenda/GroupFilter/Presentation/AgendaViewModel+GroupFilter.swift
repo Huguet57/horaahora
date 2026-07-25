@@ -45,8 +45,14 @@ public extension AgendaViewModel {
 
     func loadGroupDirectory(forceRefresh: Bool = false) async {
         groupDirectoryErrorMessage = nil
+        guard let groupDirectoryRepository else {
+            mergeObservedGroups()
+            return
+        }
         do {
-            let directory = try await repository.groupDirectory(forceRefresh: forceRefresh)
+            let directory = try await groupDirectoryRepository.groupDirectory(
+                forceRefresh: forceRefresh
+            )
             groupFilter.mergeDirectory(
                 groups: directory.groups,
                 revision: directory.revision,
@@ -59,9 +65,10 @@ public extension AgendaViewModel {
 }
 
 extension AgendaViewModel {
+    var groupSelection: AgendaGroupSelection { groupFilter.selection }
+
     private func finishGroupSelectionChange(from previousSelection: AgendaGroupSelection) {
         guard groupFilter.selection != previousSelection else { return }
-        groupSelectionRevision &+= 1
         updateVisibleMonthEvents()
     }
 
