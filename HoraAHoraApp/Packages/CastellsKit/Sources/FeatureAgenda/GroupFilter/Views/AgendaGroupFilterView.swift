@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AgendaGroupFilterView: View {
     let model: AgendaViewModel
+    let onRequestExpansion: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
 
@@ -54,6 +55,7 @@ struct AgendaGroupFilterView: View {
         .contentMargins(.top, 8, for: .scrollContent)
         .scrollContentBackground(.hidden)
         .background(agendaGroupFilterBackground)
+        .simultaneousGesture(groupListExpansionGesture)
     }
 
     @ViewBuilder
@@ -133,5 +135,24 @@ struct AgendaGroupFilterView: View {
                 locale: Locale(identifier: "ca_ES")
             ) != nil
         }
+    }
+
+    private var groupListExpansionGesture: some Gesture {
+        DragGesture(minimumDistance: AgendaGroupFilterSheetInteraction.minimumDragDistance)
+            .onChanged { value in
+                guard AgendaGroupFilterSheetInteraction.requestsExpansion(
+                    translation: value.translation
+                ) else { return }
+
+                onRequestExpansion()
+            }
+    }
+}
+
+enum AgendaGroupFilterSheetInteraction {
+    static let minimumDragDistance: CGFloat = 8
+
+    static func requestsExpansion(translation: CGSize) -> Bool {
+        translation.height < 0 && abs(translation.height) > abs(translation.width)
     }
 }

@@ -5,6 +5,7 @@ public struct AgendaRootView: View {
     @State private var scrollOffset: CGFloat = 0
     @State private var scrollViewBaseHeight: CGFloat = 0
     @State private var showsGroupFilter = false
+    @State private var groupFilterDetent: PresentationDetent = .medium
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(model: AgendaViewModel) {
@@ -30,7 +31,10 @@ public struct AgendaRootView: View {
                         isGroupFilterActive: model.isGroupFilterActive,
                         selectedGroupCount: model.selectedGroupCount,
                         onToggle: { toggleFold(with: proxy) },
-                        onOpenFilter: { showsGroupFilter = true },
+                        onOpenFilter: {
+                            groupFilterDetent = .medium
+                            showsGroupFilter = true
+                        },
                         onSelect: { date in
                             Task { await model.selectAndLoad(date) }
                         },
@@ -82,8 +86,14 @@ public struct AgendaRootView: View {
             }
         }
         .sheet(isPresented: $showsGroupFilter) {
-            AgendaGroupFilterView(model: model)
-                .presentationDetents([.medium, .large])
+            AgendaGroupFilterView(
+                model: model,
+                onRequestExpansion: expandGroupFilter
+            )
+                .presentationDetents(
+                    [.medium, .large],
+                    selection: $groupFilterDetent
+                )
                 .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.visible)
         }
@@ -93,6 +103,14 @@ public struct AgendaRootView: View {
         AgendaCalendarFold.foldDistance(
             weekRowCount: AgendaCalendarMath.monthWeekRowCount(containing: model.visibleMonth)
         )
+    }
+
+    private func expandGroupFilter() {
+        guard groupFilterDetent != .large else { return }
+
+        withAnimation(.snappy(duration: 0.25)) {
+            groupFilterDetent = .large
+        }
     }
 
     private func toggleFold(with proxy: ScrollViewProxy) {
