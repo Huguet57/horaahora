@@ -141,7 +141,8 @@ main() {
   if [[ "$dry_run" == true ]]; then
     print_command git -C "$repository_root" worktree add --detach '<temporary-source>' "$source_commit"
     if [[ "$skip_tests" == false ]]; then
-      print_command python3 -m pytest -q
+      print_command uv sync --frozen
+      print_command uv run --frozen --no-sync python -m pytest -q
       print_command swift test
     fi
     print_command xcodebuild archive \
@@ -164,7 +165,7 @@ main() {
   require_command xcodebuild
   require_command plutil
   if [[ "$skip_tests" == false ]]; then
-    require_command python3
+    require_command uv
     require_command swift
   fi
   if [[ ! -x /usr/libexec/PlistBuddy ]]; then
@@ -200,7 +201,8 @@ main() {
   if [[ "$skip_tests" == false ]]; then
     (
       cd "$source_directory"
-      run_command python3 -m pytest -q
+      run_command uv sync --frozen
+      run_command uv run --frozen --no-sync python -m pytest -q
     )
     (
       cd "$source_directory/HoraAHoraApp/Packages/CastellsKit"

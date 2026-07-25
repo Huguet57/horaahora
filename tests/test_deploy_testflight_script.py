@@ -73,6 +73,20 @@ def test_dry_run_pins_the_requested_ref_and_build_number() -> None:
     assert "No upload was performed." in result.stdout
 
 
+def test_dry_run_uses_the_frozen_python_environment() -> None:
+    result = run_script(
+        "--dry-run",
+        "--ref",
+        "HEAD",
+        "--build-number",
+        "1774400000",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "+ uv sync --frozen" in result.stdout
+    assert "+ uv run --frozen --no-sync python -m pytest -q" in result.stdout
+
+
 def test_invalid_build_number_is_rejected_before_building() -> None:
     result = run_script(
         "--dry-run",
