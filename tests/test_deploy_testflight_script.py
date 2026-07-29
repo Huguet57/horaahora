@@ -72,6 +72,23 @@ def test_dry_run_pins_the_requested_ref_and_build_number() -> None:
     assert "No upload was performed." in result.stdout
 
 
+def test_dry_run_overrides_the_marketing_version() -> None:
+    result = run_script(
+        "--dry-run",
+        "--skip-tests",
+        "--ref",
+        "HEAD",
+        "--marketing-version",
+        "1.1",
+        "--build-number",
+        "1774400000",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Marketing version: 1.1" in result.stdout
+    assert "MARKETING_VERSION=1.1" in result.stdout
+
+
 def test_dry_run_uses_the_frozen_python_environment() -> None:
     result = run_script(
         "--dry-run",
@@ -99,6 +116,19 @@ def test_invalid_build_number_is_rejected_before_building() -> None:
     assert "must be a positive integer" in result.stderr
 
 
+def test_invalid_marketing_version_is_rejected_before_building() -> None:
+    result = run_script(
+        "--dry-run",
+        "--ref",
+        "HEAD",
+        "--marketing-version",
+        "1.1-beta",
+    )
+
+    assert result.returncode == 2
+    assert "marketing version must contain two or three numeric components" in result.stderr
+
+
 @pytest.mark.skipif(sys.platform != "darwin", reason="TestFlight deploy requires macOS")
 def test_deploy_archives_uploads_and_removes_its_temporary_worktree(tmp_path: Path) -> None:
     fake_bin = tmp_path / "bin"
@@ -118,13 +148,18 @@ if "archive" in arguments:
         for argument in arguments
         if argument.startswith("CURRENT_PROJECT_VERSION=")
     )
+    marketing_version = next(
+        argument.split("=", 1)[1]
+        for argument in arguments
+        if argument.startswith("MARKETING_VERSION=")
+    )
     archive_path.mkdir(parents=True)
     with (archive_path / "Info.plist").open("wb") as plist:
         plistlib.dump(
             {
                 "ApplicationProperties": {
                     "CFBundleIdentifier": "com.ahuguet.castellsenvena",
-                    "CFBundleShortVersionString": "1.0",
+                    "CFBundleShortVersionString": marketing_version,
                     "CFBundleVersion": build_number,
                 }
             },
@@ -150,6 +185,8 @@ else:
         "--skip-tests",
         "--ref",
         "HEAD",
+        "--marketing-version",
+        "1.1",
         "--build-number",
         "1774400000",
         env=environment,
@@ -163,7 +200,7 @@ else:
         text=True,
     ).stdout
     assert result.returncode == 0, result.stderr
-    assert "Uploading com.ahuguet.castellsenvena 1.0 (1774400000)" in result.stdout
+    assert "Uploading com.ahuguet.castellsenvena 1.1 (1774400000)" in result.stdout
     assert "Upload accepted for TestFlight" in result.stdout
     assert worktrees_after == worktrees_before
 
