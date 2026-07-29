@@ -32,6 +32,7 @@ Build and upload Castells en vena to TestFlight from an exact Git ref.
 
 Options:
   --ref REF                 Git ref to deploy (default: origin/main)
+  --marketing-version VER   Override CFBundleShortVersionString (for example: 1.1)
   --build-number NUMBER     Positive integer build number (default: Unix UTC timestamp)
   --skip-tests              Skip Python and Swift tests
   --dry-run                 Print the resolved deploy plan without building or uploading
@@ -70,6 +71,7 @@ run_command() {
 
 main() {
   local ref='origin/main'
+  local marketing_version=''
   local build_number=''
   local skip_tests=false
   local dry_run=false
@@ -85,6 +87,11 @@ main() {
       --build-number)
         (($# >= 2)) || { fail_usage '--build-number requires a value'; return $?; }
         build_number=$2
+        shift 2
+        ;;
+      --marketing-version)
+        (($# >= 2)) || { fail_usage '--marketing-version requires a value'; return $?; }
+        marketing_version=$2
         shift 2
         ;;
       --skip-tests)
@@ -117,6 +124,11 @@ main() {
     fail_usage "build number must be a positive integer: $build_number"
     return $?
   fi
+  if [[ -n "$marketing_version" && ! "$marketing_version" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
+    fail_usage \
+      "marketing version must contain two or three numeric components: $marketing_version"
+    return $?
+  fi
 
   require_command git
 
@@ -136,7 +148,17 @@ main() {
 
   printf 'Source ref: %s\n' "$ref"
   printf 'Source commit: %s\n' "$source_commit"
+  if [[ -n "$marketing_version" ]]; then
+    printf 'Marketing version: %s\n' "$marketing_version"
+  else
+    printf 'Marketing version: project setting\n'
+  fi
   printf 'Build number: %s\n' "$build_number"
+
+  local -a archive_overrides=("CURRENT_PROJECT_VERSION=$build_number")
+  if [[ -n "$marketing_version" ]]; then
+    archive_overrides+=("MARKETING_VERSION=$marketing_version")
+  fi
 
   if [[ "$dry_run" == true ]]; then
     print_command git -C "$repository_root" worktree add --detach '<temporary-source>' "$source_commit"
@@ -152,7 +174,7 @@ main() {
       -destination 'generic/platform=iOS' \
       -archivePath '<temporary-artifacts>/CastellsEnVena.xcarchive' \
       -allowProvisioningUpdates \
-      "CURRENT_PROJECT_VERSION=$build_number"
+      "${archive_overrides[@]}"
     print_command xcodebuild -exportArchive \
       -archivePath '<temporary-artifacts>/CastellsEnVena.xcarchive' \
       -exportOptionsPlist '<temporary-artifacts>/UploadOptions.plist' \
@@ -217,7 +239,7 @@ main() {
     -destination 'generic/platform=iOS' \
     -archivePath "$archive_path" \
     -allowProvisioningUpdates \
-    "CURRENT_PROJECT_VERSION=$build_number"
+    "${archive_overrides[@]}"
 
   local archived_build archived_version bundle_identifier
   archived_build=$(/usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleVersion' "$archive_path/Info.plist")
@@ -225,6 +247,11 @@ main() {
   bundle_identifier=$(/usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleIdentifier' "$archive_path/Info.plist")
   if [[ "$archived_build" != "$build_number" ]]; then
     printf 'Error: archived build is %s; expected %s.\n' "$archived_build" "$build_number" >&2
+    return 1
+  fi
+  if [[ -n "$marketing_version" && "$archived_version" != "$marketing_version" ]]; then
+    printf 'Error: archived version is %s; expected %s.\n' \
+      "$archived_version" "$marketing_version" >&2
     return 1
   fi
 
