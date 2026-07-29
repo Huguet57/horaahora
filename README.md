@@ -81,7 +81,7 @@ dispositiu; les preferències de seguiment no s'envien al backend.
 
 ## App iOS
 
-Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj`. El projecte referencia el paquet local `Packages/CastellsKit` i admet iPhone i iPad amb iOS 17 o posterior.
+Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj`. El projecte referencia el paquet local `Packages/CastellsKit` i admet iPhone amb iOS 17 o posterior.
 
 La URL del backend es resol en aquest ordre:
 
