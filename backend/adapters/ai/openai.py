@@ -29,26 +29,15 @@ class OpenAIQueryInterpreter:
         )
 
     async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
-        feedback: str | None = None
-        for attempt in range(2):
-            raw = await self._request(history, message, feedback)
-            try:
-                return ParsedQueryPayload.model_validate_json(raw).to_domain()
-            except (ValidationError, ValueError, json.JSONDecodeError) as error:
-                if attempt == 1:
-                    raise ValueError(
-                        "El proveïdor no ha retornat una interpretació vàlida"
-                    ) from error
-                feedback = (
-                    f"La resposta anterior no complia l'esquema: {error}. Torna-la a generar."
-                )
-        raise AssertionError("unreachable")
+        raw = await self._request(history, message)
+        try:
+            return ParsedQueryPayload.model_validate_json(raw).to_domain()
+        except (ValidationError, ValueError, json.JSONDecodeError) as error:
+            raise ValueError("El proveïdor no ha retornat una interpretació vàlida") from error
 
-    async def _request(self, history: list[ChatTurn], message: str, feedback: str | None) -> str:
+    async def _request(self, history: list[ChatTurn], message: str) -> str:
         input_messages = [{"role": turn.role, "content": turn.content} for turn in history[-11:]]
         input_messages.append({"role": "user", "content": message})
-        if feedback:
-            input_messages.append({"role": "user", "content": feedback})
         response = await self.client.post(
             f"{self.base_url}/v1/responses",
             json={
@@ -68,8 +57,6 @@ class OpenAIQueryInterpreter:
         )
         response.raise_for_status()
         payload = response.json()
-        if isinstance(payload.get("output_text"), str):
-            return payload["output_text"]
         for output in payload.get("output", []):
             for content in output.get("content", []):
                 if content.get("type") == "output_text" and isinstance(content.get("text"), str):

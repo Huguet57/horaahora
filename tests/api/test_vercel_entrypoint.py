@@ -11,6 +11,9 @@ def test_vercel_entrypoint_exposes_the_portable_api(monkeypatch) -> None:
         "postgresql+psycopg://user:password@localhost:5432/horaahora_test",
     )
     monkeypatch.setenv("RATE_LIMIT_HASH_SECRET", "test-secret")
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("AI_MODEL", "gpt-5.6")
+    monkeypatch.setenv("AI_API_KEY", "test-key")
     app = importlib.import_module("api.index").app
     client = TestClient(app)
 

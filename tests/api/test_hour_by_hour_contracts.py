@@ -23,7 +23,6 @@ def test_pull_to_refresh_reads_persisted_content_without_fetching_source() -> No
         settings=Settings(
             database_url="sqlite://",
             hour_by_hour_source_enabled=False,
-            ai_provider="local",
             rate_limit_max_requests=100,
         ),
         hour_by_hour_source=source,

@@ -30,25 +30,15 @@ class AnthropicQueryInterpreter:
         )
 
     async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
-        feedback: str | None = None
-        for attempt in range(2):
-            raw = await self._request(history, message, feedback)
-            try:
-                return ParsedQueryPayload.model_validate(raw).to_domain()
-            except (ValidationError, ValueError) as error:
-                if attempt == 1:
-                    raise ValueError(
-                        "El proveïdor no ha retornat una interpretació vàlida"
-                    ) from error
-                feedback = (
-                    f"La resposta anterior no complia l'esquema: {error}. Torna-la a generar."
-                )
-        raise AssertionError("unreachable")
+        raw = await self._request(history, message)
+        try:
+            return ParsedQueryPayload.model_validate(raw).to_domain()
+        except (ValidationError, ValueError) as error:
+            raise ValueError("El proveïdor no ha retornat una interpretació vàlida") from error
 
-    async def _request(self, history: list[ChatTurn], message: str, feedback: str | None) -> dict:
+    async def _request(self, history: list[ChatTurn], message: str) -> dict:
         messages = [{"role": turn.role, "content": turn.content} for turn in history[-11:]]
-        content = message if not feedback else f"{message}\n\n{feedback}"
-        messages.append({"role": "user", "content": content})
+        messages.append({"role": "user", "content": message})
         response = await self.client.post(
             f"{self.base_url}/v1/messages",
             json={

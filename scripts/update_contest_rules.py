@@ -42,7 +42,11 @@ def extract_rule_page(*, source_id: str, year: int, source_url: str, html: str) 
     if article is None:
         raise ValueError(f"No s'ha trobat el cos normatiu de {source_url}")
     title_node = article.select_one("h1.title")
-    content = article.select_one("div.body.mb20") or article
+    if title_node is None:
+        raise ValueError(f"No s'ha trobat el títol normatiu de {source_url}")
+    content = article.select_one("div.body.mb20")
+    if content is None:
+        raise ValueError(f"No s'ha trobat el contingut normatiu de {source_url}")
     lines: list[str] = []
     for node in content.find_all(["h1", "h2", "h3", "h4", "p", "li"]):
         if node.name == "p" and node.find_parent("li") is not None:
@@ -59,7 +63,7 @@ def extract_rule_page(*, source_id: str, year: int, source_url: str, html: str) 
     return {
         "id": source_id,
         "year": year,
-        "title": _text(title_node) if title_node else source_id,
+        "title": _text(title_node),
         "source_url": source_url,
         "text": "\n".join(lines),
     }

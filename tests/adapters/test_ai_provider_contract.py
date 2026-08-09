@@ -2,16 +2,14 @@ import asyncio
 import json
 
 import httpx
+import pytest
 
 from backend.adapters.ai.anthropic import AnthropicQueryInterpreter
 from backend.adapters.ai.openai import OpenAIQueryInterpreter
-from backend.adapters.ai.prompts import (
-    CALCULATOR_PROMPT,
-    CONTEST_RESULTS_PROMPT,
-    CONTEST_RULES_PROMPT,
-    RESPONSE_POLICY_PROMPT,
-    SYSTEM_PROMPT,
-)
+from backend.adapters.ai.prompts.composer import PROMPT_MODULES, SYSTEM_PROMPT
+from backend.adapters.ai.prompts.contest_results import CONTEST_RESULTS_PROMPT
+from backend.adapters.ai.prompts.contest_rules import CONTEST_RULES_PROMPT
+from backend.adapters.ai.prompts.response_policy import RESPONSE_POLICY_PROMPT
 from backend.adapters.ai.schema import ParsedQueryPayload
 
 EXPECTED = {
@@ -58,15 +56,13 @@ def test_model_prompt_accepts_natural_catalan_without_inventing_data() -> None:
 
 
 def test_system_prompt_composes_stable_modules_in_precedence_order() -> None:
-    offsets = [
-        SYSTEM_PROMPT.index(module)
-        for module in (
-            CALCULATOR_PROMPT,
-            CONTEST_RULES_PROMPT,
-            CONTEST_RESULTS_PROMPT,
-            RESPONSE_POLICY_PROMPT,
-        )
+    assert [module.name for module in PROMPT_MODULES] == [
+        "calculator",
+        "contest_rules",
+        "contest_results",
+        "response_policy",
     ]
+    offsets = [SYSTEM_PROMPT.index(module.content) for module in PROMPT_MODULES]
 
     assert offsets == sorted(offsets)
     assert "canvis_confirmats_2026" in CONTEST_RULES_PROMPT
@@ -170,28 +166,32 @@ def test_model_prompt_distinguishes_short_net_notations_from_verbal_names() -> N
         assert guidance in SYSTEM_PROMPT
 
 
-def test_openai_adapter_repairs_invalid_structured_output_once() -> None:
+def test_openai_adapter_rejects_invalid_structured_output_without_retry() -> None:
     calls = 0
 
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
-        text = "not-json" if calls == 1 else json.dumps(EXPECTED)
         return httpx.Response(
             200,
             json={
-                "output": [{"type": "message", "content": [{"type": "output_text", "text": text}]}]
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "not-json"}],
+                    }
+                ]
             },
         )
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     interpreter = OpenAIQueryInterpreter("key", "model", client=client)
 
-    query = asyncio.run(interpreter.interpret([], "5d9f o 4d9fa?"))
+    with pytest.raises(ValueError, match="interpretació vàlida"):
+        asyncio.run(interpreter.interpret([], "5d9f o 4d9fa?"))
     asyncio.run(client.aclose())
 
-    assert calls == 2
-    assert [performance.label for performance in query.performances] == ["A", "B"]
+    assert calls == 1
 
 
 def test_anthropic_adapter_uses_same_domain_contract() -> None:
@@ -219,9 +219,53 @@ def test_anthropic_adapter_uses_same_domain_contract() -> None:
     assert query.performances[1].castells[0].notation == "4d9fa"
 
 
+def test_anthropic_adapter_rejects_invalid_tool_input_without_retry() -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(
+            200,
+            json={
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "interpreta_consulta_castellera",
+                        "input": {"intent": "informació_concurs"},
+                    }
+                ]
+            },
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    interpreter = AnthropicQueryInterpreter("key", "model", client=client)
+
+    with pytest.raises(ValueError, match="interpretació vàlida"):
+        asyncio.run(interpreter.interpret([], "Qui va guanyar el Concurs 2024?"))
+    asyncio.run(client.aclose())
+
+    assert calls == 1
+
+
 def test_openai_adapter_accepts_contest_information() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={"output_text": json.dumps(INFORMATION_EXPECTED)})
+        return httpx.Response(
+            200,
+            json={
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [
+                            {
+                                "type": "output_text",
+                                "text": json.dumps(INFORMATION_EXPECTED),
+                            }
+                        ],
+                    }
+                ]
+            },
+        )
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     interpreter = OpenAIQueryInterpreter("key", "model", client=client)
@@ -231,6 +275,18 @@ def test_openai_adapter_accepts_contest_information() -> None:
 
     assert query.intent == "contest_info"
     assert query.answer == INFORMATION_EXPECTED["resposta"]
+
+
+def test_openai_adapter_rejects_noncanonical_output_text_field() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"output_text": json.dumps(INFORMATION_EXPECTED)})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    interpreter = OpenAIQueryInterpreter("key", "model", client=client)
+
+    with pytest.raises(ValueError, match="sense output_text"):
+        asyncio.run(interpreter.interpret([], "Qui va guanyar el Concurs 2024?"))
+    asyncio.run(client.aclose())
 
 
 def test_anthropic_adapter_accepts_contest_information() -> None:

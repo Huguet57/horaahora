@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from backend.adapters.ai.local import RegexQueryInterpreter
 from backend.adapters.content.cccc_agenda import (
     CCCCAgendaFixtureSource,
     CCCCAgendaHTMLSource,
@@ -24,8 +23,6 @@ from backend.domain.rate_limit import RateLimiter
 
 
 def build_interpreter(settings: Settings) -> QueryInterpreter:
-    if settings.ai_provider == "local":
-        return RegexQueryInterpreter()
     if settings.ai_provider == "openai":
         from backend.adapters.ai.openai import OpenAIQueryInterpreter
 
@@ -42,7 +39,7 @@ def build_interpreter(settings: Settings) -> QueryInterpreter:
             model=settings.ai_model,
             base_url=settings.ai_base_url or None,
         )
-    raise RuntimeError(f"AI_PROVIDER no suportat: {settings.ai_provider}")
+    raise RuntimeError("AI_PROVIDER ha de ser openai o anthropic")
 
 
 def build_database(settings: Settings) -> Database:

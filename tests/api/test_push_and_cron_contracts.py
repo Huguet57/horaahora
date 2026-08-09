@@ -41,7 +41,6 @@ def test_push_subscription_contract_registers_and_unregisters_current_installati
         settings=Settings(
             database_url="sqlite://",
             hour_by_hour_source_enabled=False,
-            ai_provider="local",
             apns_bundle_id="com.example.app",
             vercel_env="production",
         ),

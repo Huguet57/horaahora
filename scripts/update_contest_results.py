@@ -68,7 +68,7 @@ def _parse_modern_table(table: Tag) -> tuple[list[str], list[dict[str, Any]]]:
     return columns, classification
 
 
-def _parse_legacy_table(table: Tag) -> tuple[list[str], list[dict[str, Any]]]:
+def _parse_historical_table(table: Tag) -> tuple[list[str], list[dict[str, Any]]]:
     rows = table.select("tr")
     columns: list[str] = []
     classification: list[dict[str, Any]] = []
@@ -81,8 +81,8 @@ def _parse_legacy_table(table: Tag) -> tuple[list[str], list[dict[str, Any]]]:
             columns = values
             continue
         classification.append({"cells": values})
-    if not columns and classification:
-        columns = [f"Camp {index}" for index in range(1, len(classification[0]["cells"]) + 1)]
+    if not columns:
+        raise ValueError("La taula històrica no conté cap capçalera")
     return columns, classification
 
 
@@ -91,14 +91,17 @@ def parse_edition_page(*, year: int, source_url: str, html: str) -> dict[str, An
     article = soup.select_one(".col-md-8.body.generica")
     if article is None:
         raise ValueError(f"No s'ha trobat el cos de l'edició {year}")
-    content = article.select_one("div.body.mb20") or article
+    content = article.select_one("div.body.mb20")
+    if content is None:
+        raise ValueError(f"No s'ha trobat el contingut de l'edició {year}")
     title_node = article.select_one("h1.title")
-    title = _text(title_node) if title_node else f"Concurs {year}"
+    if title_node is None:
+        raise ValueError(f"No s'ha trobat el títol de l'edició {year}")
+    title = _text(title_node)
     note = " ".join(_text(paragraph) for paragraph in content.find_all("p", recursive=False))
-    tables = content.select("#j_resultats table") or content.find_all("table")
-    table = next((candidate for candidate in tables if candidate.select_one("tr")), None)
+    tables = [table for table in content.find_all("table") if table.select_one("tr")]
 
-    if table is None:
+    if not tables:
         if year != 2020 or "no es va celebrar" not in note.lower():
             raise ValueError(f"L'edició {year} no conté cap classificació reconeguda")
         return {
@@ -111,10 +114,15 @@ def parse_edition_page(*, year: int, source_url: str, html: str) -> dict[str, An
             "classification": [],
         }
 
-    is_modern = table.select_one("td.td-datos") is not None
-    columns, classification = (
-        _parse_modern_table(table) if is_modern else _parse_legacy_table(table)
-    )
+    modern_tables = [table for table in tables if table.select_one("td.td-datos")]
+    if modern_tables:
+        if len(modern_tables) != 1:
+            raise ValueError(f"L'edició {year} conté més d'una classificació moderna")
+        columns, classification = _parse_modern_table(modern_tables[0])
+    else:
+        if len(tables) != 1:
+            raise ValueError(f"L'edició {year} conté més d'una classificació històrica")
+        columns, classification = _parse_historical_table(tables[0])
     if not classification:
         raise ValueError(f"La classificació de l'edició {year} és buida")
     return {

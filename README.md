@@ -77,7 +77,10 @@ dispositiu; les preferències de seguiment no s'envien al backend.
 
 ### Interpretació de consultes
 
-`AI_PROVIDER=local` usa l'intèrpret determinista inclòs, sense claus externes. També hi ha adaptadors desacoblats per `openai` i `anthropic`; el model, la clau i un endpoint compatible es configuren amb `AI_MODEL`, `AI_API_KEY` i `AI_BASE_URL`. Tots validen la mateixa sortida estructurada abans d'invocar el motor de puntuació.
+La calculadora requereix un proveïdor de model explícit: `AI_PROVIDER=openai` o
+`AI_PROVIDER=anthropic`. El model, la clau i un endpoint compatible es configuren amb
+`AI_MODEL`, `AI_API_KEY` i `AI_BASE_URL`. No hi ha cap intèrpret alternatiu ni cap degradació
+silenciosa: una configuració absent o desconeguda impedeix arrencar el servei de xat.
 
 Els adaptadors amb model també poden respondre preguntes sobre la normativa i els resultats
 històrics del Concurs. El prompt es compon de mòduls independents i carrega instantànies
@@ -86,15 +89,24 @@ disponible. No es consulta cap web durant una petició de xat. Els canvis confir
 tenen prioritat; quan una regla només consta als documents del 2024, la resposta n'indica
 explícitament l'any.
 
+La composició és explícita i té un únic recorregut:
+
+- `calculator.py`: interpretació de llenguatge casteller i consultes de càlcul;
+- `contest_rules.py`: normativa i precedència de fonts;
+- `contest_results.py`: classificacions i actuacions històriques;
+- `response_policy.py`: límits, atribució temporal i prohibició d'inventar dades;
+- `composer.py`: ordre estable dels quatre mòduls i únic `SYSTEM_PROMPT` públic.
+
+OpenAI i Anthropic consumeixen aquesta mateixa composició i fan una sola petició estructurada.
+Una resposta que no compleix l'esquema falla de manera explícita: no es reintenta amb un prompt
+alternatiu ni s'accepten formats antics del proveïdor.
+
 Les instantànies es poden regenerar manualment, després de revisar les fonts, amb:
 
 ```bash
 uv run --frozen --no-sync python scripts/update_contest_results.py --verified-at YYYY-MM-DD
 uv run --frozen --no-sync python scripts/update_contest_rules.py --verified-at YYYY-MM-DD
 ```
-
-L'intèrpret `local` continua sent una alternativa offline limitada al càlcul i no sintetitza
-respostes informatives.
 
 ## App iOS
 

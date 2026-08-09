@@ -12,7 +12,6 @@ def make_client() -> TestClient:
     settings = Settings(
         database_url="sqlite://",
         hour_by_hour_source_enabled=False,
-        ai_provider="local",
         rate_limit_max_requests=100,
     )
     app = create_app(

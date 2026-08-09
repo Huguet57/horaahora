@@ -72,7 +72,7 @@ def test_parser_preserves_modern_round_outcomes_counting_and_penalties() -> None
     }
 
 
-def test_parser_preserves_legacy_headers_and_marks() -> None:
+def test_parser_preserves_historical_headers_and_marks() -> None:
     html = """
     <div class="col-md-8 body clearfix generica">
       <h1 class="title">Concurs 1932</h1>
