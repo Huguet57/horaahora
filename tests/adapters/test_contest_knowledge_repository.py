@@ -57,9 +57,7 @@ def test_group_filter_matches_full_names_against_official_abbreviations() -> Non
 def test_retrieves_a_compact_winners_view_across_all_editions() -> None:
     repository = SnapshotContestKnowledgeRepository.default()
 
-    context = repository.retrieve(
-        ContestKnowledgeQuery(source="results", result_scope="winners")
-    )
+    context = repository.retrieve(ContestKnowledgeQuery(source="results", result_scope="winners"))
 
     assert "Guanyadors de les edicions celebrades" in context
     assert "2024 | 1 | C. de Vilafranca" in context

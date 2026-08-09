@@ -118,7 +118,9 @@ class SnapshotContestKnowledgeRepository:
             lines.append("Columnes: " + " | ".join(edition["columns"]))
             lines.extend(_render_row(row) for row in rows)
 
-        if matching_rows == 0 and (query.groups or all(e["status"] != "cancelled" for e in editions)):
+        if matching_rows == 0 and (
+            query.groups or all(e["status"] != "cancelled" for e in editions)
+        ):
             return self._render_no_matches(lines[:4], query)
         lines.append("</coneixement_recuperat>")
         return "\n".join(lines)
