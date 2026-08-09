@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-import httpx
-from pydantic import ValidationError
+from typing import Any
 
-from backend.adapters.ai.prompts import SYSTEM_PROMPT
-from backend.adapters.ai.schema import ParsedQueryPayload
+import httpx
+from pydantic import BaseModel, ValidationError
+
+from backend.adapters.ai.prompts import (
+    INTERPRETATION_PROMPT,
+    compose_contest_resolution_prompt,
+)
+from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
 from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery
 
 
-class AnthropicQueryInterpreter:
+class AnthropicChatModel:
     def __init__(
         self,
         api_key: str,
@@ -30,13 +35,48 @@ class AnthropicQueryInterpreter:
         )
 
     async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
-        raw = await self._request(history, message)
+        raw = await self._request(
+            history,
+            message,
+            instructions=INTERPRETATION_PROMPT,
+            schema=QueryRoutingPayload,
+            tool_name="interpreta_consulta_castellera",
+            description="Encamina una consulta castellera o extreu-ne les actuacions.",
+        )
         try:
-            return ParsedQueryPayload.model_validate(raw).to_domain()
+            return QueryRoutingPayload.model_validate(raw).to_domain()
         except (ValidationError, ValueError) as error:
             raise ValueError("El proveïdor no ha retornat una interpretació vàlida") from error
 
-    async def _request(self, history: list[ChatTurn], message: str) -> dict:
+    async def resolve_contest(
+        self,
+        history: list[ChatTurn],
+        message: str,
+        context: str,
+    ) -> ParsedCastellQuery:
+        raw = await self._request(
+            history,
+            message,
+            instructions=compose_contest_resolution_prompt(context),
+            schema=ResolvedQueryPayload,
+            tool_name="resol_concurs",
+            description="Resol la consulta amb el coneixement local recuperat.",
+        )
+        try:
+            return ResolvedQueryPayload.model_validate(raw).to_domain()
+        except (ValidationError, ValueError) as error:
+            raise ValueError("El proveïdor no ha retornat una resolució vàlida") from error
+
+    async def _request(
+        self,
+        history: list[ChatTurn],
+        message: str,
+        *,
+        instructions: str,
+        schema: type[BaseModel],
+        tool_name: str,
+        description: str,
+    ) -> dict[str, Any]:
         messages = [{"role": turn.role, "content": turn.content} for turn in history[-11:]]
         messages.append({"role": "user", "content": message})
         response = await self.client.post(
@@ -44,24 +84,21 @@ class AnthropicQueryInterpreter:
             json={
                 "model": self.model,
                 "max_tokens": 1_000,
-                "system": SYSTEM_PROMPT,
+                "system": instructions,
                 "messages": messages,
                 "tools": [
                     {
-                        "name": "interpreta_consulta_castellera",
-                        "description": "Retorna la interpretació estructurada de la consulta castellera.",
-                        "input_schema": ParsedQueryPayload.model_json_schema(),
+                        "name": tool_name,
+                        "description": description,
+                        "input_schema": schema.model_json_schema(),
                     }
                 ],
-                "tool_choice": {"type": "tool", "name": "interpreta_consulta_castellera"},
+                "tool_choice": {"type": "tool", "name": tool_name},
             },
         )
         response.raise_for_status()
         for content_item in response.json().get("content", []):
-            if (
-                content_item.get("type") == "tool_use"
-                and content_item.get("name") == "interpreta_consulta_castellera"
-            ):
+            if content_item.get("type") == "tool_use" and content_item.get("name") == tool_name:
                 return content_item.get("input", {})
         raise ValueError("Resposta Anthropic sense tool_use")
 

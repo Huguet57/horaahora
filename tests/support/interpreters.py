@@ -6,7 +6,7 @@ from backend.domain.calculator.models import (
 )
 
 
-class CalculatorQueryInterpreterStub:
+class CalculatorChatModelStub:
     async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
         del history, message
         return ParsedCastellQuery(
@@ -16,3 +16,12 @@ class CalculatorQueryInterpreterStub:
                 ParsedPerformance("Amb 4d9fa", [ParsedCastell("4d9fa")]),
             ],
         )
+
+    async def resolve_contest(
+        self,
+        history: list[ChatTurn],
+        message: str,
+        context: str,
+    ) -> ParsedCastellQuery:
+        del history, message, context
+        raise AssertionError("El flux de càlcul no ha de resoldre coneixement del Concurs")

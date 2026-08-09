@@ -6,12 +6,12 @@ from backend.adapters.rate_limit.memory import InMemoryRateLimiter
 from backend.app import create_app
 from backend.composition.container import ApplicationOverrides
 from backend.config import Settings
-from tests.support.interpreters import CalculatorQueryInterpreterStub
+from tests.support.interpreters import CalculatorChatModelStub
 
 
 def application_overrides(**values) -> ApplicationOverrides:
     defaults = {
-        "interpreter": CalculatorQueryInterpreterStub(),
+        "chat_model": CalculatorChatModelStub(),
         "hour_by_hour_repository": InMemoryHourByHourRepository(),
         "agenda_repository": InMemoryAgendaRepository(),
         "rate_limiter": InMemoryRateLimiter(max_requests=100, window_seconds=60),

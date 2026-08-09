@@ -5,6 +5,7 @@ from backend.adapters.content.cccc_agenda import (
     CCCCAgendaHTMLSource,
     CCCCAgendaSnapshotSource,
 )
+from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
 from backend.adapters.notifications.apns import APNsAuthorizationTokenProvider, APNsGateway
 from backend.adapters.persistence.agenda_repository import SQLAlchemyAgendaRepository
 from backend.adapters.persistence.database import Database
@@ -15,31 +16,36 @@ from backend.adapters.persistence.push_subscription_repository import (
 )
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.config import Settings
-from backend.domain.calculator.ports import QueryInterpreter
+from backend.domain.calculator.ports import ChatModel
 from backend.domain.content.ports import AgendaRepository, AgendaSource, HourByHourRepository
+from backend.domain.contest.ports import ContestKnowledgeRepository
 from backend.domain.notifications.models import NotificationDisposition, NotificationSendResult
 from backend.domain.notifications.ports import NotificationGateway, NotificationRepository
 from backend.domain.rate_limit import RateLimiter
 
 
-def build_interpreter(settings: Settings) -> QueryInterpreter:
+def build_chat_model(settings: Settings) -> ChatModel:
     if settings.ai_provider == "openai":
-        from backend.adapters.ai.openai import OpenAIQueryInterpreter
+        from backend.adapters.ai.openai import OpenAIChatModel
 
-        return OpenAIQueryInterpreter(
+        return OpenAIChatModel(
             api_key=settings.ai_api_key,
             model=settings.ai_model,
             base_url=settings.ai_base_url or None,
         )
     if settings.ai_provider == "anthropic":
-        from backend.adapters.ai.anthropic import AnthropicQueryInterpreter
+        from backend.adapters.ai.anthropic import AnthropicChatModel
 
-        return AnthropicQueryInterpreter(
+        return AnthropicChatModel(
             api_key=settings.ai_api_key,
             model=settings.ai_model,
             base_url=settings.ai_base_url or None,
         )
     raise RuntimeError("AI_PROVIDER ha de ser openai o anthropic")
+
+
+def build_contest_repository() -> ContestKnowledgeRepository:
+    return SnapshotContestKnowledgeRepository.default()
 
 
 def build_database(settings: Settings) -> Database:

@@ -83,23 +83,26 @@ La calculadora requereix un proveïdor de model explícit: `AI_PROVIDER=openai` 
 silenciosa: una configuració absent o desconeguda impedeix arrencar el servei de xat.
 
 Els adaptadors amb model també poden respondre preguntes sobre la normativa i els resultats
-històrics del Concurs. El prompt es compon de mòduls independents i carrega instantànies
-versionades de totes les edicions oficials publicades i de l'última normativa completa
-disponible. No es consulta cap web durant una petició de xat. Els canvis confirmats del 2026
-tenen prioritat; quan una regla només consta als documents del 2024, la resposta n'indica
+històrics del Concurs. Les instantànies versionades contenen totes les edicions oficials
+publicades i l'última normativa completa disponible, però no s'injecten senceres al prompt.
+No es consulta cap web durant una petició de xat. Els canvis confirmats del 2026 tenen
+prioritat; quan una regla només consta als documents del 2024, la resposta n'indica
 explícitament l'any.
 
-La composició és explícita i té un únic recorregut:
+La composició és explícita i té un únic recorregut en dues fases quan cal coneixement:
 
 - `calculator.py`: interpretació de llenguatge casteller i consultes de càlcul;
-- `contest_rules.py`: normativa i precedència de fonts;
-- `contest_results.py`: classificacions i actuacions històriques;
+- `contest_router.py`: consulta estructurada per font, anys, colles i abast;
 - `response_policy.py`: límits, atribució temporal i prohibició d'inventar dades;
-- `composer.py`: ordre estable dels quatre mòduls i únic `SYSTEM_PROMPT` públic.
+- `adapters/contest/snapshot.py`: selecció local de la porció rellevant de normativa o
+  resultats;
+- `composer.py`: prompt base d'interpretació i prompt de resolució amb el context recuperat.
 
-OpenAI i Anthropic consumeixen aquesta mateixa composició i fan una sola petició estructurada.
-Una resposta que no compleix l'esquema falla de manera explícita: no es reintenta amb un prompt
-alternatiu ni s'accepten formats antics del proveïdor.
+OpenAI i Anthropic consumeixen els mateixos contractes. Una consulta de càlcul fa una sola
+petició estructurada i passa directament al motor determinista. Una consulta del Concurs fa
+una primera petició d'encaminament, recupera només les edicions, colles o fonts necessàries i
+fa una segona petició de resolució. Una resposta que no compleix l'esquema falla de manera
+explícita: no es reintenta amb un prompt alternatiu ni s'accepten formats antics del proveïdor.
 
 Les instantànies es poden regenerar manualment, després de revisar les fonts, amb:
 

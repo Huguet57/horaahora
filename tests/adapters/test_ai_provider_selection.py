@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.composition.providers import build_interpreter
+from backend.composition.providers import build_chat_model
 from backend.config import Settings
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
@@ -17,7 +17,7 @@ def test_calculator_rejects_missing_or_removed_ai_providers(provider: str) -> No
     )
 
     with pytest.raises(RuntimeError, match="AI_PROVIDER ha de ser openai o anthropic"):
-        build_interpreter(settings)
+        build_chat_model(settings)
 
 
 def test_local_compose_requires_an_explicit_model_provider_and_credentials() -> None:

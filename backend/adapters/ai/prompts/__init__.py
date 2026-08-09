@@ -1,3 +1,6 @@
-from backend.adapters.ai.prompts.composer import SYSTEM_PROMPT
+from backend.adapters.ai.prompts.composer import (
+    INTERPRETATION_PROMPT,
+    compose_contest_resolution_prompt,
+)
 
-__all__ = ["SYSTEM_PROMPT"]
+__all__ = ["INTERPRETATION_PROMPT", "compose_contest_resolution_prompt"]

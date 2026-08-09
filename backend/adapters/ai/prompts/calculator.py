@@ -137,4 +137,4 @@ Sigues permissiu: només demana un aclariment quan no hi hagi cap castell o quan
 Quan calgui, usa l'intent «aclariment», deixa «actuacions» buit i formula una sola pregunta breu, natural i concreta a «aclariment». No donis puntuacions parcials, zeros, desglossaments ni blocs d'explicació mentre falti l'aclariment.
 </aclariments>
 
-Inclou sempre «actuacions», «aclariment» i «resposta», encara que siguin [], null i null. Respon exclusivament amb l'estructura sol·licitada."""
+"""
