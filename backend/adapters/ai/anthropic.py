@@ -3,7 +3,8 @@ from __future__ import annotations
 import httpx
 from pydantic import ValidationError
 
-from backend.adapters.ai.schema import SYSTEM_PROMPT, ParsedQueryPayload
+from backend.adapters.ai.prompts import SYSTEM_PROMPT
+from backend.adapters.ai.schema import ParsedQueryPayload
 from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery
 
 

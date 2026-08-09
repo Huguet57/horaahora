@@ -79,6 +79,23 @@ dispositiu; les preferències de seguiment no s'envien al backend.
 
 `AI_PROVIDER=local` usa l'intèrpret determinista inclòs, sense claus externes. També hi ha adaptadors desacoblats per `openai` i `anthropic`; el model, la clau i un endpoint compatible es configuren amb `AI_MODEL`, `AI_API_KEY` i `AI_BASE_URL`. Tots validen la mateixa sortida estructurada abans d'invocar el motor de puntuació.
 
+Els adaptadors amb model també poden respondre preguntes sobre la normativa i els resultats
+històrics del Concurs. El prompt es compon de mòduls independents i carrega instantànies
+versionades de totes les edicions oficials publicades i de l'última normativa completa
+disponible. No es consulta cap web durant una petició de xat. Els canvis confirmats del 2026
+tenen prioritat; quan una regla només consta als documents del 2024, la resposta n'indica
+explícitament l'any.
+
+Les instantànies es poden regenerar manualment, després de revisar les fonts, amb:
+
+```bash
+uv run --frozen --no-sync python scripts/update_contest_results.py --verified-at YYYY-MM-DD
+uv run --frozen --no-sync python scripts/update_contest_rules.py --verified-at YYYY-MM-DD
+```
+
+L'intèrpret `local` continua sent una alternativa offline limitada al càlcul i no sintetitza
+respostes informatives.
+
 ## App iOS
 
 Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj`. El projecte referencia el paquet local `Packages/CastellsKit` i admet iPhone amb iOS 17 o posterior.

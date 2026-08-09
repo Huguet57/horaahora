@@ -5,7 +5,14 @@ import httpx
 
 from backend.adapters.ai.anthropic import AnthropicQueryInterpreter
 from backend.adapters.ai.openai import OpenAIQueryInterpreter
-from backend.adapters.ai.schema import SYSTEM_PROMPT, ParsedQueryPayload
+from backend.adapters.ai.prompts import (
+    CALCULATOR_PROMPT,
+    CONTEST_RESULTS_PROMPT,
+    CONTEST_RULES_PROMPT,
+    RESPONSE_POLICY_PROMPT,
+    SYSTEM_PROMPT,
+)
+from backend.adapters.ai.schema import ParsedQueryPayload
 
 EXPECTED = {
     "intent": "comparació",
@@ -14,6 +21,14 @@ EXPECTED = {
         {"nom": "B", "castells": [{"notació": "4d9fa", "resultat": "descarregat"}]},
     ],
     "aclariment": None,
+    "resposta": None,
+}
+
+INFORMATION_EXPECTED = {
+    "intent": "informació_concurs",
+    "actuacions": [],
+    "aclariment": None,
+    "resposta": "Els Castellers de Vilafranca van guanyar el Concurs 2024.",
 }
 
 
@@ -40,6 +55,68 @@ def test_model_prompt_accepts_natural_catalan_without_inventing_data() -> None:
     assert "No inventis" in SYSTEM_PROMPT
     assert "context de la conversa" in SYSTEM_PROMPT
     assert "només demana un aclariment" in SYSTEM_PROMPT
+
+
+def test_system_prompt_composes_stable_modules_in_precedence_order() -> None:
+    offsets = [
+        SYSTEM_PROMPT.index(module)
+        for module in (
+            CALCULATOR_PROMPT,
+            CONTEST_RULES_PROMPT,
+            CONTEST_RESULTS_PROMPT,
+            RESPONSE_POLICY_PROMPT,
+        )
+    ]
+
+    assert offsets == sorted(offsets)
+    assert "canvis_confirmats_2026" in CONTEST_RULES_PROMPT
+    assert "normativa_completa_2024" in CONTEST_RULES_PROMPT
+    assert "2026 té prioritat" in RESPONSE_POLICY_PROMPT
+    assert "1932" in CONTEST_RESULTS_PROMPT
+    assert "2024" in CONTEST_RESULTS_PROMPT
+    assert "no es va celebrar" in CONTEST_RESULTS_PROMPT
+
+
+def test_information_payload_requires_an_answer_and_no_performances() -> None:
+    payload = ParsedQueryPayload.model_validate(
+        {
+            "intent": "informació_concurs",
+            "actuacions": [],
+            "aclariment": None,
+            "resposta": "Els Castellers de Vilafranca van guanyar el Concurs 2024.",
+        }
+    )
+
+    query = payload.to_domain()
+
+    assert query.intent == "contest_info"
+    assert query.answer == "Els Castellers de Vilafranca van guanyar el Concurs 2024."
+    assert query.performances == []
+
+
+def test_information_payload_rejects_missing_answer_or_performances() -> None:
+    invalid_payloads = [
+        {
+            "intent": "informació_concurs",
+            "actuacions": [],
+            "aclariment": None,
+            "resposta": None,
+        },
+        {
+            "intent": "informació_concurs",
+            "actuacions": EXPECTED["actuacions"],
+            "aclariment": None,
+            "resposta": "Resposta",
+        },
+    ]
+
+    for candidate in invalid_payloads:
+        try:
+            ParsedQueryPayload.model_validate(candidate)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("La resposta informativa invàlida s'ha acceptat")
 
 
 def test_model_prompt_contains_casteller_jargon_and_conventional_omissions() -> None:
@@ -140,3 +217,42 @@ def test_anthropic_adapter_uses_same_domain_contract() -> None:
 
     assert query.intent == "comparison"
     assert query.performances[1].castells[0].notation == "4d9fa"
+
+
+def test_openai_adapter_accepts_contest_information() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"output_text": json.dumps(INFORMATION_EXPECTED)})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    interpreter = OpenAIQueryInterpreter("key", "model", client=client)
+
+    query = asyncio.run(interpreter.interpret([], "Qui va guanyar el Concurs 2024?"))
+    asyncio.run(client.aclose())
+
+    assert query.intent == "contest_info"
+    assert query.answer == INFORMATION_EXPECTED["resposta"]
+
+
+def test_anthropic_adapter_accepts_contest_information() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "interpreta_consulta_castellera",
+                        "input": INFORMATION_EXPECTED,
+                    }
+                ]
+            },
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    interpreter = AnthropicQueryInterpreter("key", "model", client=client)
+
+    query = asyncio.run(interpreter.interpret([], "Qui va guanyar el Concurs 2024?"))
+    asyncio.run(client.aclose())
+
+    assert query.intent == "contest_info"
+    assert query.answer == INFORMATION_EXPECTED["resposta"]

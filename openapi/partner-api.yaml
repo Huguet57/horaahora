@@ -70,8 +70,8 @@ paths:
   /v1/chat:
     post:
       operationId: calculateCastells
-      summary: Interpreta una consulta i calcula el resultat amb regles deterministes
-      description: El servidor no persisteix la conversa i la resposta no identifica cap model o proveïdor.
+      summary: Interpreta una consulta, calcula puntuacions o respon sobre el Concurs
+      description: Els càlculs són deterministes, el coneixement del Concurs prové d'instantànies versionades i la resposta no identifica cap model o proveïdor. El servidor no persisteix la conversa.
       requestBody:
         required: true
         content:
@@ -191,8 +191,9 @@ components:
       required: [reply, intent, performances, warnings, ruleset_version, needs_clarification]
       properties:
         reply: { type: string }
-        intent: { type: string, enum: [lookup, comparison, total, clarification, unsupported] }
+        intent: { type: string, enum: [lookup, comparison, total, contest_info, clarification, unsupported] }
         performances:
+          description: Buit quan intent és contest_info.
           type: array
           items: { $ref: '#/components/schemas/Performance' }
         winner_label: { type: [string, 'null'] }

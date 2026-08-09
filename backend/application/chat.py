@@ -13,4 +13,15 @@ class ChatService:
             raise ValueError("L'últim missatge ha de ser de l'usuari")
         current = history[-1]
         query = await self.interpreter.interpret(history[:-1], current.content)
+        if query.intent == "contest_info":
+            if not query.answer:
+                raise ValueError("La resposta informativa del Concurs és buida")
+            return CalculationResult(
+                reply=query.answer,
+                intent=query.intent,
+                performances=[],
+                winner_label=None,
+                warnings=[],
+                needs_clarification=False,
+            )
         return self.scoring_engine.calculate(query)

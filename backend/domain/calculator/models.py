@@ -31,9 +31,17 @@ class ParsedPerformance:
 
 @dataclass(frozen=True, slots=True)
 class ParsedCastellQuery:
-    intent: Literal["lookup", "comparison", "total", "clarification", "unsupported"]
+    intent: Literal[
+        "lookup",
+        "comparison",
+        "total",
+        "contest_info",
+        "clarification",
+        "unsupported",
+    ]
     performances: list[ParsedPerformance] = field(default_factory=list)
     clarification: str | None = None
+    answer: str | None = None
 
 
 @dataclass(slots=True)
