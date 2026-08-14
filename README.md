@@ -132,18 +132,20 @@ la UE. Neon PostgreSQL, vinculat des del Marketplace de Vercel, és l'única fon
 del backend: contingut, agenda, sincronitzacions, rate limiting amb identificadors HMAC,
 subscripcions push, outbox i entregues.
 
+Els desplegaments de `main` no són automàtics: el workflow manual **Deploy production**
+aplica les migracions, valida un deployment sense trànsit i només llavors el promociona.
+La configuració, els secrets necessaris i la política expand/contract es documenten a
+[desplegaments de producció](docs/production-deployments.md).
+
 Passos de preparació de producció:
 
 1. Instal·la Neon des del Marketplace de Vercel, amb la branca principal per a Production i branques aïllades per a Preview.
 2. Configura `RATE_LIMIT_HASH_SECRET`, `CRON_SECRET`, `APNS_KEY_P8`, `APNS_KEY_ID`, `APNS_TEAM_ID` i `APNS_BUNDLE_ID` com a secrets. Mantén `PUSH_DELIVERY_ENABLED=false` al primer desplegament i sempre a Preview.
-3. Executa les migracions abans de desplegar codi que depengui del nou esquema:
+3. Executa **Actions → Deploy production** des de `main`. El workflow serialitza els
+desplegaments, migra Neon, crea un deployment sense domini, comprova `/health/ready` i el
+promociona només si el smoke test passa.
 
-```bash
-vercel env run -e production -- uv run --frozen alembic upgrade head
-vercel env run -e production -- uv run --frozen alembic current
-```
-
-Per validar una migració en una Preview concreta, aplica-la de manera controlada a la
+Per validar una migració en una Preview concreta abans del merge, aplica-la de manera controlada a la
 branca Neon que la integració hagi creat, abans de provar el codi dependent:
 
 ```bash

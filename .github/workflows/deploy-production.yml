@@ -1,0 +1,97 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  validate-ref:
+    name: Validate production ref
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require main
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Production can only be deployed from main (got $GITHUB_REF)." >&2
+            exit 1
+          fi
+
+  deploy:
+    name: Migrate and deploy production
+    needs: validate-ref
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify the selected commit
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.11.32"
+          enable-cache: true
+          cache-python: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install pinned tooling and dependencies
+        run: |
+          npm install --global vercel@57.0.0
+          uv sync --frozen --no-dev
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+
+      - name: Migrate the production database
+        run: |
+          vercel env run -e production --token "$VERCEL_TOKEN" -- \
+            uv run --frozen --no-sync alembic upgrade head
+          vercel env run -e production --token "$VERCEL_TOKEN" -- \
+            uv run --frozen --no-sync alembic current
+
+      - name: Create a staged production deployment
+        id: deploy
+        run: |
+          deployment_url="$(vercel deploy --prod --skip-domain --token "$VERCEL_TOKEN")"
+          echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+          echo "Staged deployment: $deployment_url"
+
+      - name: Smoke test the staged deployment
+        run: |
+          response="$(vercel curl /health/ready \
+            --deployment "${{ steps.deploy.outputs.url }}" \
+            --token "$VERCEL_TOKEN" \
+            -- \
+            --silent --show-error --fail-with-body \
+            --retry 12 --retry-all-errors --retry-delay 5)"
+          jq -e '.status == "ready"' <<< "$response"
+
+      - name: Promote the staged deployment
+        run: vercel promote "${{ steps.deploy.outputs.url }}" --yes --token "$VERCEL_TOKEN"
+
+      - name: Smoke test the production domain
+        run: |
+          response="$(vercel curl /health/ready \
+            --token "$VERCEL_TOKEN" \
+            -- \
+            --silent --show-error --fail-with-body \
+            --retry 12 --retry-all-errors --retry-delay 5)"
+          jq -e '.status == "ready"' <<< "$response"

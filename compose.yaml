@@ -1,4 +1,14 @@
 services:
+  migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://horaahora:horaahora@db:5432/horaahora
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   api:
     build: .
     environment:
@@ -18,8 +28,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   agenda-sync:
     build: .
@@ -37,8 +47,8 @@ services:
       CCCC_AGENDA_FIXTURE_PATH: ${CCCC_AGENDA_FIXTURE_PATH:-backend/data/cccc_agenda_fixture.html}
       CCCC_AGENDA_AUTHORIZED: ${CCCC_AGENDA_AUTHORIZED:-false}
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   db:
     image: postgres:17-alpine
