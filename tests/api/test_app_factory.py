@@ -10,7 +10,6 @@ def _app():
         settings=Settings(
             database_url="sqlite://",
             hour_by_hour_source_enabled=False,
-            ai_provider="local",
         ),
         overrides=application_overrides(),
     )

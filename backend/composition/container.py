@@ -11,16 +11,17 @@ from backend.application.notifications import HourByHourNotificationCoordinator
 from backend.composition.providers import (
     build_agenda_repository,
     build_agenda_source,
+    build_chat_model,
+    build_contest_repository,
     build_database,
     build_hour_by_hour_repository,
-    build_interpreter,
     build_notification_gateway,
     build_notification_repository,
     build_push_repository,
     build_rate_limiter,
 )
 from backend.config import Settings
-from backend.domain.calculator.ports import QueryInterpreter
+from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.scoring import ScoringEngine
 from backend.domain.calculator.table import ScoreTable
 from backend.domain.content.ports import (
@@ -29,6 +30,7 @@ from backend.domain.content.ports import (
     HourByHourRepository,
     HourByHourSource,
 )
+from backend.domain.contest.ports import ContestKnowledgeRepository
 from backend.domain.notifications.ports import NotificationRepository, PushSubscriptionRepository
 from backend.domain.rate_limit import RateLimiter
 
@@ -36,7 +38,8 @@ from backend.domain.rate_limit import RateLimiter
 @dataclass(slots=True)
 class ApplicationOverrides:
     database: Database | None = None
-    interpreter: QueryInterpreter | None = None
+    chat_model: ChatModel | None = None
+    contest_repository: ContestKnowledgeRepository | None = None
     hour_by_hour_repository: HourByHourRepository | None = None
     agenda_repository: AgendaRepository | None = None
     rate_limiter: RateLimiter | None = None
@@ -65,7 +68,8 @@ def build_container(
 ) -> ApplicationContainer:
     overrides = overrides or ApplicationOverrides()
     database = overrides.database or build_database(settings)
-    interpreter = overrides.interpreter or build_interpreter(settings)
+    chat_model = overrides.chat_model or build_chat_model(settings)
+    contest_repository = overrides.contest_repository or build_contest_repository()
     hour_repository = overrides.hour_by_hour_repository or build_hour_by_hour_repository(database)
     agenda_repository = overrides.agenda_repository or build_agenda_repository(database)
     rate_limiter = overrides.rate_limiter or build_rate_limiter(settings, database)
@@ -93,7 +97,11 @@ def build_container(
     return ApplicationContainer(
         settings=settings,
         database=database,
-        chat_service=ChatService(interpreter, ScoringEngine(ScoreTable.default())),
+        chat_service=ChatService(
+            chat_model,
+            contest_repository,
+            ScoringEngine(ScoreTable.default()),
+        ),
         hour_by_hour_service=HourByHourService(hour_repository, source=None),
         agenda_service=AgendaService(
             agenda_repository,

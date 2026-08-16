@@ -4,9 +4,9 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://horaahora:horaahora@db:5432/horaahora
       RATE_LIMIT_HASH_SECRET: ${RATE_LIMIT_HASH_SECRET:-local-development-secret}
-      AI_PROVIDER: ${AI_PROVIDER:-local}
-      AI_MODEL: ${AI_MODEL:-}
-      AI_API_KEY: ${AI_API_KEY:-}
+      AI_PROVIDER: ${AI_PROVIDER:?AI_PROVIDER is required}
+      AI_MODEL: ${AI_MODEL:?AI_MODEL is required}
+      AI_API_KEY: ${AI_API_KEY:?AI_API_KEY is required}
       AI_BASE_URL: ${AI_BASE_URL:-}
       HOUR_BY_HOUR_SOURCE_ENABLED: ${HOUR_BY_HOUR_SOURCE_ENABLED:-true}
       AGENDA_SOURCE: ${AGENDA_SOURCE:-disabled}

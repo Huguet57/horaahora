@@ -1,1 +1,1 @@
-"""Language-model adapters implementing QueryInterpreter."""
+"""Adaptadors de models de llenguatge per al xat casteller."""

@@ -2,23 +2,67 @@ import asyncio
 import json
 
 import httpx
+import pytest
 
-from backend.adapters.ai.anthropic import AnthropicQueryInterpreter
-from backend.adapters.ai.openai import OpenAIQueryInterpreter
-from backend.adapters.ai.schema import SYSTEM_PROMPT, ParsedQueryPayload
+from backend.adapters.ai.anthropic import AnthropicChatModel
+from backend.adapters.ai.openai import OpenAIChatModel
+from backend.adapters.ai.prompts.composer import (
+    INTERPRETATION_MODULES,
+    INTERPRETATION_PROMPT,
+    compose_contest_resolution_prompt,
+)
+from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
 
-EXPECTED = {
+CALCULATION_ROUTE = {
     "intent": "comparació",
     "actuacions": [
         {"nom": "A", "castells": [{"notació": "5d9f", "resultat": "descarregat"}]},
         {"nom": "B", "castells": [{"notació": "4d9fa", "resultat": "descarregat"}]},
     ],
     "aclariment": None,
+    "consulta_concurs": None,
+}
+
+CONTEST_ROUTE = {
+    "intent": "informació_concurs",
+    "actuacions": [],
+    "aclariment": None,
+    "consulta_concurs": {
+        "font": "resultats",
+        "anys": [1998],
+        "colles": [],
+        "abast_resultats": "classificació",
+    },
+}
+
+INFORMATION_RESOLUTION = {
+    "intent": "informació_concurs",
+    "actuacions": [],
+    "aclariment": None,
+    "resposta": "La Colla Joves Xiquets de Valls va quedar quarta amb 16.337 punts.",
+}
+
+RECALCULATION_RESOLUTION = {
+    "intent": "total",
+    "actuacions": [
+        {
+            "nom": "C. de Vilafranca",
+            "castells": [
+                {"notació": "3d10fm", "resultat": "descarregat"},
+                {"notació": "9d9f", "resultat": "intent"},
+                {"notació": "4d9fa", "resultat": "carregat"},
+                {"notació": "9d9f", "resultat": "carregat"},
+                {"notació": "4d10fm", "resultat": "carregat"},
+            ],
+        }
+    ],
+    "aclariment": None,
+    "resposta": None,
 }
 
 
-def test_openai_schema_is_strict_at_every_object_level() -> None:
-    schema = ParsedQueryPayload.model_json_schema()
+def _assert_strict_schema(model: type[QueryRoutingPayload] | type[ResolvedQueryPayload]) -> None:
+    schema = model.model_json_schema()
 
     def assert_strict_object(node: object) -> None:
         if isinstance(node, dict):
@@ -34,109 +78,220 @@ def test_openai_schema_is_strict_at_every_object_level() -> None:
     assert_strict_object(schema)
 
 
-def test_model_prompt_accepts_natural_catalan_without_inventing_data() -> None:
-    assert "errors tipogràfics lleus" in SYSTEM_PROMPT
-    assert "denominacions verbals" in SYSTEM_PROMPT
-    assert "No inventis" in SYSTEM_PROMPT
-    assert "context de la conversa" in SYSTEM_PROMPT
-    assert "només demana un aclariment" in SYSTEM_PROMPT
+def _openai_output(payload: dict) -> httpx.Response:
+    return httpx.Response(
+        200,
+        json={
+            "output": [
+                {
+                    "type": "message",
+                    "content": [{"type": "output_text", "text": json.dumps(payload)}],
+                }
+            ]
+        },
+    )
 
 
-def test_model_prompt_contains_casteller_jargon_and_conventional_omissions() -> None:
-    expected_guidance = [
+def _anthropic_output(payload: dict, tool_name: str) -> httpx.Response:
+    return httpx.Response(
+        200,
+        json={
+            "content": [
+                {
+                    "type": "tool_use",
+                    "name": tool_name,
+                    "input": payload,
+                }
+            ]
+        },
+    )
+
+
+def test_both_model_schemas_are_strict_at_every_object_level() -> None:
+    _assert_strict_schema(QueryRoutingPayload)
+    _assert_strict_schema(ResolvedQueryPayload)
+
+
+def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> None:
+    assert [module.name for module in INTERPRETATION_MODULES] == [
+        "calculator",
+        "contest_router",
+    ]
+    assert len(INTERPRETATION_PROMPT) < 15_000
+    assert "<resultats_anteriors>" not in INTERPRETATION_PROMPT
+    assert "<coneixement_normatiu>" not in INTERPRETATION_PROMPT
+    assert "16.337 punts" not in INTERPRETATION_PROMPT
+    assert "errors tipogràfics lleus" in INTERPRETATION_PROMPT
+    assert "context de la conversa" in INTERPRETATION_PROMPT
+
+
+@pytest.mark.parametrize(
+    "guidance",
+    [
         "«torre» i «dos»",
         "«net», «neta» i «sense folre»",
-        "«folre i pilar»",
-        "«quatre de 10»",
-        "4d10fm",
-        "«torre neta»",
-        "2d8sf",
-        "«dos de nou»",
-        "2d9fm",
-        "«pilar de set»",
-        "pd7f",
-        "4d10sm",
-        "variants rares",
         "`4d9fp`",
-        "`4d9pf`",
-        "`4d8p`",
-        "`4d7p`",
-        "`5d8p`",
-        "`3d9fp`",
         "`td8sf`",
-        "`t8n`",
         "`d`, `de`, `/`, `x` i `×`",
-    ]
-
-    for guidance in expected_guidance:
-        assert guidance in SYSTEM_PROMPT
-
-
-def test_model_prompt_distinguishes_short_net_notations_from_verbal_names() -> None:
-    expected_guidance = [
         "`2d8` escrit exactament així",
-        "`2d8sf`",
-        "`3d9` escrit exactament així",
-        "`3d9sf`",
-        "`4d9` escrit exactament així",
-        "`4d9sf`",
-        "`pd7` escrit exactament així",
-        "`pd7sf`",
-        "la `f` és obligatòria",
         "| «torre/dos de vuit» sense modificadors | `2d8f` |",
-        "| «tres de nou» sense modificadors | `3d9f` |",
-        "| «quatre de nou» sense modificadors | `4d9f` |",
-        "| «pilar de set» sense modificadors | `pd7f` |",
-    ]
-
-    for guidance in expected_guidance:
-        assert guidance in SYSTEM_PROMPT
+        "variants rares",
+    ],
+)
+def test_interpretation_prompt_keeps_casteller_notation_rules(guidance: str) -> None:
+    assert guidance in INTERPRETATION_PROMPT
 
 
-def test_openai_adapter_repairs_invalid_structured_output_once() -> None:
+def test_resolution_prompt_contains_only_the_retrieved_context() -> None:
+    prompt = compose_contest_resolution_prompt(
+        "<coneixement_recuperat>Concurs 1998 | Joves | 16.337 punts</coneixement_recuperat>"
+    )
+
+    assert "Concurs 1998 | Joves | 16.337 punts" in prompt
+    assert "Concurs 2024" not in prompt
+    assert "2026 té prioritat" in prompt
+
+
+def test_routing_payload_requires_a_structured_contest_query() -> None:
+    query = QueryRoutingPayload.model_validate(CONTEST_ROUTE).to_domain()
+
+    assert query.intent == "contest_info"
+    assert query.knowledge_query is not None
+    assert query.knowledge_query.source == "results"
+    assert query.knowledge_query.years == [1998]
+    assert query.answer is None
+
+    invalid = dict(CONTEST_ROUTE, consulta_concurs=None)
+    with pytest.raises(ValueError, match="consulta_concurs"):
+        QueryRoutingPayload.model_validate(invalid)
+
+
+def test_resolution_payload_keeps_information_and_calculation_exclusive() -> None:
+    information = ResolvedQueryPayload.model_validate(INFORMATION_RESOLUTION).to_domain()
+    recalculation = ResolvedQueryPayload.model_validate(RECALCULATION_RESOLUTION).to_domain()
+
+    assert information.intent == "contest_info"
+    assert information.answer == INFORMATION_RESOLUTION["resposta"]
+    assert information.performances == []
+    assert recalculation.intent == "total"
+    assert recalculation.answer is None
+    assert len(recalculation.performances[0].castells) == 5
+
+
+def test_openai_uses_routing_then_dynamic_resolution_prompts() -> None:
+    calls: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        calls.append(body)
+        return _openai_output(CONTEST_ROUTE if len(calls) == 1 else INFORMATION_RESOLUTION)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = OpenAIChatModel("key", "model", client=client)
+
+    route = asyncio.run(model.interpret([], "Qui va quedar quart el 1998?"))
+    resolution = asyncio.run(
+        model.resolve_contest(
+            [],
+            "Qui va quedar quart el 1998?",
+            "<coneixement_recuperat>Joves | 16.337 punts</coneixement_recuperat>",
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert route.knowledge_query is not None
+    assert resolution.answer == INFORMATION_RESOLUTION["resposta"]
+    assert calls[0]["instructions"] == INTERPRETATION_PROMPT
+    assert "Joves | 16.337 punts" in calls[1]["instructions"]
+    assert "Joves | 16.337 punts" not in calls[0]["instructions"]
+    assert calls[0]["text"]["format"]["name"] == "consulta_castellera"
+    assert calls[1]["text"]["format"]["name"] == "resolucio_concurs"
+
+
+def test_openai_rejects_invalid_structured_output_without_retry() -> None:
     calls = 0
 
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
-        text = "not-json" if calls == 1 else json.dumps(EXPECTED)
         return httpx.Response(
             200,
             json={
-                "output": [{"type": "message", "content": [{"type": "output_text", "text": text}]}]
-            },
-        )
-
-    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    interpreter = OpenAIQueryInterpreter("key", "model", client=client)
-
-    query = asyncio.run(interpreter.interpret([], "5d9f o 4d9fa?"))
-    asyncio.run(client.aclose())
-
-    assert calls == 2
-    assert [performance.label for performance in query.performances] == ["A", "B"]
-
-
-def test_anthropic_adapter_uses_same_domain_contract() -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            200,
-            json={
-                "content": [
+                "output": [
                     {
-                        "type": "tool_use",
-                        "name": "interpreta_consulta_castellera",
-                        "input": EXPECTED,
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "not-json"}],
                     }
                 ]
             },
         )
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    interpreter = AnthropicQueryInterpreter("key", "model", client=client)
+    model = OpenAIChatModel("key", "model", client=client)
 
-    query = asyncio.run(interpreter.interpret([], "5d9f o 4d9fa?"))
+    with pytest.raises(ValueError, match="interpretació vàlida"):
+        asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
     asyncio.run(client.aclose())
 
-    assert query.intent == "comparison"
-    assert query.performances[1].castells[0].notation == "4d9fa"
+    assert calls == 1
+
+
+def test_openai_rejects_noncanonical_output_text_field() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"output_text": json.dumps(CALCULATION_ROUTE)})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = OpenAIChatModel("key", "model", client=client)
+
+    with pytest.raises(ValueError, match="sense output_text"):
+        asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())
+
+
+def test_anthropic_uses_the_same_two_phase_contract() -> None:
+    calls: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        calls.append(body)
+        if len(calls) == 1:
+            return _anthropic_output(CONTEST_ROUTE, "interpreta_consulta_castellera")
+        return _anthropic_output(INFORMATION_RESOLUTION, "resol_concurs")
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "model", client=client)
+
+    route = asyncio.run(model.interpret([], "Qui va quedar quart el 1998?"))
+    resolution = asyncio.run(
+        model.resolve_contest(
+            [],
+            "Qui va quedar quart el 1998?",
+            "<coneixement_recuperat>Joves | 16.337 punts</coneixement_recuperat>",
+        )
+    )
+    asyncio.run(client.aclose())
+
+    assert route.knowledge_query is not None
+    assert resolution.intent == "contest_info"
+    assert calls[0]["system"] == INTERPRETATION_PROMPT
+    assert "Joves | 16.337 punts" in calls[1]["system"]
+    assert calls[0]["tool_choice"]["name"] == "interpreta_consulta_castellera"
+    assert calls[1]["tool_choice"]["name"] == "resol_concurs"
+
+
+def test_anthropic_rejects_invalid_tool_input_without_retry() -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return _anthropic_output({"intent": "informació_concurs"}, "interpreta_consulta_castellera")
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "model", client=client)
+
+    with pytest.raises(ValueError, match="interpretació vàlida"):
+        asyncio.run(model.interpret([], "Qui va guanyar el Concurs 2024?"))
+    asyncio.run(client.aclose())
+
+    assert calls == 1

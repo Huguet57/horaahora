@@ -7,7 +7,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True, slots=True)
 class Settings:
     database_url: str = ""
-    ai_provider: str = "local"
+    ai_provider: str = ""
     ai_model: str = ""
     ai_api_key: str = ""
     ai_base_url: str = ""

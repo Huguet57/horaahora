@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Literal
 
+from backend.domain.contest.models import ContestKnowledgeQuery
+
 
 class Outcome(str, Enum):
     LOADED = "loaded"
@@ -31,9 +33,18 @@ class ParsedPerformance:
 
 @dataclass(frozen=True, slots=True)
 class ParsedCastellQuery:
-    intent: Literal["lookup", "comparison", "total", "clarification", "unsupported"]
+    intent: Literal[
+        "lookup",
+        "comparison",
+        "total",
+        "contest_info",
+        "clarification",
+        "unsupported",
+    ]
     performances: list[ParsedPerformance] = field(default_factory=list)
     clarification: str | None = None
+    answer: str | None = None
+    knowledge_query: ContestKnowledgeQuery | None = None
 
 
 @dataclass(slots=True)
