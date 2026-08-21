@@ -85,6 +85,8 @@ silenciosa: una configuració absent o desconeguda impedeix arrencar el servei d
 Els adaptadors amb model també poden respondre preguntes sobre la normativa i els resultats
 històrics del Concurs. Les instantànies versionades contenen totes les edicions oficials
 publicades i l'última normativa completa disponible, però no s'injecten senceres al prompt.
+Les preguntes sobre l'ordre, les posicions o els veïns del rànquing recuperen sota demanda
+la taula de puntuacions 2026, ordenada determinísticament des del CSV versionat.
 No es consulta cap web durant una petició de xat. Els canvis confirmats del 2026 tenen
 prioritat; quan una regla només consta als documents del 2024, la resposta n'indica
 explícitament l'any.
@@ -95,7 +97,7 @@ La composició és explícita i té un únic recorregut en dues fases quan cal c
 - `contest_router.py`: consulta estructurada per font, anys, colles i abast;
 - `response_policy.py`: límits, atribució temporal i prohibició d'inventar dades;
 - `adapters/contest/snapshot.py`: selecció local de la porció rellevant de normativa o
-  resultats;
+  resultats i composició del rànquing de puntuacions;
 - `composer.py`: prompt base d'interpretació i prompt de resolució amb el context recuperat.
 
 OpenAI i Anthropic consumeixen els mateixos contractes. Una consulta de càlcul fa una sola
@@ -103,6 +105,14 @@ petició estructurada i passa directament al motor determinista. Una consulta de
 una primera petició d'encaminament, recupera només les edicions, colles o fonts necessàries i
 fa una segona petició de resolució. Una resposta que no compleix l'esquema falla de manera
 explícita: no es reintenta amb un prompt alternatiu ni s'accepten formats antics del proveïdor.
+
+Abans de fusionar un canvi del rànquing, la bateria end-to-end es pot executar contra la URL
+real d'una Preview amb:
+
+```bash
+uv run --frozen python scripts/smoke_score_ranking_api.py \
+  https://preview.example --vercel-auth
+```
 
 Les instantànies es poden regenerar manualment, després de revisar les fonts, amb:
 

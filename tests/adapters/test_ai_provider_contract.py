@@ -32,6 +32,22 @@ CONTEST_ROUTE = {
         "anys": [1998],
         "colles": [],
         "abast_resultats": "classificació",
+        "abast_puntuacions": None,
+        "resultat_puntuacions": None,
+    },
+}
+
+SCORE_RANKING_ROUTE = {
+    "intent": "informació_concurs",
+    "actuacions": [],
+    "aclariment": None,
+    "consulta_concurs": {
+        "font": "puntuacions",
+        "anys": [],
+        "colles": [],
+        "abast_resultats": None,
+        "abast_puntuacions": "rànquing",
+        "resultat_puntuacions": "tots_dos",
     },
 }
 
@@ -123,6 +139,9 @@ def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> No
     assert "16.337 punts" not in INTERPRETATION_PROMPT
     assert "errors tipogràfics lleus" in INTERPRETATION_PROMPT
     assert "context de la conversa" in INTERPRETATION_PROMPT
+    assert "`font` és `puntuacions`" in INTERPRETATION_PROMPT
+    assert "`abast_puntuacions` és `rànquing`" in INTERPRETATION_PROMPT
+    assert "`resultat_puntuacions`" in INTERPRETATION_PROMPT
 
 
 @pytest.mark.parametrize(
@@ -150,6 +169,7 @@ def test_resolution_prompt_contains_only_the_retrieved_context() -> None:
     assert "Concurs 1998 | Joves | 16.337 punts" in prompt
     assert "Concurs 2024" not in prompt
     assert "2026 té prioritat" in prompt
+    assert "La taula versionada 2026 és l'única font numèrica autoritativa" in prompt
 
 
 def test_routing_payload_requires_a_structured_contest_query() -> None:
@@ -163,6 +183,34 @@ def test_routing_payload_requires_a_structured_contest_query() -> None:
 
     invalid = dict(CONTEST_ROUTE, consulta_concurs=None)
     with pytest.raises(ValueError, match="consulta_concurs"):
+        QueryRoutingPayload.model_validate(invalid)
+
+
+def test_routing_payload_supports_the_2026_score_ranking() -> None:
+    query = QueryRoutingPayload.model_validate(SCORE_RANKING_ROUTE).to_domain()
+
+    assert query.intent == "contest_info"
+    assert query.knowledge_query is not None
+    assert query.knowledge_query.source == "scores"
+    assert query.knowledge_query.score_scope == "ranking"
+    assert query.knowledge_query.score_outcome == "both"
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"abast_puntuacions": None},
+        {"resultat_puntuacions": None},
+        {"abast_resultats": "classificació"},
+        {"anys": [2026]},
+        {"colles": ["Vella"]},
+    ],
+)
+def test_score_ranking_route_rejects_incompatible_filters(overrides: dict) -> None:
+    contest_query = dict(SCORE_RANKING_ROUTE["consulta_concurs"], **overrides)
+    invalid = dict(SCORE_RANKING_ROUTE, consulta_concurs=contest_query)
+
+    with pytest.raises(ValueError):
         QueryRoutingPayload.model_validate(invalid)
 
 
