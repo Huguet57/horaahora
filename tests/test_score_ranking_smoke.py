@@ -45,6 +45,36 @@ def test_smoke_validation_rejects_an_unrequested_outcome() -> None:
         )
 
 
+def test_smoke_validation_checks_the_structured_presentation() -> None:
+    case = SmokeCase(
+        "top-two",
+        "Quins són els dos primers?",
+        "contest_info",
+        ("3de10sm", "4de10sm"),
+        expected_presentation_type="score_ranking",
+        expected_rows=("3de10sm", "4de10sm"),
+        expected_outcome="both",
+    )
+
+    reply = _validate(
+        case,
+        {
+            "intent": "contest_info",
+            "reply": "Els dos primers són 3de10sm i 4de10sm.",
+            "presentation": {
+                "type": "score_ranking",
+                "outcome": "both",
+                "rows": [
+                    {"notation": "3de10sm"},
+                    {"notation": "4de10sm"},
+                ],
+            },
+        },
+    )
+
+    assert reply.startswith("Els dos primers")
+
+
 def test_smoke_request_can_use_the_authenticated_vercel_transport(monkeypatch) -> None:
     case = SmokeCase("highest", "Quin dona més punts?", "contest_info", ("3de10sm",))
     captured: list[str] = []

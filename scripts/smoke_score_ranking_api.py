@@ -19,6 +19,9 @@ class SmokeCase:
     expected_intent: str
     required_tokens: tuple[str, ...]
     forbidden_tokens: tuple[str, ...] = ()
+    expected_presentation_type: str | None = None
+    expected_rows: tuple[str, ...] = ()
+    expected_outcome: str | None = None
 
 
 CASES = (
@@ -27,30 +30,45 @@ CASES = (
         "Quin és el castell que dona més punts?",
         "contest_info",
         ("3de10sm", "6205", "7475"),
+        expected_presentation_type="score_card",
+        expected_rows=("3de10sm",),
+        expected_outcome="both",
     ),
     SmokeCase(
         "lowest",
         "Quin és el castell que dona menys punts?",
         "contest_info",
         ("2de6", "250", "300"),
+        expected_presentation_type="score_card",
+        expected_rows=("2de6",),
+        expected_outcome="both",
     ),
     SmokeCase(
         "top-five",
         "Quins són els cinc primers castells del rànquing de puntuacions 2026?",
         "contest_info",
         ("3de10sm", "4de10sm", "2de10fmp", "Pde7sf", "3de9sf"),
+        expected_presentation_type="score_ranking",
+        expected_rows=("3de10sm", "4de10sm", "2de10fmp", "Pde7sf", "3de9sf"),
+        expected_outcome="both",
     ),
     SmokeCase(
         "position",
         "En quina posició del rànquing està el Pde7sf i quants punts dona?",
         "contest_info",
         ("Pde7sf", "5280", "6360"),
+        expected_presentation_type="score_card",
+        expected_rows=("Pde7sf",),
+        expected_outcome="both",
     ),
     SmokeCase(
         "neighbors",
         "Quins castells hi ha just per sobre i per sota del Pde7sf?",
         "contest_info",
         ("2de10fmp", "3de9sf"),
+        expected_presentation_type="score_card",
+        expected_rows=("2de10fmp", "Pde7sf", "3de9sf"),
+        expected_outcome="both",
     ),
     SmokeCase(
         "loaded-ranking",
@@ -58,6 +76,9 @@ CASES = (
         "contest_info",
         ("3de10sm", "6205"),
         ("7475",),
+        expected_presentation_type="score_card",
+        expected_rows=("3de10sm",),
+        expected_outcome="loaded",
     ),
     SmokeCase(
         "unloaded-ranking",
@@ -65,6 +86,9 @@ CASES = (
         "contest_info",
         ("3de10sm", "7475"),
         ("6205",),
+        expected_presentation_type="score_card",
+        expected_rows=("3de10sm",),
+        expected_outcome="unloaded",
     ),
     SmokeCase(
         "existing-lookup",
@@ -160,6 +184,28 @@ def _validate(case: SmokeCase, response: dict[str, object]) -> str:
         raise AssertionError(
             f"{case.name}: missing={missing}, forbidden={forbidden}, reply={reply!r}"
         )
+    if case.expected_presentation_type is not None:
+        presentation = response.get("presentation")
+        if not isinstance(presentation, dict):
+            raise AssertionError(f"{case.name}: response has no structured presentation")
+        if presentation.get("type") != case.expected_presentation_type:
+            raise AssertionError(
+                f"{case.name}: expected presentation {case.expected_presentation_type!r}, "
+                f"received {presentation.get('type')!r}"
+            )
+        if presentation.get("outcome") != case.expected_outcome:
+            raise AssertionError(
+                f"{case.name}: expected outcome {case.expected_outcome!r}, "
+                f"received {presentation.get('outcome')!r}"
+            )
+        rows = presentation.get("rows")
+        if not isinstance(rows, list):
+            raise AssertionError(f"{case.name}: presentation rows are missing")
+        notations = tuple(row.get("notation") for row in rows if isinstance(row, dict))
+        if notations != case.expected_rows:
+            raise AssertionError(
+                f"{case.name}: expected rows {case.expected_rows!r}, received {notations!r}"
+            )
     return reply
 
 

@@ -29,6 +29,36 @@ class ContestInformationChatModel:
         )
 
 
+class ScoreRankingChatModel:
+    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+        del history, message
+        return ParsedCastellQuery(
+            intent="contest_info",
+            knowledge_query=ContestKnowledgeQuery(
+                source="scores",
+                score_scope="ranking",
+                score_outcome="both",
+                ranking_selection="top",
+                ranking_limit=2,
+            ),
+        )
+
+    async def resolve_contest(
+        self,
+        history: list[ChatTurn],
+        message: str,
+        context: str,
+    ) -> ParsedCastellQuery:
+        del history, message
+        assert "1 | 3de10sm" in context
+        assert "2 | 4de10sm" in context
+        assert "3 | 2de10fmp" not in context
+        return ParsedCastellQuery(
+            intent="contest_info",
+            answer="Els dos primers són el 3de10sm i el 4de10sm.",
+        )
+
+
 def test_chat_contract_does_not_expose_provider() -> None:
     response = make_test_client().post(
         "/v1/chat",
@@ -69,4 +99,41 @@ def test_chat_contract_supports_contest_information_without_calculation_rows() -
         "warnings": [],
         "ruleset_version": "concurs-2026",
         "needs_clarification": False,
+        "presentation": None,
+    }
+
+
+def test_chat_contract_exposes_a_typed_score_ranking_presentation() -> None:
+    response = make_test_client(chat_model=ScoreRankingChatModel()).post(
+        "/v1/chat",
+        json={
+            "conversation_id": "3a35386d-f0e4-49cc-86d2-18fac079645c",
+            "installation_id": "test-score-presentation",
+            "locale": "ca-ES",
+            "ruleset": "concurs-2026",
+            "messages": [{"role": "user", "content": "Quins són els dos primers?"}],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["presentation"] == {
+        "type": "score_ranking",
+        "title": "Rànquing de puntuacions 2026",
+        "outcome": "both",
+        "focus_notation": None,
+        "rows": [
+            {
+                "position": 1,
+                "notation": "3de10sm",
+                "loaded_points": 6205,
+                "unloaded_points": 7475,
+            },
+            {
+                "position": 2,
+                "notation": "4de10sm",
+                "loaded_points": 5910,
+                "unloaded_points": 7120,
+            },
+        ],
     }

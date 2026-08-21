@@ -34,6 +34,9 @@ CONTEST_ROUTE = {
         "abast_resultats": "classificació",
         "abast_puntuacions": None,
         "resultat_puntuacions": None,
+        "selecció_rànquing": None,
+        "límit_rànquing": None,
+        "castell_rànquing": None,
     },
 }
 
@@ -48,6 +51,9 @@ SCORE_RANKING_ROUTE = {
         "abast_resultats": None,
         "abast_puntuacions": "rànquing",
         "resultat_puntuacions": "tots_dos",
+        "selecció_rànquing": "primers",
+        "límit_rànquing": 5,
+        "castell_rànquing": None,
     },
 }
 
@@ -194,6 +200,8 @@ def test_routing_payload_supports_the_2026_score_ranking() -> None:
     assert query.knowledge_query.source == "scores"
     assert query.knowledge_query.score_scope == "ranking"
     assert query.knowledge_query.score_outcome == "both"
+    assert query.knowledge_query.ranking_selection == "top"
+    assert query.knowledge_query.ranking_limit == 5
 
 
 @pytest.mark.parametrize(
@@ -204,6 +212,9 @@ def test_routing_payload_supports_the_2026_score_ranking() -> None:
         {"abast_resultats": "classificació"},
         {"anys": [2026]},
         {"colles": ["Vella"]},
+        {"selecció_rànquing": None},
+        {"límit_rànquing": None},
+        {"castell_rànquing": "Pde7sf"},
     ],
 )
 def test_score_ranking_route_rejects_incompatible_filters(overrides: dict) -> None:
@@ -211,6 +222,20 @@ def test_score_ranking_route_rejects_incompatible_filters(overrides: dict) -> No
     invalid = dict(SCORE_RANKING_ROUTE, consulta_concurs=contest_query)
 
     with pytest.raises(ValueError):
+        QueryRoutingPayload.model_validate(invalid)
+
+
+@pytest.mark.parametrize("selection", ["posició", "veïns"])
+def test_score_ranking_route_requires_a_castell_for_relative_selections(selection: str) -> None:
+    contest_query = dict(
+        SCORE_RANKING_ROUTE["consulta_concurs"],
+        selecció_rànquing=selection,
+        límit_rànquing=None,
+        castell_rànquing=None,
+    )
+    invalid = dict(SCORE_RANKING_ROUTE, consulta_concurs=contest_query)
+
+    with pytest.raises(ValueError, match="castell"):
         QueryRoutingPayload.model_validate(invalid)
 
 

@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from backend.domain.calculator.models import CalculationResult
+from backend.domain.contest.models import ScorePresentation
 
 
 class ChatMessageSchema(BaseModel):
@@ -34,6 +35,39 @@ class PerformanceSchema(BaseModel):
     castells: list[ScoredCastellSchema]
 
 
+class ScoreRankingRowSchema(BaseModel):
+    position: int
+    notation: str
+    loaded_points: int
+    unloaded_points: int
+
+
+class ScorePresentationSchema(BaseModel):
+    type: Literal["score_ranking", "score_card"]
+    title: str
+    outcome: Literal["loaded", "unloaded", "both"]
+    focus_notation: str | None
+    rows: list[ScoreRankingRowSchema]
+
+    @classmethod
+    def from_domain(cls, presentation: ScorePresentation) -> "ScorePresentationSchema":
+        return cls(
+            type=presentation.kind,
+            title=presentation.title,
+            outcome=presentation.outcome,
+            focus_notation=presentation.focus_notation,
+            rows=[
+                ScoreRankingRowSchema(
+                    position=row.position,
+                    notation=row.notation,
+                    loaded_points=row.loaded_points,
+                    unloaded_points=row.unloaded_points,
+                )
+                for row in presentation.rows
+            ],
+        )
+
+
 class ChatResponseSchema(BaseModel):
     reply: str
     intent: str
@@ -42,6 +76,7 @@ class ChatResponseSchema(BaseModel):
     warnings: list[str]
     ruleset_version: str
     needs_clarification: bool
+    presentation: ScorePresentationSchema | None
 
     @classmethod
     def from_domain(cls, result: CalculationResult) -> "ChatResponseSchema":
@@ -70,4 +105,9 @@ class ChatResponseSchema(BaseModel):
             warnings=result.warnings,
             ruleset_version=result.ruleset_version,
             needs_clarification=result.needs_clarification,
+            presentation=(
+                ScorePresentationSchema.from_domain(result.presentation)
+                if result.presentation is not None
+                else None
+            ),
         )

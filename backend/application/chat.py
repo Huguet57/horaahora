@@ -23,7 +23,13 @@ class ChatService:
         if query.intent == "contest_info":
             if query.knowledge_query is None:
                 raise ValueError("La consulta informativa del Concurs és buida")
-            context = self.contest_repository.retrieve(query.knowledge_query)
+            knowledge_query = query.knowledge_query
+            context = self.contest_repository.retrieve(knowledge_query)
+            presentation = (
+                self.contest_repository.score_presentation(knowledge_query)
+                if knowledge_query.source == "scores"
+                else None
+            )
             query = await self.chat_model.resolve_contest(
                 history[:-1],
                 current.content,
@@ -39,5 +45,6 @@ class ChatService:
                     winner_label=None,
                     warnings=[],
                     needs_clarification=False,
+                    presentation=presentation,
                 )
         return self.scoring_engine.calculate(query)

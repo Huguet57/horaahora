@@ -188,7 +188,7 @@ components:
         content: { type: string, minLength: 1, maxLength: 2000 }
     ChatResponse:
       type: object
-      required: [reply, intent, performances, warnings, ruleset_version, needs_clarification]
+      required: [reply, intent, performances, winner_label, warnings, ruleset_version, needs_clarification, presentation]
       properties:
         reply: { type: string }
         intent: { type: string, enum: [lookup, comparison, total, contest_info, clarification, unsupported] }
@@ -202,6 +202,30 @@ components:
           items: { type: string }
         ruleset_version: { type: string, example: concurs-2026 }
         needs_clarification: { type: boolean }
+        presentation:
+          description: Presentació tipada opcional per a respostes del rànquing; `reply` continua sent el fallback textual.
+          oneOf:
+            - $ref: '#/components/schemas/ScorePresentation'
+            - type: 'null'
+    ScorePresentation:
+      type: object
+      required: [type, title, outcome, focus_notation, rows]
+      properties:
+        type: { type: string, enum: [score_ranking, score_card] }
+        title: { type: string }
+        outcome: { type: string, enum: [loaded, unloaded, both] }
+        focus_notation: { type: [string, 'null'] }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/ScoreRankingRow' }
+    ScoreRankingRow:
+      type: object
+      required: [position, notation, loaded_points, unloaded_points]
+      properties:
+        position: { type: integer, minimum: 1 }
+        notation: { type: string }
+        loaded_points: { type: integer }
+        unloaded_points: { type: integer }
     Performance:
       type: object
       required: [label, total, castells]
