@@ -6,6 +6,8 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
+from backend.domain.calculator.models import Outcome
+from backend.domain.calculator.table import ScoreTable
 from backend.domain.contest.models import ContestKnowledgeQuery
 
 DATA_DIRECTORY = Path(__file__).resolve().parents[2] / "data" / "contest"
@@ -21,21 +23,30 @@ RESULT_LABELS = {
 
 
 class SnapshotContestKnowledgeRepository:
-    def __init__(self, rules: dict[str, Any], results: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        rules: dict[str, Any],
+        results: dict[str, Any],
+        score_table: ScoreTable,
+    ) -> None:
         self.rules = rules
         self.results = results
+        self.score_table = score_table
 
     @classmethod
     def default(cls) -> SnapshotContestKnowledgeRepository:
         return cls(
             rules=_load_snapshot("rules.json"),
             results=_load_snapshot("previous_results.json"),
+            score_table=ScoreTable.default(),
         )
 
     def retrieve(self, query: ContestKnowledgeQuery) -> str:
         if query.source == "rules":
             return self._render_rules()
-        return self._render_results(query)
+        if query.source == "results":
+            return self._render_results(query)
+        return self._render_score_ranking(query)
 
     def _render_rules(self) -> str:
         lines = [
@@ -122,6 +133,37 @@ class SnapshotContestKnowledgeRepository:
             query.groups or all(e["status"] != "cancelled" for e in editions)
         ):
             return self._render_no_matches(lines[:4], query)
+        lines.append("</coneixement_recuperat>")
+        return "\n".join(lines)
+
+    def _render_score_ranking(self, query: ContestKnowledgeQuery) -> str:
+        score_outcome = query.score_outcome or "both"
+        sort_outcome = Outcome.LOADED if score_outcome == "loaded" else Outcome.UNLOADED
+        sorted_scores = sorted(
+            self.score_table.scores.items(),
+            key=lambda item: item[1][sort_outcome],
+            reverse=True,
+        )
+        outcome_label = "carregat" if sort_outcome is Outcome.LOADED else "descarregat"
+        lines = [
+            "<coneixement_recuperat>",
+            "Tipus: rànquing de puntuacions; no són totals històrics d'una actuació.",
+            "Rànquing de puntuacions del Concurs de Castells 2026.",
+            "Font: taula_puntuacions_concurs_castells_2026.csv.",
+            f"Ordre: de més a menys punts {outcome_label}.",
+        ]
+        if score_outcome == "both":
+            lines.append("Posició | Castell | Punts carregat | Punts descarregat")
+            lines.extend(
+                f"{position} | {notation} | {scores[Outcome.LOADED]} | {scores[Outcome.UNLOADED]}"
+                for position, (notation, scores) in enumerate(sorted_scores, start=1)
+            )
+        else:
+            lines.append(f"Posició | Castell | Punts {outcome_label}")
+            lines.extend(
+                f"{position} | {notation} | {scores[sort_outcome]}"
+                for position, (notation, scores) in enumerate(sorted_scores, start=1)
+            )
         lines.append("</coneixement_recuperat>")
         return "\n".join(lines)
 

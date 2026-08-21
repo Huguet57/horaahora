@@ -28,17 +28,37 @@ class ParsedPerformancePayload(StrictPayloadModel):
 
 
 class ContestKnowledgeQueryPayload(StrictPayloadModel):
-    font: Literal["normativa", "resultats"]
+    font: Literal["normativa", "resultats", "puntuacions"]
     anys: list[int] = Field(max_length=30)
     colles: list[str] = Field(max_length=20)
     abast_resultats: Literal["edicions", "guanyadors", "classificació"] | None
+    abast_puntuacions: Literal["rànquing"] | None
+    resultat_puntuacions: Literal["carregat", "descarregat", "tots_dos"] | None
 
     @model_validator(mode="after")
     def validate_source(self) -> Self:
-        if self.font == "normativa" and self.abast_resultats is not None:
-            raise ValueError("abast_resultats només es permet per a resultats")
-        if self.font == "resultats" and self.abast_resultats is None:
-            raise ValueError("resultats exigeix abast_resultats")
+        if self.font == "normativa":
+            if (
+                self.abast_resultats is not None
+                or self.abast_puntuacions is not None
+                or self.resultat_puntuacions is not None
+            ):
+                raise ValueError("normativa no permet abasts de resultats ni de puntuacions")
+        elif self.font == "resultats":
+            if self.abast_resultats is None:
+                raise ValueError("resultats exigeix abast_resultats")
+            if self.abast_puntuacions is not None or self.resultat_puntuacions is not None:
+                raise ValueError("els filtres de puntuacions només es permeten per a puntuacions")
+        elif (
+            self.abast_resultats is not None
+            or self.abast_puntuacions != "rànquing"
+            or self.resultat_puntuacions is None
+            or self.anys
+            or self.colles
+        ):
+            raise ValueError(
+                "puntuacions exigeix el rànquing, un resultat i cap filtre d'any o colla"
+            )
         return self
 
     def to_domain(self) -> ContestKnowledgeQuery:
@@ -47,11 +67,27 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
             "guanyadors": "winners",
             "classificació": "classification",
         }
+        sources = {
+            "normativa": "rules",
+            "resultats": "results",
+            "puntuacions": "scores",
+        }
+        score_outcomes = {
+            "carregat": "loaded",
+            "descarregat": "unloaded",
+            "tots_dos": "both",
+        }
         return ContestKnowledgeQuery(
-            source="rules" if self.font == "normativa" else "results",
+            source=sources[self.font],  # type: ignore[arg-type]
             years=self.anys,
             groups=self.colles,
             result_scope=scopes[self.abast_resultats] if self.abast_resultats else None,  # type: ignore[arg-type]
+            score_scope="ranking" if self.abast_puntuacions else None,
+            score_outcome=(
+                score_outcomes[self.resultat_puntuacions]
+                if self.resultat_puntuacions is not None
+                else None
+            ),  # type: ignore[arg-type]
         )
 
 

@@ -77,6 +77,44 @@ def test_retrieves_rules_without_loading_historical_results() -> None:
     assert "Colla Joves Xiquets de Valls" not in context
 
 
+def test_retrieves_the_complete_2026_score_ranking_in_descending_order() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+
+    context = repository.retrieve(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="both",
+        )
+    )
+
+    assert "Rànquing de puntuacions del Concurs de Castells 2026" in context
+    assert "Ordre: de més a menys punts descarregat" in context
+    assert "Posició | Castell | Punts carregat | Punts descarregat" in context
+    assert "1 | 3de10sm | 6205 | 7475" in context
+    assert "2 | 4de10sm | 5910 | 7120" in context
+    assert "47 | 2de6 | 250 | 300" in context
+    assert context.index("1 | 3de10sm") < context.index("2 | 4de10sm")
+    assert "Colla Joves Xiquets de Valls" not in context
+
+
+def test_score_ranking_can_focus_on_loaded_points() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+
+    context = repository.retrieve(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="loaded",
+        )
+    )
+
+    assert "Ordre: de més a menys punts carregat" in context
+    assert "Posició | Castell | Punts carregat" in context
+    assert "Punts descarregat" not in context
+    assert "1 | 3de10sm | 6205" in context
+
+
 def test_unknown_result_filter_returns_an_explicit_empty_context() -> None:
     repository = SnapshotContestKnowledgeRepository.default()
 
