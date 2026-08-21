@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import unicodedata
 import urllib.error
 import urllib.request
@@ -80,7 +81,12 @@ def _normalized(value: str) -> str:
     return re.sub(r"[^a-z0-9]", "", without_accents)
 
 
-def _post_question(base_url: str, case: SmokeCase) -> dict[str, object]:
+def _post_question(
+    base_url: str,
+    case: SmokeCase,
+    *,
+    vercel_auth: bool = False,
+) -> dict[str, object]:
     installation_id = f"score-ranking-smoke-{case.name}-{uuid.uuid4()}"
     payload = {
         "conversation_id": str(uuid.uuid4()),
@@ -89,13 +95,43 @@ def _post_question(base_url: str, case: SmokeCase) -> dict[str, object]:
         "ruleset": "concurs-2026",
         "messages": [{"role": "user", "content": case.question}],
     }
+    encoded_payload = json.dumps(payload)
+    if vercel_auth:
+        result = subprocess.run(
+            [
+                "vercel",
+                "curl",
+                "/v1/chat",
+                "--deployment",
+                base_url,
+                "--",
+                "--silent",
+                "--show-error",
+                "--request",
+                "POST",
+                "--header",
+                "Content-Type: application/json",
+                "--header",
+                f"X-Installation-ID: {installation_id}",
+                "--data-binary",
+                encoded_payload,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=90,
+            check=False,
+        )
+        if result.returncode != 0:
+            raise AssertionError(f"{case.name}: vercel curl failed: {result.stderr.strip()}")
+        response_payload = json.loads(result.stdout)
+        if not isinstance(response_payload, dict):
+            raise AssertionError(f"{case.name}: real API response is not an object")
+        return response_payload
+
     request = urllib.request.Request(
         f"{base_url.rstrip('/')}/v1/chat",
-        data=json.dumps(payload).encode(),
-        headers={
-            "Content-Type": "application/json",
-            "X-Installation-ID": installation_id,
-        },
+        data=encoded_payload.encode(),
+        headers={"Content-Type": "application/json", "X-Installation-ID": installation_id},
         method="POST",
     )
     try:
@@ -130,10 +166,18 @@ def _validate(case: SmokeCase, response: dict[str, object]) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Smoke-test the real score-ranking chat API.")
     parser.add_argument("base_url", help="Deployed Preview or production base URL")
+    parser.add_argument(
+        "--vercel-auth",
+        action="store_true",
+        help="Use `vercel curl` to authenticate against a protected Preview",
+    )
     args = parser.parse_args()
 
     for case in CASES:
-        reply = _validate(case, _post_question(args.base_url, case))
+        reply = _validate(
+            case,
+            _post_question(args.base_url, case, vercel_auth=args.vercel_auth),
+        )
         print(f"PASS {case.name}: {reply}")
 
     print(f"PASS all {len(CASES)} real API score-ranking cases")

@@ -110,7 +110,8 @@ Abans de fusionar un canvi del rànquing, la bateria end-to-end es pot executar 
 real d'una Preview amb:
 
 ```bash
-uv run --frozen python scripts/smoke_score_ranking_api.py https://preview.example
+uv run --frozen python scripts/smoke_score_ranking_api.py \
+  https://preview.example --vercel-auth
 ```
 
 Les instantànies es poden regenerar manualment, després de revisar les fonts, amb:
