@@ -41,7 +41,16 @@ def build_chat_model(settings: Settings) -> ChatModel:
             model=settings.ai_model,
             base_url=settings.ai_base_url or None,
         )
-    raise RuntimeError("AI_PROVIDER ha de ser openai o anthropic")
+    if settings.ai_provider == "openrouter":
+        from backend.adapters.ai.openrouter import OpenRouterChatModel
+
+        return OpenRouterChatModel(
+            api_key=settings.ai_api_key,
+            model=settings.ai_model,
+            base_url=settings.ai_base_url or None,
+            reasoning_effort="low",
+        )
+    raise RuntimeError("AI_PROVIDER ha de ser openai, anthropic o openrouter")
 
 
 def build_contest_repository() -> ContestKnowledgeRepository:

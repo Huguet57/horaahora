@@ -77,10 +77,12 @@ dispositiu; les preferències de seguiment no s'envien al backend.
 
 ### Interpretació de consultes
 
-La calculadora requereix un proveïdor de model explícit: `AI_PROVIDER=openai` o
-`AI_PROVIDER=anthropic`. El model, la clau i un endpoint compatible es configuren amb
-`AI_MODEL`, `AI_API_KEY` i `AI_BASE_URL`. No hi ha cap intèrpret alternatiu ni cap degradació
-silenciosa: una configuració absent o desconeguda impedeix arrencar el servei de xat.
+La calculadora requereix un proveïdor de model explícit: `AI_PROVIDER=openrouter`,
+`AI_PROVIDER=openai` o `AI_PROVIDER=anthropic`. La configuració de producció recomanada és
+OpenRouter amb `AI_MODEL=google/gemini-3.7-flash`, `AI_BASE_URL=https://openrouter.ai/api`
+i raonament baix. El model, la clau i l'endpoint es configuren amb `AI_MODEL`, `AI_API_KEY`
+i `AI_BASE_URL`. No hi ha cap intèrpret alternatiu ni cap degradació silenciosa: una
+configuració absent o desconeguda impedeix arrencar el servei de xat.
 
 Els adaptadors amb model també poden respondre preguntes sobre la normativa i els resultats
 històrics del Concurs. Les instantànies versionades contenen totes les edicions oficials
