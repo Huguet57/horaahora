@@ -105,12 +105,75 @@ public struct ScoredCastellResponse: Codable, Hashable, Sendable {
     public let points: Int
     public let counted: Bool
     public let reason: String?
+
+    public init(
+        input: String,
+        canonical: String?,
+        outcome: String,
+        points: Int,
+        counted: Bool,
+        reason: String?
+    ) {
+        self.input = input
+        self.canonical = canonical
+        self.outcome = outcome
+        self.points = points
+        self.counted = counted
+        self.reason = reason
+    }
 }
 
 public struct PerformanceResponse: Codable, Hashable, Sendable {
     public let label: String
     public let total: Int
     public let castells: [ScoredCastellResponse]
+
+    public init(label: String, total: Int, castells: [ScoredCastellResponse]) {
+        self.label = label
+        self.total = total
+        self.castells = castells
+    }
+}
+
+public struct ScoreRankingRowResponse: Codable, Hashable, Sendable {
+    public let position: Int
+    public let notation: String
+    public let loadedPoints: Int
+    public let unloadedPoints: Int
+
+    public init(
+        position: Int,
+        notation: String,
+        loadedPoints: Int,
+        unloadedPoints: Int
+    ) {
+        self.position = position
+        self.notation = notation
+        self.loadedPoints = loadedPoints
+        self.unloadedPoints = unloadedPoints
+    }
+}
+
+public struct ChatPresentationResponse: Codable, Hashable, Sendable {
+    public let type: String
+    public let title: String
+    public let outcome: String
+    public let focusNotation: String?
+    public let rows: [ScoreRankingRowResponse]
+
+    public init(
+        type: String,
+        title: String,
+        outcome: String,
+        focusNotation: String?,
+        rows: [ScoreRankingRowResponse]
+    ) {
+        self.type = type
+        self.title = title
+        self.outcome = outcome
+        self.focusNotation = focusNotation
+        self.rows = rows
+    }
 }
 
 public struct ChatResponse: Codable, Hashable, Sendable {
@@ -121,6 +184,7 @@ public struct ChatResponse: Codable, Hashable, Sendable {
     public let warnings: [String]
     public let rulesetVersion: String
     public let needsClarification: Bool
+    public let presentation: ChatPresentationResponse?
 
     public init(
         reply: String,
@@ -129,7 +193,8 @@ public struct ChatResponse: Codable, Hashable, Sendable {
         winnerLabel: String?,
         warnings: [String],
         rulesetVersion: String,
-        needsClarification: Bool
+        needsClarification: Bool,
+        presentation: ChatPresentationResponse? = nil
     ) {
         self.reply = reply
         self.intent = intent
@@ -138,5 +203,6 @@ public struct ChatResponse: Codable, Hashable, Sendable {
         self.warnings = warnings
         self.rulesetVersion = rulesetVersion
         self.needsClarification = needsClarification
+        self.presentation = presentation
     }
 }

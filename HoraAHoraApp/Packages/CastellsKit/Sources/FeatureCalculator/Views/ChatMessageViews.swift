@@ -13,6 +13,10 @@ struct MessageBubble: View {
                     Text(comparison.summary).textSelection(.enabled)
                     Divider()
                     ComparisonTable(presentation: comparison)
+                } else if let scorePresentation {
+                    ScorePresentationView(presentation: scorePresentation)
+                } else if let performanceSummary {
+                    PerformanceSummaryView(presentation: performanceSummary)
                 } else {
                     Text(message.content).textSelection(.enabled)
                     if let calculation = message.calculation, !calculation.performances.isEmpty {
@@ -42,6 +46,222 @@ struct MessageBubble: View {
 
     private var comparison: ComparisonPresentation? {
         message.calculation.flatMap(ComparisonPresentation.init(response:))
+    }
+
+    private var scorePresentation: ScorePresentation? {
+        message.calculation.flatMap(ScorePresentation.init(response:))
+    }
+
+    private var performanceSummary: PerformanceSummaryPresentation? {
+        message.calculation.flatMap(PerformanceSummaryPresentation.init(response:))
+    }
+}
+
+struct ScorePresentationView: View {
+    let presentation: ScorePresentation
+
+    var body: some View {
+        switch presentation.kind {
+        case .ranking:
+            ranking
+        case .card:
+            card
+        }
+    }
+
+    private var ranking: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(presentation.title, systemImage: "list.number")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                Grid(alignment: .leading, horizontalSpacing: 13, verticalSpacing: 8) {
+                    rankingHeader
+                    Divider().gridCellColumns(columnCount)
+                    ForEach(presentation.rows) { row in
+                        GridRow {
+                            Text("\(row.position)")
+                                .foregroundStyle(.secondary)
+                                .frame(minWidth: 22, alignment: .trailing)
+                            Text(row.notation)
+                                .font(.caption.monospaced().weight(.semibold))
+                                .frame(minWidth: 76, alignment: .leading)
+                            rankingPointCells(for: row)
+                        }
+                    }
+                }
+                .font(.caption)
+                .padding(10)
+            }
+            .background(Color.primary.opacity(0.045))
+            .clipShape(RoundedRectangle(cornerRadius: 11))
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Label(presentation.title, systemImage: "number.circle.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            if let row = presentation.focusRow {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(row.notation)
+                            .font(.title3.monospaced().weight(.bold))
+                        Spacer()
+                        Text("#\(row.position)")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    cardPoints(for: row)
+                }
+                .padding(12)
+                .background(Color.accentColor.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 11))
+            }
+
+            if presentation.previousRow != nil || presentation.nextRow != nil {
+                Divider()
+                VStack(spacing: 7) {
+                    if let previous = presentation.previousRow {
+                        neighborRow(previous, label: "Per sobre")
+                    }
+                    if let next = presentation.nextRow {
+                        neighborRow(next, label: "Per sota")
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder
+    private var rankingHeader: some View {
+        GridRow {
+            Text("#").frame(minWidth: 22, alignment: .trailing)
+            Text("Castell").frame(minWidth: 76, alignment: .leading)
+            switch presentation.outcome {
+            case .loaded:
+                Text("Carregat").frame(minWidth: 66, alignment: .trailing)
+            case .unloaded:
+                Text("Descarregat").frame(minWidth: 86, alignment: .trailing)
+            case .both:
+                Text("Carregat").frame(minWidth: 66, alignment: .trailing)
+                Text("Descarregat").frame(minWidth: 86, alignment: .trailing)
+            }
+        }
+        .foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder
+    private func rankingPointCells(for row: ScorePresentation.Row) -> some View {
+        switch presentation.outcome {
+        case .loaded:
+            points(row.loadedPoints, width: 66)
+        case .unloaded:
+            points(row.unloadedPoints, width: 86)
+        case .both:
+            points(row.loadedPoints, width: 66)
+            points(row.unloadedPoints, width: 86)
+        }
+    }
+
+    @ViewBuilder
+    private func cardPoints(for row: ScorePresentation.Row) -> some View {
+        switch presentation.outcome {
+        case .loaded:
+            pointMetric("Carregat", value: row.loadedPoints)
+        case .unloaded:
+            pointMetric("Descarregat", value: row.unloadedPoints)
+        case .both:
+            HStack(spacing: 20) {
+                pointMetric("Carregat", value: row.loadedPoints)
+                pointMetric("Descarregat", value: row.unloadedPoints)
+            }
+        }
+    }
+
+    private func points(_ value: Int, width: CGFloat) -> some View {
+        Text(value.formatted(.number.grouping(.automatic)))
+            .monospacedDigit()
+            .frame(minWidth: width, alignment: .trailing)
+    }
+
+    private func pointMetric(_ label: String, value: Int) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(value.formatted(.number.grouping(.automatic)))
+                .font(.headline.monospacedDigit())
+        }
+    }
+
+    private func neighborRow(_ row: ScorePresentation.Row, label: String) -> some View {
+        HStack(spacing: 8) {
+            Text(label).font(.caption2).foregroundStyle(.secondary).frame(width: 58, alignment: .leading)
+            Text("#\(row.position)").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+            Text(row.notation).font(.caption.monospaced().weight(.semibold))
+            Spacer()
+            Text(neighborPoints(row))
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func neighborPoints(_ row: ScorePresentation.Row) -> String {
+        switch presentation.outcome {
+        case .loaded:
+            row.loadedPoints.formatted(.number.grouping(.automatic))
+        case .unloaded, .both:
+            row.unloadedPoints.formatted(.number.grouping(.automatic))
+        }
+    }
+
+    private var columnCount: Int {
+        switch presentation.outcome {
+        case .both: 4
+        case .loaded, .unloaded: 3
+        }
+    }
+}
+
+struct PerformanceSummaryView: View {
+    let presentation: PerformanceSummaryPresentation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(presentation.title, systemImage: "sum")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            VStack(spacing: 8) {
+                ForEach(presentation.rows) { row in
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(row.notation).font(.caption.monospaced().weight(.semibold))
+                            Text(row.result).font(.caption2).foregroundStyle(.secondary)
+                        }
+                        .opacity(row.counted ? 1 : 0.55)
+                        Spacer()
+                        Text(row.points.formatted(.number.grouping(.automatic)))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(row.counted ? .primary : .secondary)
+                    }
+                }
+                Divider()
+                HStack {
+                    Text("Total").fontWeight(.semibold)
+                    Spacer()
+                    Text(presentation.total.formatted(.number.grouping(.automatic)))
+                        .fontWeight(.bold)
+                        .monospacedDigit()
+                }
+            }
+            .padding(11)
+            .background(Color.primary.opacity(0.045))
+            .clipShape(RoundedRectangle(cornerRadius: 11))
+        }
+        .accessibilityElement(children: .contain)
     }
 }
 

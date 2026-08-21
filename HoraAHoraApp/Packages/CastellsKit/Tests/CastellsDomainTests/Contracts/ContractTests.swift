@@ -101,6 +101,40 @@ final class ContractTests: XCTestCase {
 
         XCTAssertEqual(response.winnerLabel, "Vella")
         XCTAssertEqual(response.performances.first?.castells.first?.points, 4930)
+        XCTAssertNil(response.presentation)
+    }
+
+    func testChatResponseDecodesStructuredScorePresentation() throws {
+        let json = #"""
+        {
+          "reply":"Els dos primers són el 3de10sm i el 4de10sm.",
+          "intent":"contest_info",
+          "performances":[],
+          "winner_label":null,
+          "warnings":[],
+          "ruleset_version":"concurs-2026",
+          "needs_clarification":false,
+          "presentation":{
+            "type":"score_ranking",
+            "title":"Rànquing de puntuacions 2026",
+            "outcome":"both",
+            "focus_notation":null,
+            "rows":[{
+              "position":1,
+              "notation":"3de10sm",
+              "loaded_points":6205,
+              "unloaded_points":7475
+            }]
+          }
+        }
+        """#.data(using: .utf8)!
+
+        let response = try JSONDecoder.castellsAPI.decode(ChatResponse.self, from: json)
+
+        XCTAssertEqual(response.presentation?.type, "score_ranking")
+        XCTAssertEqual(response.presentation?.outcome, "both")
+        XCTAssertEqual(response.presentation?.rows.first?.notation, "3de10sm")
+        XCTAssertEqual(response.presentation?.rows.first?.unloadedPoints, 7_475)
     }
 
     func testAgendaDecodesImpreciseTimeAndNeutralSourceStatus() throws {
