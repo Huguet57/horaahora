@@ -203,19 +203,29 @@ struct ScorePresentationView: View {
             Text("#\(row.position)").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
             Text(row.notation).font(.caption.monospaced().weight(.semibold))
             Spacer()
-            Text(neighborPoints(row))
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+            neighborPoints(row)
         }
     }
 
-    private func neighborPoints(_ row: ScorePresentation.Row) -> String {
+    @ViewBuilder
+    private func neighborPoints(_ row: ScorePresentation.Row) -> some View {
         switch presentation.outcome {
         case .loaded:
-            row.loadedPoints.formatted(.number.grouping(.automatic))
-        case .unloaded, .both:
-            row.unloadedPoints.formatted(.number.grouping(.automatic))
+            neighborMetric("C", value: row.loadedPoints)
+        case .unloaded:
+            neighborMetric("D", value: row.unloadedPoints)
+        case .both:
+            VStack(alignment: .trailing, spacing: 1) {
+                neighborMetric("C", value: row.loadedPoints)
+                neighborMetric("D", value: row.unloadedPoints)
+            }
         }
+    }
+
+    private func neighborMetric(_ label: String, value: Int) -> some View {
+        Text("\(label) \(value.formatted(.number.grouping(.automatic)))")
+            .font(.caption2.monospacedDigit())
+            .foregroundStyle(.secondary)
     }
 
     private var columnCount: Int {

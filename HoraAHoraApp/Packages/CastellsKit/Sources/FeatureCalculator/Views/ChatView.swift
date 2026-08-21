@@ -83,6 +83,7 @@ public struct ChatView: View {
                     axis: .vertical
                 )
                 .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
                 .lineLimit(1...5)
                 .focused($isComposerFocused)
                 .onSubmit { Task { await model.send() } }
