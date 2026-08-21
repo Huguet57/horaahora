@@ -106,6 +106,13 @@ una primera petició d'encaminament, recupera només les edicions, colles o font
 fa una segona petició de resolució. Una resposta que no compleix l'esquema falla de manera
 explícita: no es reintenta amb un prompt alternatiu ni s'accepten formats antics del proveïdor.
 
+Abans de fusionar un canvi del rànquing, la bateria end-to-end es pot executar contra la URL
+real d'una Preview amb:
+
+```bash
+uv run --frozen python scripts/smoke_score_ranking_api.py https://preview.example
+```
+
 Les instantànies es poden regenerar manualment, després de revisar les fonts, amb:
 
 ```bash
