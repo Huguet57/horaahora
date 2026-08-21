@@ -75,6 +75,34 @@ def test_smoke_validation_checks_the_structured_presentation() -> None:
     assert reply.startswith("Els dos primers")
 
 
+def test_smoke_validation_uses_a_ranking_for_a_single_row() -> None:
+    case = SmokeCase(
+        "position",
+        "On és el Pde7sf?",
+        "contest_info",
+        ("Pde7sf",),
+        expected_presentation_type="score_ranking",
+        expected_rows=("Pde7sf",),
+        expected_outcome="both",
+    )
+
+    assert (
+        _validate(
+            case,
+            {
+                "intent": "contest_info",
+                "reply": "El Pde7sf és quart.",
+                "presentation": {
+                    "type": "score_ranking",
+                    "outcome": "both",
+                    "rows": [{"notation": "Pde7sf"}],
+                },
+            },
+        )
+        == "El Pde7sf és quart."
+    )
+
+
 def test_smoke_request_can_use_the_authenticated_vercel_transport(monkeypatch) -> None:
     case = SmokeCase("highest", "Quin dona més punts?", "contest_info", ("3de10sm",))
     captured: list[str] = []

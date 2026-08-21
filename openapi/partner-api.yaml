@@ -211,7 +211,7 @@ components:
       type: object
       required: [type, title, outcome, focus_notation, rows]
       properties:
-        type: { type: string, enum: [score_ranking, score_card] }
+        type: { type: string, const: score_ranking }
         title: { type: string }
         outcome: { type: string, enum: [loaded, unloaded, both] }
         focus_notation: { type: [string, 'null'] }

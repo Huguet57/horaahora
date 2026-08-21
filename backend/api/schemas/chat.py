@@ -43,7 +43,7 @@ class ScoreRankingRowSchema(BaseModel):
 
 
 class ScorePresentationSchema(BaseModel):
-    type: Literal["score_ranking", "score_card"]
+    type: Literal["score_ranking"]
     title: str
     outcome: Literal["loaded", "unloaded", "both"]
     focus_notation: str | None

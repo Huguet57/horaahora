@@ -87,7 +87,7 @@ històrics del Concurs. Les instantànies versionades contenen totes les edicion
 publicades i l'última normativa completa disponible, però no s'injecten senceres al prompt.
 Les preguntes sobre l'ordre, les posicions o els veïns del rànquing recuperen sota demanda
 la taula de puntuacions 2026, ordenada determinísticament des del CSV versionat.
-Aquestes respostes inclouen també una presentació tipada (`score_ranking` o `score_card`)
+Aquestes respostes inclouen també una presentació tipada (`score_ranking`)
 perquè els clients puguin mostrar files, posicions i punts sense analitzar la prosa; el camp
 `reply` es conserva com a fallback compatible.
 No es consulta cap web durant una petició de xat. Els canvis confirmats del 2026 tenen

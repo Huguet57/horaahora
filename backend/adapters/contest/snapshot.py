@@ -186,9 +186,8 @@ class SnapshotContestKnowledgeRepository:
         if not rows:
             return None
         selection = query.ranking_selection or "full"
-        is_card = selection in {"position", "neighbors"} or len(rows) == 1
         focus_notation = None
-        if is_card:
+        if selection in {"position", "neighbors"}:
             focus_notation = (
                 self.normalizer.normalize(query.ranking_notation or "") or rows[0].notation
             )
@@ -200,7 +199,7 @@ class SnapshotContestKnowledgeRepository:
         else:
             title = "Rànquing de puntuacions 2026"
         return ScorePresentation(
-            kind="score_card" if is_card else "score_ranking",
+            kind="score_ranking",
             title=title,
             outcome=query.score_outcome or "both",
             rows=rows,

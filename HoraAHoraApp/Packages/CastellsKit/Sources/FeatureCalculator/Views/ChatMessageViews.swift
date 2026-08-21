@@ -61,15 +61,6 @@ struct ScorePresentationView: View {
     let presentation: ScorePresentation
 
     var body: some View {
-        switch presentation.kind {
-        case .ranking:
-            ranking
-        case .card:
-            card
-        }
-    }
-
-    private var ranking: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label(presentation.title, systemImage: "list.number")
                 .font(.caption.weight(.semibold))
@@ -85,6 +76,11 @@ struct ScorePresentationView: View {
                                 .frame(minWidth: 22, alignment: .trailing)
                             Text(row.notation)
                                 .font(.caption.monospaced().weight(.semibold))
+                                .foregroundStyle(
+                                    row.notation == presentation.focusNotation
+                                        ? Color.accentColor
+                                        : Color.primary
+                                )
                                 .frame(minWidth: 76, alignment: .leading)
                             rankingPointCells(for: row)
                         }
@@ -95,44 +91,6 @@ struct ScorePresentationView: View {
             }
             .background(Color.primary.opacity(0.045))
             .clipShape(RoundedRectangle(cornerRadius: 11))
-        }
-        .accessibilityElement(children: .contain)
-    }
-
-    private var card: some View {
-        VStack(alignment: .leading, spacing: 11) {
-            Label(presentation.title, systemImage: "number.circle.fill")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            if let row = presentation.focusRow {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(row.notation)
-                            .font(.title3.monospaced().weight(.bold))
-                        Spacer()
-                        Text("#\(row.position)")
-                            .font(.headline.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-                    cardPoints(for: row)
-                }
-                .padding(12)
-                .background(Color.accentColor.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 11))
-            }
-
-            if presentation.previousRow != nil || presentation.nextRow != nil {
-                Divider()
-                VStack(spacing: 7) {
-                    if let previous = presentation.previousRow {
-                        neighborRow(previous, label: "Per sobre")
-                    }
-                    if let next = presentation.nextRow {
-                        neighborRow(next, label: "Per sota")
-                    }
-                }
-            }
         }
         .accessibilityElement(children: .contain)
     }
@@ -168,64 +126,10 @@ struct ScorePresentationView: View {
         }
     }
 
-    @ViewBuilder
-    private func cardPoints(for row: ScorePresentation.Row) -> some View {
-        switch presentation.outcome {
-        case .loaded:
-            pointMetric("Carregat", value: row.loadedPoints)
-        case .unloaded:
-            pointMetric("Descarregat", value: row.unloadedPoints)
-        case .both:
-            HStack(spacing: 20) {
-                pointMetric("Carregat", value: row.loadedPoints)
-                pointMetric("Descarregat", value: row.unloadedPoints)
-            }
-        }
-    }
-
     private func points(_ value: Int, width: CGFloat) -> some View {
         Text(value.formatted(.number.grouping(.automatic)))
             .monospacedDigit()
             .frame(minWidth: width, alignment: .trailing)
-    }
-
-    private func pointMetric(_ label: String, value: Int) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.caption2).foregroundStyle(.secondary)
-            Text(value.formatted(.number.grouping(.automatic)))
-                .font(.headline.monospacedDigit())
-        }
-    }
-
-    private func neighborRow(_ row: ScorePresentation.Row, label: String) -> some View {
-        HStack(spacing: 8) {
-            Text(label).font(.caption2).foregroundStyle(.secondary).frame(width: 58, alignment: .leading)
-            Text("#\(row.position)").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-            Text(row.notation).font(.caption.monospaced().weight(.semibold))
-            Spacer()
-            neighborPoints(row)
-        }
-    }
-
-    @ViewBuilder
-    private func neighborPoints(_ row: ScorePresentation.Row) -> some View {
-        switch presentation.outcome {
-        case .loaded:
-            neighborMetric("C", value: row.loadedPoints)
-        case .unloaded:
-            neighborMetric("D", value: row.unloadedPoints)
-        case .both:
-            VStack(alignment: .trailing, spacing: 1) {
-                neighborMetric("C", value: row.loadedPoints)
-                neighborMetric("D", value: row.unloadedPoints)
-            }
-        }
-    }
-
-    private func neighborMetric(_ label: String, value: Int) -> some View {
-        Text("\(label) \(value.formatted(.number.grouping(.automatic)))")
-            .font(.caption2.monospacedDigit())
-            .foregroundStyle(.secondary)
     }
 
     private var columnCount: Int {

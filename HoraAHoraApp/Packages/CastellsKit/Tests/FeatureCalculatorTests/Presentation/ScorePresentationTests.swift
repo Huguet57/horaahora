@@ -22,7 +22,6 @@ final class ScorePresentationTests: XCTestCase {
 
         let presentation = try XCTUnwrap(ScorePresentation(response: response))
 
-        XCTAssertEqual(presentation.kind, .ranking)
         XCTAssertEqual(presentation.title, "Rànquing de puntuacions 2026")
         XCTAssertEqual(presentation.outcome, .both)
         XCTAssertNil(presentation.focusNotation)
@@ -30,11 +29,11 @@ final class ScorePresentationTests: XCTestCase {
         XCTAssertEqual(presentation.rows.map(\.unloadedPoints), [7_475, 7_120])
     }
 
-    func testBuildsFocusedCardWithNeighbors() throws {
+    func testBuildsFocusedRankingWithNeighbors() throws {
         let response = try Self.decode(
             presentation: #"""
             {
-              "type":"score_card",
+              "type":"score_ranking",
               "title":"Pde7sf · 4a posició",
               "outcome":"both",
               "focus_notation":"Pde7sf",
@@ -49,18 +48,17 @@ final class ScorePresentationTests: XCTestCase {
 
         let presentation = try XCTUnwrap(ScorePresentation(response: response))
 
-        XCTAssertEqual(presentation.kind, .card)
-        XCTAssertEqual(presentation.focusRow?.position, 4)
-        XCTAssertEqual(presentation.previousRow?.notation, "2de10fmp")
-        XCTAssertEqual(presentation.nextRow?.notation, "3de9sf")
+        XCTAssertEqual(presentation.focusNotation, "Pde7sf")
+        XCTAssertEqual(presentation.rows.map(\.position), [3, 4, 5])
+        XCTAssertEqual(presentation.rows.map(\.notation), ["2de10fmp", "Pde7sf", "3de9sf"])
     }
 
-    func testRejectsUnknownPresentationTypes() throws {
+    func testRejectsLegacyScoreCards() throws {
         let response = try Self.decode(
             presentation: #"""
             {
-              "type":"future_type",
-              "title":"Futur",
+              "type":"score_card",
+              "title":"Fitxa antiga",
               "outcome":"both",
               "focus_notation":null,
               "rows":[]

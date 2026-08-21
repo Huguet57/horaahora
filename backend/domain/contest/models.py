@@ -27,7 +27,7 @@ class ScoreRankingRow:
 
 @dataclass(frozen=True, slots=True)
 class ScorePresentation:
-    kind: Literal["score_ranking", "score_card"]
+    kind: Literal["score_ranking"]
     title: str
     outcome: Literal["loaded", "unloaded", "both"]
     rows: list[ScoreRankingRow]

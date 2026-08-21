@@ -145,7 +145,7 @@ def test_builds_a_typed_top_five_ranking_presentation() -> None:
     ]
 
 
-def test_builds_a_score_card_for_a_position_query() -> None:
+def test_builds_a_focused_ranking_for_a_position_query() -> None:
     repository = SnapshotContestKnowledgeRepository.default()
 
     presentation = repository.score_presentation(
@@ -159,7 +159,7 @@ def test_builds_a_score_card_for_a_position_query() -> None:
     )
 
     assert presentation is not None
-    assert presentation.kind == "score_card"
+    assert presentation.kind == "score_ranking"
     assert presentation.title == "Pde7sf · 4a posició"
     assert presentation.focus_notation == "Pde7sf"
     assert [(row.position, row.notation) for row in presentation.rows] == [(4, "Pde7sf")]
@@ -167,7 +167,7 @@ def test_builds_a_score_card_for_a_position_query() -> None:
     assert presentation.rows[0].unloaded_points == 6360
 
 
-def test_builds_a_score_card_with_neighbors() -> None:
+def test_builds_a_focused_ranking_with_neighbors() -> None:
     repository = SnapshotContestKnowledgeRepository.default()
 
     presentation = repository.score_presentation(
@@ -181,7 +181,7 @@ def test_builds_a_score_card_with_neighbors() -> None:
     )
 
     assert presentation is not None
-    assert presentation.kind == "score_card"
+    assert presentation.kind == "score_ranking"
     assert presentation.focus_notation == "Pde7sf"
     assert [(row.position, row.notation) for row in presentation.rows] == [
         (3, "2de10fmp"),
