@@ -8,7 +8,11 @@ Classifica les preguntes factuals sobre la normativa, els resultats històrics o
 - Per `normativa`, `abast_resultats` és null.
 - Per `puntuacions`, `abast_puntuacions` és `rànquing`. `anys` i `colles` són buits i `abast_resultats` és null.
 - `resultat_puntuacions` és `carregat`, `descarregat` o `tots_dos`. Si l'usuari no concreta el resultat, usa `tots_dos`.
-- Per `normativa` i `resultats`, `abast_puntuacions` i `resultat_puntuacions` són null.
+- Per `puntuacions`, `selecció_rànquing` indica la forma exacta de la resposta: `primers`, `últims`, `posició`, `veïns` o `complet`.
+- Amb `primers` i `últims`, `límit_rànquing` és el nombre demanat (1 si l'usuari usa el singular) i `castell_rànquing` és null.
+- Amb `posició` i `veïns`, conserva el castell demanat a `castell_rànquing` i deixa `límit_rànquing` a null.
+- Amb `complet`, `límit_rànquing` i `castell_rànquing` són null.
+- Per `normativa` i `resultats`, tots els camps de rànquing són null.
 - Una recalculació històrica també s'encamina primer com `informació_concurs`: cal recuperar l'actuació documentada abans de convertir-la en un intent de càlcul.
 - Amb `informació_concurs`, deixa `actuacions` buit i `aclariment` a null.
 - Per qualsevol altre intent, `consulta_concurs` és null.

@@ -34,6 +34,9 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
     abast_resultats: Literal["edicions", "guanyadors", "classificació"] | None
     abast_puntuacions: Literal["rànquing"] | None
     resultat_puntuacions: Literal["carregat", "descarregat", "tots_dos"] | None
+    selecció_rànquing: Literal["primers", "últims", "posició", "veïns", "complet"] | None
+    límit_rànquing: int | None = Field(ge=1, le=47)
+    castell_rànquing: str | None = Field(min_length=1, max_length=32)
 
     @model_validator(mode="after")
     def validate_source(self) -> Self:
@@ -42,23 +45,41 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
                 self.abast_resultats is not None
                 or self.abast_puntuacions is not None
                 or self.resultat_puntuacions is not None
+                or self.selecció_rànquing is not None
+                or self.límit_rànquing is not None
+                or self.castell_rànquing is not None
             ):
                 raise ValueError("normativa no permet abasts de resultats ni de puntuacions")
         elif self.font == "resultats":
             if self.abast_resultats is None:
                 raise ValueError("resultats exigeix abast_resultats")
-            if self.abast_puntuacions is not None or self.resultat_puntuacions is not None:
+            if (
+                self.abast_puntuacions is not None
+                or self.resultat_puntuacions is not None
+                or self.selecció_rànquing is not None
+                or self.límit_rànquing is not None
+                or self.castell_rànquing is not None
+            ):
                 raise ValueError("els filtres de puntuacions només es permeten per a puntuacions")
         elif (
             self.abast_resultats is not None
             or self.abast_puntuacions != "rànquing"
             or self.resultat_puntuacions is None
+            or self.selecció_rànquing is None
             or self.anys
             or self.colles
         ):
             raise ValueError(
                 "puntuacions exigeix el rànquing, un resultat i cap filtre d'any o colla"
             )
+        elif self.selecció_rànquing in {"primers", "últims"}:
+            if self.límit_rànquing is None or self.castell_rànquing is not None:
+                raise ValueError("primers i últims exigeixen límit i no permeten castell")
+        elif self.selecció_rànquing in {"posició", "veïns"}:
+            if self.castell_rànquing is None or self.límit_rànquing is not None:
+                raise ValueError("posició i veïns exigeixen castell i no permeten límit")
+        elif self.límit_rànquing is not None or self.castell_rànquing is not None:
+            raise ValueError("el rànquing complet no permet límit ni castell")
         return self
 
     def to_domain(self) -> ContestKnowledgeQuery:
@@ -77,6 +98,13 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
             "descarregat": "unloaded",
             "tots_dos": "both",
         }
+        ranking_selections = {
+            "primers": "top",
+            "últims": "bottom",
+            "posició": "position",
+            "veïns": "neighbors",
+            "complet": "full",
+        }
         return ContestKnowledgeQuery(
             source=sources[self.font],  # type: ignore[arg-type]
             years=self.anys,
@@ -88,6 +116,13 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
                 if self.resultat_puntuacions is not None
                 else None
             ),  # type: ignore[arg-type]
+            ranking_selection=(
+                ranking_selections[self.selecció_rànquing]
+                if self.selecció_rànquing is not None
+                else None
+            ),  # type: ignore[arg-type]
+            ranking_limit=self.límit_rànquing,
+            ranking_notation=self.castell_rànquing,
         )
 
 

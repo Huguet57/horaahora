@@ -7,8 +7,13 @@ from pathlib import Path
 from typing import Any
 
 from backend.domain.calculator.models import Outcome
+from backend.domain.calculator.normalization import CastellNormalizer
 from backend.domain.calculator.table import ScoreTable
-from backend.domain.contest.models import ContestKnowledgeQuery
+from backend.domain.contest.models import (
+    ContestKnowledgeQuery,
+    ScorePresentation,
+    ScoreRankingRow,
+)
 
 DATA_DIRECTORY = Path(__file__).resolve().parents[2] / "data" / "contest"
 
@@ -32,6 +37,7 @@ class SnapshotContestKnowledgeRepository:
         self.rules = rules
         self.results = results
         self.score_table = score_table
+        self.normalizer = CastellNormalizer(score_table)
 
     @classmethod
     def default(cls) -> SnapshotContestKnowledgeRepository:
@@ -137,13 +143,18 @@ class SnapshotContestKnowledgeRepository:
         return "\n".join(lines)
 
     def _render_score_ranking(self, query: ContestKnowledgeQuery) -> str:
-        score_outcome = query.score_outcome or "both"
+        presentation = self.score_presentation(query)
+        if presentation is None:
+            return "\n".join(
+                [
+                    "<coneixement_recuperat>",
+                    "No hi ha cap castell coincident al rànquing de puntuacions 2026.",
+                    "No completis aquesta absència amb coneixement extern ni dades inventades.",
+                    "</coneixement_recuperat>",
+                ]
+            )
+        score_outcome = presentation.outcome
         sort_outcome = Outcome.LOADED if score_outcome == "loaded" else Outcome.UNLOADED
-        sorted_scores = sorted(
-            self.score_table.scores.items(),
-            key=lambda item: item[1][sort_outcome],
-            reverse=True,
-        )
         outcome_label = "carregat" if sort_outcome is Outcome.LOADED else "descarregat"
         lines = [
             "<coneixement_recuperat>",
@@ -155,17 +166,82 @@ class SnapshotContestKnowledgeRepository:
         if score_outcome == "both":
             lines.append("Posició | Castell | Punts carregat | Punts descarregat")
             lines.extend(
-                f"{position} | {notation} | {scores[Outcome.LOADED]} | {scores[Outcome.UNLOADED]}"
-                for position, (notation, scores) in enumerate(sorted_scores, start=1)
+                f"{row.position} | {row.notation} | {row.loaded_points} | {row.unloaded_points}"
+                for row in presentation.rows
             )
         else:
             lines.append(f"Posició | Castell | Punts {outcome_label}")
             lines.extend(
-                f"{position} | {notation} | {scores[sort_outcome]}"
-                for position, (notation, scores) in enumerate(sorted_scores, start=1)
+                f"{row.position} | {row.notation} | "
+                f"{row.loaded_points if sort_outcome is Outcome.LOADED else row.unloaded_points}"
+                for row in presentation.rows
             )
         lines.append("</coneixement_recuperat>")
         return "\n".join(lines)
+
+    def score_presentation(self, query: ContestKnowledgeQuery) -> ScorePresentation | None:
+        if query.source != "scores":
+            return None
+        rows = self._selected_score_rows(query)
+        if not rows:
+            return None
+        selection = query.ranking_selection or "full"
+        focus_notation = None
+        if selection in {"position", "neighbors"}:
+            focus_notation = (
+                self.normalizer.normalize(query.ranking_notation or "") or rows[0].notation
+            )
+            focus_row = next(
+                (row for row in rows if row.notation == focus_notation),
+                rows[0],
+            )
+            title = f"{focus_row.notation} · {focus_row.position}a posició"
+        else:
+            title = "Rànquing de puntuacions 2026"
+        return ScorePresentation(
+            kind="score_ranking",
+            title=title,
+            outcome=query.score_outcome or "both",
+            rows=rows,
+            focus_notation=focus_notation,
+        )
+
+    def _selected_score_rows(self, query: ContestKnowledgeQuery) -> list[ScoreRankingRow]:
+        score_outcome = query.score_outcome or "both"
+        sort_outcome = Outcome.LOADED if score_outcome == "loaded" else Outcome.UNLOADED
+        sorted_scores = sorted(
+            self.score_table.scores.items(),
+            key=lambda item: item[1][sort_outcome],
+            reverse=True,
+        )
+        rows = [
+            ScoreRankingRow(
+                position=position,
+                notation=notation,
+                loaded_points=scores[Outcome.LOADED],
+                unloaded_points=scores[Outcome.UNLOADED],
+            )
+            for position, (notation, scores) in enumerate(sorted_scores, start=1)
+        ]
+        selection = query.ranking_selection or "full"
+        if selection == "top":
+            return rows[: query.ranking_limit or 1]
+        if selection == "bottom":
+            return rows[-(query.ranking_limit or 1) :]
+        if selection in {"position", "neighbors"}:
+            canonical = self.normalizer.normalize(query.ranking_notation or "")
+            if canonical is None:
+                return []
+            index = next(
+                (index for index, row in enumerate(rows) if row.notation == canonical),
+                None,
+            )
+            if index is None:
+                return []
+            if selection == "position":
+                return [rows[index]]
+            return rows[max(0, index - 1) : min(len(rows), index + 2)]
+        return rows
 
     @staticmethod
     def _render_no_matches(lines: list[str], query: ContestKnowledgeQuery) -> str:

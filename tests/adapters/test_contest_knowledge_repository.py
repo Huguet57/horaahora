@@ -85,6 +85,7 @@ def test_retrieves_the_complete_2026_score_ranking_in_descending_order() -> None
             source="scores",
             score_scope="ranking",
             score_outcome="both",
+            ranking_selection="full",
         )
     )
 
@@ -106,6 +107,7 @@ def test_score_ranking_can_focus_on_loaded_points() -> None:
             source="scores",
             score_scope="ranking",
             score_outcome="loaded",
+            ranking_selection="full",
         )
     )
 
@@ -113,6 +115,79 @@ def test_score_ranking_can_focus_on_loaded_points() -> None:
     assert "Posició | Castell | Punts carregat" in context
     assert "Punts descarregat" not in context
     assert "1 | 3de10sm | 6205" in context
+
+
+def test_builds_a_typed_top_five_ranking_presentation() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+
+    presentation = repository.score_presentation(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="both",
+            ranking_selection="top",
+            ranking_limit=5,
+        )
+    )
+
+    assert presentation is not None
+    assert presentation.kind == "score_ranking"
+    assert presentation.title == "Rànquing de puntuacions 2026"
+    assert presentation.outcome == "both"
+    assert presentation.focus_notation is None
+    assert [row.position for row in presentation.rows] == [1, 2, 3, 4, 5]
+    assert [row.notation for row in presentation.rows] == [
+        "3de10sm",
+        "4de10sm",
+        "2de10fmp",
+        "Pde7sf",
+        "3de9sf",
+    ]
+
+
+def test_builds_a_focused_ranking_for_a_position_query() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+
+    presentation = repository.score_presentation(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="both",
+            ranking_selection="position",
+            ranking_notation="Pde7sf",
+        )
+    )
+
+    assert presentation is not None
+    assert presentation.kind == "score_ranking"
+    assert presentation.title == "Pde7sf · 4a posició"
+    assert presentation.focus_notation == "Pde7sf"
+    assert [(row.position, row.notation) for row in presentation.rows] == [(4, "Pde7sf")]
+    assert presentation.rows[0].loaded_points == 5280
+    assert presentation.rows[0].unloaded_points == 6360
+
+
+def test_builds_a_focused_ranking_with_neighbors() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+
+    presentation = repository.score_presentation(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="both",
+            ranking_selection="neighbors",
+            ranking_notation="Pde7sf",
+        )
+    )
+
+    assert presentation is not None
+    assert presentation.kind == "score_ranking"
+    assert presentation.focus_notation == "Pde7sf"
+    assert [(row.position, row.notation) for row in presentation.rows] == [
+        (3, "2de10fmp"),
+        (4, "Pde7sf"),
+        (5, "3de9sf"),
+    ]
 
 
 def test_unknown_result_filter_returns_an_explicit_empty_context() -> None:

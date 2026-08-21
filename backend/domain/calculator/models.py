@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Literal
 
-from backend.domain.contest.models import ContestKnowledgeQuery
+from backend.domain.contest.models import ContestKnowledgeQuery, ScorePresentation
 
 
 class Outcome(str, Enum):
@@ -73,3 +73,4 @@ class CalculationResult:
     warnings: list[str]
     ruleset_version: str = "concurs-2026"
     needs_clarification: bool = False
+    presentation: ScorePresentation | None = None
