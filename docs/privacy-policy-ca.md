@@ -1,6 +1,6 @@
 # Política de privacitat — Castells en vena
 
-**Darrera actualització:** 22 de juliol de 2026
+**Darrera actualització:** 26 d'agost de 2026
 
 Aquesta política explica com tracta les dades personals la versió actual de **Castells en vena**, una app gratuïta i sense compte d'usuari.
 
@@ -52,7 +52,7 @@ Les dades necessàries per respondre una consulta i protegir el servei són impr
 ## 4. Proveïdors i destinataris
 
 - **Vercel:** allotjament i execució del backend. La funció principal es configura a París (`cdg1`), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.
-- **Neon:** base de dades PostgreSQL gestionada on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.
+- **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.
 - **OpenAI:** interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (`store: false`).
 - **Apple:** distribució de l'app, permisos del sistema i APNs quan s'activen notificacions.
 - **Google/Gmail:** recepció i gestió dels correus enviats voluntàriament al contacte de suport o privacitat.

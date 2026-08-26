@@ -38,13 +38,7 @@ class Settings:
     @classmethod
     def from_env(cls) -> Settings:
         defaults = cls()
-        database_url = os.getenv("DATABASE_URL", "").strip()
-        if not database_url:
-            raise RuntimeError("DATABASE_URL és obligatòria; vincula el projecte amb Neon")
-        if not database_url.startswith(("postgres://", "postgresql://", "postgresql+psycopg://")):
-            raise RuntimeError(
-                "DATABASE_URL ha d'apuntar a PostgreSQL; SQLite només es permet als tests"
-            )
+        database_url = _database_url_from_env("SUPABASE_DATABASE_URL", "DATABASE_URL")
         rate_limit_hash_secret = os.getenv("RATE_LIMIT_HASH_SECRET", "").strip()
         if not rate_limit_hash_secret:
             raise RuntimeError("RATE_LIMIT_HASH_SECRET és obligatori")
@@ -97,3 +91,30 @@ def _bool_env(name: str, default: bool) -> bool:
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def migration_database_url_from_env() -> str:
+    return _first_configured_url(
+        "SUPABASE_MIGRATION_DATABASE_URL",
+        "SUPABASE_DATABASE_URL",
+        "DATABASE_URL",
+    )
+
+
+def _database_url_from_env(*names: str) -> str:
+    database_url = _first_configured_url(*names)
+    postgres_schemes = ("postgres://", "postgresql://", "postgresql+psycopg://")
+    if not database_url.startswith(postgres_schemes):
+        raise RuntimeError(
+            f"{names[0]} ha d'apuntar a PostgreSQL; SQLite només es permet als tests"
+        )
+    return database_url
+
+
+def _first_configured_url(*names: str) -> str:
+    for name in names:
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    joined_names = " o ".join(names)
+    raise RuntimeError(f"{joined_names} és obligatòria")

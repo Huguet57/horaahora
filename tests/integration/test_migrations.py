@@ -7,7 +7,7 @@ from alembic.config import Config
 from sqlalchemy import create_engine, inspect
 
 
-def test_migrations_create_all_neon_backend_state_tables(tmp_path, monkeypatch) -> None:
+def test_migrations_create_all_backend_state_tables(tmp_path, monkeypatch) -> None:
     database_path = tmp_path / "migration.db"
     database_url = f"sqlite+pysqlite:///{database_path}"
     monkeypatch.setenv("DATABASE_URL", database_url)
