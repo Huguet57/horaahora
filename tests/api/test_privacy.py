@@ -111,7 +111,8 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
         assert "OpenAI" in response.text
         assert "store: false" in response.text
         assert "Vercel" in response.text
-        assert "Neon" in response.text
+        assert "Supabase" in response.text
+        assert "Neon" not in response.text
         assert "cdg1" in response.text
         assert "Apple" in response.text
         assert "APNs" in response.text

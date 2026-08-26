@@ -171,34 +171,47 @@ make deploy-testflight ARGS="--skip-tests --marketing-version 1.1"
 make deploy-testflight ARGS="--marketing-version 1.1 --build-number 1774400000"
 ```
 
-### Desplegament a Vercel i Neon
+### Desplegament a Vercel i Supabase
 
 `api/index.py` és un adaptador de lliurament prim que exposa la mateixa aplicació ASGI.
 `cdg1` és la regió principal de la funció, però això no implica processament exclusiu dins
-la UE. Neon PostgreSQL, vinculat des del Marketplace de Vercel, és l'única font d'estat
-del backend: contingut, agenda, sincronitzacions, rate limiting amb identificadors HMAC,
-subscripcions push, outbox i entregues.
+la UE. Supabase PostgreSQL a París és la font d'estat de producció del backend: contingut,
+agenda, sincronitzacions, rate limiting amb identificadors HMAC, subscripcions push, outbox
+i entregues.
+
+El runtime prioritza `SUPABASE_DATABASE_URL` i conserva `DATABASE_URL` només com a fallback
+de rollback. Alembic prioritza `SUPABASE_MIGRATION_DATABASE_URL`, després la connexió de
+runtime i finalment el fallback. La connexió de runtime utilitza el pooler de sessió de
+Supabase (port `5432`) perquè els jobs fan servir advisory locks de sessió; totes les
+connexions exigeixen TLS.
 
 Passos de preparació de producció:
 
-1. Instal·la Neon des del Marketplace de Vercel, amb la branca principal per a Production i branques aïllades per a Preview.
-2. Configura `RATE_LIMIT_HASH_SECRET`, `CRON_SECRET`, `APNS_KEY_P8`, `APNS_KEY_ID`, `APNS_TEAM_ID` i `APNS_BUNDLE_ID` com a secrets. Mantén `PUSH_DELIVERY_ENABLED=false` al primer desplegament i sempre a Preview.
-3. Executa les migracions abans de desplegar codi que depengui del nou esquema:
+1. Crea un projecte Supabase a la mateixa regió que Vercel, o tan a prop com sigui possible.
+   Utilitza un projecte diferent per a Preview. Si el límit del pla no ho permet, no defineixis
+   `SUPABASE_DATABASE_URL` a Preview: mai no apuntis una Preview a la base de producció.
+2. Configura `SUPABASE_DATABASE_URL` només a Production amb la cadena del pooler de sessió.
+   Desa també una connexió de sessió o directa com a `SUPABASE_MIGRATION_DATABASE_URL` al
+   gestor de secrets des del qual s'executin les migracions.
+3. Configura `RATE_LIMIT_HASH_SECRET`, `CRON_SECRET`, `APNS_KEY_P8`, `APNS_KEY_ID`,
+   `APNS_TEAM_ID` i `APNS_BUNDLE_ID` com a secrets. Mantén `PUSH_DELIVERY_ENABLED=false`
+   al primer desplegament i sempre a Preview.
+4. Executa les migracions abans de desplegar codi que depengui del nou esquema:
 
 ```bash
-vercel env run -e production -- uv run --frozen alembic upgrade head
-vercel env run -e production -- uv run --frozen alembic current
+SUPABASE_MIGRATION_DATABASE_URL='postgresql://…' uv run --frozen alembic upgrade head
+SUPABASE_MIGRATION_DATABASE_URL='postgresql://…' uv run --frozen alembic current
 ```
 
-Per validar una migració en una Preview concreta, aplica-la de manera controlada a la
-branca Neon que la integració hagi creat, abans de provar el codi dependent:
+Per validar una migració en una Preview concreta, aplica-la de manera controlada al projecte
+Supabase de Preview abans de provar el codi dependent:
 
 ```bash
-vercel env run -e preview --git-branch nom-de-la-branca -- \
-  uv run --frozen alembic upgrade head
+SUPABASE_MIGRATION_DATABASE_URL='postgresql://…' uv run --frozen alembic upgrade head
 ```
 
-4. Sembra l'estat inicial de l'Hora a Hora sense enviar notificacions antigues i carrega l'instantània autoritzada de l'agenda:
+5. Sembra l'estat inicial de l'Hora a Hora sense enviar notificacions antigues i carrega
+   l'instantània autoritzada de l'agenda:
 
 ```bash
 vercel env run -e production -- \
@@ -209,7 +222,8 @@ vercel env run -e production -- \
   --from-month 2026-07 --to-month 2026-07
 ```
 
-5. Desplega, comprova `/health/ready`, publica la beta que registra tokens i fes una prova dirigida abans d'activar `PUSH_DELIVERY_ENABLED=true`.
+6. Desplega, comprova `/health/ready`, publica la beta que registra tokens i fes una prova
+   dirigida abans d'activar `PUSH_DELIVERY_ENABLED=true`.
 
 Vercel Pro invoca `/internal/cron/hour-by-hour` cada minut i `/internal/cron/maintenance`
 diàriament. Tots dos exigeixen el `Bearer CRON_SECRET`; l'outbox, les restriccions úniques

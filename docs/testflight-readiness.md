@@ -14,7 +14,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | Privacitat | Política completa en CA, ES i EN, enllaç des d'Ajustos i `PrivacyInfo.xcprivacy` integrat | Preparat al repositori | Desplegar aquesta branca i completar l'etiqueta App Privacy d'App Store Connect d'acord amb el manifest. |
 | Xifrat | `ITSAppUsesNonExemptEncryption = NO` per HTTPS estàndard | Preparat | Confirmar si s'afegeix criptografia pròpia en el futur. |
 | Release | APNs `development` en Debug i `production` en Release; perfils Development i Store generats | Preparat | La signatura automàtica gestionarà les renovacions. |
-| Backend | URL Release `https://castells-superapp-poc.vercel.app`, Vercel `cdg1`, Neon PostgreSQL i cron idempotent | Preparat al repositori | Provisionar/vincular Neon, aplicar Alembic, configurar secrets i verificar `/health/ready`. |
+| Backend | URL Release `https://castells-superapp-poc.vercel.app`, Vercel `cdg1`, Supabase PostgreSQL a París i cron idempotent | Preparat al repositori | Aplicar Alembic a Supabase, configurar secrets i verificar `/health/ready`. |
 | Automatització | CI de tests Swift i build iOS Release sense signar | Preparat | Vigilar el run de l'últim commit. |
 | Archive | Archive signat i IPA App Store exportat amb certificat cloud-managed Apple Distribution | Build 4 present a TestFlight; build 5 pendent de pujar | Pujar el build 5 i revisar qualsevol avís de processament. |
 
@@ -58,4 +58,4 @@ Després de rebasar sobre l'`origin/main` que inclou la PR #8, la versió 1.0 (b
 - La política de privacitat explica que els últims missatges necessaris viatgen al backend i al proveïdor d'IA, mentre l'historial complet queda al dispositiu.
 - El correu de suport mostra versió, build i identificador tècnic abans d'enviar-se, i no exporta converses.
 - S'ha provat almenys en un iPhone físic, un iPad o simulador i amb connectivitat intermitent.
-- Una instal·lació TestFlight registra un token APNs de producció a Neon, rep un avís amb l'app tancada i deixa de rebre'n després de desactivar-los.
+- Una instal·lació TestFlight registra un token APNs de producció a Supabase, rep un avís amb l'app tancada i deixa de rebre'n després de desactivar-los.
