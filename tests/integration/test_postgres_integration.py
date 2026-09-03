@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import inspect, select
+from sqlalchemy import inspect, select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
@@ -25,6 +25,17 @@ from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import PushSubscriptionRegistration
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "")
+PUBLIC_TABLES = {
+    "agenda_events",
+    "agenda_syncs",
+    "alembic_version",
+    "hour_by_hour_items",
+    "notification_deliveries",
+    "notification_outbox",
+    "notification_sync_state",
+    "push_subscriptions",
+    "rate_limit_buckets",
+}
 pytestmark = pytest.mark.skipif(
     not TEST_DATABASE_URL,
     reason="TEST_DATABASE_URL no està configurada per a la integració PostgreSQL",
@@ -70,6 +81,28 @@ def test_postgres_migrations_create_the_complete_backend_schema(
         "notification_deliveries",
         "rate_limit_buckets",
     } <= set(inspect(postgres_database.engine).get_table_names())
+
+
+def test_postgres_migrations_enable_rls_on_every_public_table(
+    postgres_database: Database,
+) -> None:
+    with postgres_database.engine.connect() as connection:
+        rows = connection.execute(
+            text(
+                """
+                SELECT cls.relname, cls.relrowsecurity
+                FROM pg_class AS cls
+                JOIN pg_namespace AS namespace ON namespace.oid = cls.relnamespace
+                WHERE namespace.nspname = 'public'
+                  AND cls.relkind IN ('r', 'p')
+                """
+            )
+        )
+
+        rls_by_table = {row.relname: row.relrowsecurity for row in rows}
+
+    assert PUBLIC_TABLES <= rls_by_table.keys()
+    assert {table for table, enabled in rls_by_table.items() if not enabled} == set()
 
 
 def test_postgres_rate_limiter_is_atomic_under_concurrency(
