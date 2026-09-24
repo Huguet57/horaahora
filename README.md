@@ -10,7 +10,7 @@ El nom visible i definitiu de l'app és **Castells en vena** i el Bundle ID de d
 - `HoraAHoraApp/Packages/CastellsKit`: paquet Swift local amb domini, dades i features independents.
 - `backend/domain`: models, ports i motor de puntuació determinista.
 - `backend/application`: casos d'ús.
-- `backend/adapters`: IA, Revista Castells, persistència i rate limiting.
+- `backend/adapters`: IA, Revista Castells, El Món Casteller, persistència i rate limiting.
 - `backend/api`: routers i esquemes HTTP separats per contracte.
 - `tests`: proves del domini, ingesta, contractes d'IA i API.
 - `openapi/partner-api.yaml`: contracte reduït per a clients i reunions amb socis.
@@ -42,7 +42,25 @@ cp .env.example .env
 docker compose --profile ingestion up --build
 ```
 
-L'API queda disponible a `http://127.0.0.1:8000` i la documentació interactiva a `/docs`. Compose aporta PostgreSQL 17; tot l'estat compartit del backend viu en aquesta base i no hi ha cap fallback SQLite o en memòria al runtime. L'adaptador HTML es pot desactivar amb `HOUR_BY_HOUR_SOURCE_ENABLED=false`.
+L'API queda disponible a `http://127.0.0.1:8000` i la documentació interactiva a `/docs`. Compose aporta PostgreSQL 17; tot l'estat compartit del backend viu en aquesta base i no hi ha cap fallback SQLite o en memòria al runtime. Les fonts de l'Hora a Hora es poden desactivar amb `HOUR_BY_HOUR_SOURCE_ENABLED=false`.
+
+### Fonts de l'Hora a Hora
+
+La sincronització combina l'HTML de Revista Castells amb els feeds RSS públics d'El Món
+Casteller de [notícies](https://www.elmoncasteller.cat/category/noticies/feed/),
+[opinió](https://www.elmoncasteller.cat/category/opinio/feed/),
+[entrevistes](https://www.elmoncasteller.cat/category/entrevistes/feed/) i
+[cròniques](https://www.elmoncasteller.cat/category/cronica/feed/). Cada article conserva
+el titular, el resum publicat al feed, la data, l'atribució i l'enllaç al web original.
+Els articles compartits entre categories només apareixen una vegada i la llista combina
+les fonts per data de publicació. Es carreguen les entrades disponibles als feeds;
+no es recorre tot l'arxiu històric.
+
+El job manual `python -m backend.jobs.sync_hour_by_hour` i el cron utilitzen les mateixes
+fonts. La primera ingesta de cada mitjà crea una base sense avisos antics; les següents
+només notifiquen articles nous. Si falla un mitjà, es conserva el contingut desat i
+s'actualitza l'altre, deixant constància de l'error al log. Les quatre categories d'El Món
+Casteller es carreguen conjuntament per evitar inicialitzar una base incompleta.
 
 ### Agenda de la CCCC
 

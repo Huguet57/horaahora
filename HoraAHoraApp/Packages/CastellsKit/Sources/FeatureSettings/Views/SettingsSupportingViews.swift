@@ -13,6 +13,11 @@ struct SourcesAndCreditsView: View {
                     url: configuration.revistaCastellsURL
                 )
                 creditRow(
+                    name: "El Món Casteller",
+                    detail: "Notícies, opinió, entrevistes i cròniques de l'Hora a Hora",
+                    url: configuration.elMonCastellerURL
+                )
+                creditRow(
                     name: "Coordinadora de Colles Castelleres de Catalunya (CCCC)",
                     detail: "Font de l'Agenda",
                     url: configuration.ccccAgendaURL

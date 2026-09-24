@@ -33,13 +33,13 @@ final class ContractTests: XCTestCase {
         XCTAssertNotNil(page.items.first?.createdAt)
     }
 
-    func testHourByHourItemOnlyExposesADedicatedAssociatedLink() {
+    func testRevistaCastellsOnlyExposesADedicatedAssociatedLink() {
         let articleURL = URL(string: "https://example.com/article")!
         let actionURL = URL(string: "https://example.com/action")!
         let now = Date()
         let linked = HourByHourItem(
             id: "linked",
-            sourceID: "source",
+            sourceID: "revista-castells",
             externalID: "linked",
             title: "Amb enllaç",
             displayTitle: "Amb enllaç",
@@ -54,7 +54,7 @@ final class ContractTests: XCTestCase {
         )
         let legacyFallback = HourByHourItem(
             id: "fallback",
-            sourceID: "source",
+            sourceID: "revista-castells",
             externalID: "fallback",
             title: "Sense enllaç",
             displayTitle: "Sense enllaç",

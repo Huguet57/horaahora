@@ -8,6 +8,7 @@ public struct SettingsConfiguration: Equatable, Sendable {
     public let buildNumber: String
     public let technicalIdentifier: String
     public let revistaCastellsURL: URL?
+    public let elMonCastellerURL: URL?
     public let ccccAgendaURL: URL?
     public let concursCastellsURL: URL?
 
@@ -19,6 +20,7 @@ public struct SettingsConfiguration: Equatable, Sendable {
         buildNumber: String,
         technicalIdentifier: String,
         revistaCastellsURL: URL?,
+        elMonCastellerURL: URL? = nil,
         ccccAgendaURL: URL?,
         concursCastellsURL: URL?
     ) {
@@ -29,6 +31,7 @@ public struct SettingsConfiguration: Equatable, Sendable {
         self.buildNumber = buildNumber
         self.technicalIdentifier = technicalIdentifier
         self.revistaCastellsURL = revistaCastellsURL
+        self.elMonCastellerURL = elMonCastellerURL
         self.ccccAgendaURL = ccccAgendaURL
         self.concursCastellsURL = concursCastellsURL
     }

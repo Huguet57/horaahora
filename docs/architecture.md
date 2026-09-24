@@ -25,6 +25,13 @@ Les dependències permeses són:
 
 Els ports de contingut són estrets: `HourByHourRepository` i `AgendaRepository` evolucionen independentment. De la mateixa manera, `PushSubscriptionRepository` gestiona dispositius i `NotificationRepository` gestiona ingesta, outbox i entregues.
 
+La ingesta d'El Món Casteller separa la conversió de l'RSS (`el_mon_casteller_rss.py`,
+sense accés a xarxa ni rellotge) de la descàrrega i deduplicació de categories
+(`el_mon_casteller.py`). `CombinedHourByHourSource` combina mitjans i aïlla les fallades
+sense conèixer els seus formats. La composició proporciona la mateixa font al cron i
+al job manual; les proves cobreixen per separat el parser, la descàrrega, la combinació,
+el job i el contracte HTTP.
+
 ## Swift
 
 Es conserven els targets públics existents i s'organitza el codi intern per funcionalitat:
