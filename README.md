@@ -256,6 +256,14 @@ puja un nivell, amb màxim High; «Totes» i una selecció buida no apliquen cap
 L'app ofereix el selector a Ajustos, amb High per a noves activacions i Low per als
 usuaris que ja tenien avisos actius. Els destacats de l'Agenda no afecten la regla.
 
+El catàleg d'àlies és a `backend/adapters/ai/group_aliases.py`, amb una entrada explícita
+per a cadascuna de les 118 colles del directori, incloses les universitàries i internacionals.
+Combina sobrenoms documentats, noms abreujats distintius i variants descriptives completes
+per a les colles sense sobrenom conegut. No s'utilitzen topònims sols ni sigles inventades.
+Les fonts són al mateix fitxer; les proves exigeixen cobertura del directori i àlies
+sense duplicats entre colles. Els canvis al catàleg han d'incrementar `CRITERIA_VERSION`
+(actualment `castells-interest-v2`), ja que poden modificar les classificacions futures.
+
 Configura `JEV_API_KEY` només al servidor i `JEV_MODEL=jev-1.13.0`. La clau és independent
 de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` accepta
 `minimum_interest` (`low`, `medium`, `high`) i `group_selection`

@@ -2,19 +2,11 @@ import math
 
 import httpx
 
+from backend.adapters.ai.group_aliases import GROUP_ALIASES
 from backend.domain.notifications.interest import InterestClassification, InterestLevel, group_key
 
-CRITERIA_VERSION = "castells-interest-v1"
+CRITERIA_VERSION = "castells-interest-v2"
 GROUP_THRESHOLD = 0.8
-GROUP_ALIASES = {
-    "castellers de vilafranca": ["Verds"],
-    "colla vella dels xiquets de valls": ["Colla Vella", "Vella de Valls", "la Vella"],
-    "colla joves xiquets de valls": ["Colla Joves", "Joves de Valls", "la Joves"],
-    "minyons de terrassa": ["Minyons", "malves"],
-    "colla jove xiquets de tarragona": ["Jove de Tarragona", "Jove Xiquets de Tarragona"],
-    "capgrossos de mataro": ["Capgrossos"],
-    "castellers de sants": ["Borinots"],
-}
 
 INTEREST_QUESTION = {
     "type": "choice",
