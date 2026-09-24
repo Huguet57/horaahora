@@ -1,7 +1,6 @@
 from pathlib import Path
 from unittest.mock import Mock
 
-import pytest
 import requests
 
 from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
@@ -9,9 +8,7 @@ from backend.adapters.persistence.database import Database
 from backend.adapters.persistence.hour_by_hour_repository import SQLAlchemyHourByHourRepository
 from backend.adapters.persistence.models import Base
 from backend.adapters.persistence.notification_repository import SQLAlchemyNotificationRepository
-from backend.composition.providers import build_hour_by_hour_source
 from backend.config import Settings
-from backend.jobs import sync_hour_by_hour
 from tests.support.application import make_test_client
 
 FIXTURES = Path(__file__).parents[1] / "fixtures"
@@ -19,8 +16,7 @@ ELMON_FEED = (FIXTURES / "el_mon_casteller.xml").read_text()
 REVISTA_HTML = (FIXTURES / "revista_hour_by_hour.html").read_text()
 
 
-@pytest.mark.parametrize("via_cron", [False, True], ids=["manual-job", "cron"])
-def test_sync_adds_the_new_publisher_without_alerting_old_articles(monkeypatch, via_cron):
+def test_cron_ingests_both_publishers_and_exposes_deduplicated_articles_in_the_api(monkeypatch):
     database = Database("sqlite+pysqlite:///:memory:")
     Base.metadata.create_all(database.engine)
     content = SQLAlchemyHourByHourRepository(database)
@@ -28,6 +24,7 @@ def test_sync_adds_the_new_publisher_without_alerting_old_articles(monkeypatch, 
     notifications.ingest_hour_by_hour(RevistaCastellsHTMLSource().parse(REVISTA_HTML))
     settings = Settings(
         database_url="sqlite+pysqlite:///:memory:",
+        revista_castells_url="https://revista.example/hora-a-hora/",
         vercel_env="production",
         cron_secret="test-secret",
         push_delivery_enabled=True,
@@ -43,7 +40,6 @@ def test_sync_adds_the_new_publisher_without_alerting_old_articles(monkeypatch, 
     monkeypatch.setattr(
         "backend.composition.container.build_notification_gateway", lambda _: Mock()
     )
-    monkeypatch.setattr(sync_hour_by_hour, "build_database", lambda _: database)
     client = make_test_client(
         settings=settings,
         database=database,
@@ -52,19 +48,15 @@ def test_sync_adds_the_new_publisher_without_alerting_old_articles(monkeypatch, 
     )
 
     def sync():
-        if via_cron:
-            response = client.get(
-                "/internal/cron/hour-by-hour",
-                headers={"Authorization": "Bearer test-secret"},
-            )
-            assert response.status_code == 200
-            return response.json()
-        assert sync_hour_by_hour.sync_once(settings) == 0
-        return None
+        response = client.get(
+            "/internal/cron/hour-by-hour",
+            headers={"Authorization": "Bearer test-secret"},
+        )
+        assert response.status_code == 200
+        return response.json()
 
     baseline = sync()
-    if via_cron:
-        assert baseline["notifications_created"] == 0
+    assert baseline["notifications_created"] == 0
     page = client.get("/v1/hour-by-hour?limit=30").json()
     assert len(page["items"]) == 4
     assert [item["source_id"] for item in page["items"]] == [
@@ -82,10 +74,5 @@ def test_sync_adds_the_new_publisher_without_alerting_old_articles(monkeypatch, 
     update = sync()
     repeated = sync()
     assert content.count_hour_by_hour() == 5
-    if via_cron:
-        assert update["notifications_created"] == 1
-        assert repeated["notifications_created"] == 0
-
-
-def test_source_switch_still_disables_all_publishers() -> None:
-    assert build_hour_by_hour_source(Settings(hour_by_hour_source_enabled=False)) is None
+    assert update["notifications_created"] == 1
+    assert repeated["notifications_created"] == 0

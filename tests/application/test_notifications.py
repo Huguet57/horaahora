@@ -26,25 +26,7 @@ from backend.adapters.persistence.push_subscription_repository import (
 from backend.application.notifications import HourByHourNotificationCoordinator
 from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import PushSubscriptionRegistration
-
-
-def hour_item(external_id: str, title: str | None = None) -> HourByHourItem:
-    now = datetime.now(UTC)
-    return HourByHourItem(
-        id=external_id,
-        source_id="revista-castells",
-        external_id=external_id,
-        title=title or f"Dimecres 22, 10h. Notícia {external_id}",
-        display_title=f"Notícia {external_id}",
-        summary=f"Resum {external_id}",
-        published_at=now,
-        source_order=0,
-        article_url=f"https://example.com/{external_id}",
-        action_url=f"https://example.com/{external_id}/directe",
-        attribution="Revista Castells",
-        created_at=now,
-        updated_at=now,
-    )
+from tests.support.hour_by_hour import hour_item
 
 
 def repositories() -> tuple[
