@@ -23,6 +23,7 @@ from backend.adapters.persistence.push_subscription_repository import (
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import PushSubscriptionRegistration
+from tests.support.notifications import ingest
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "")
 PUBLIC_TABLES = {
@@ -155,8 +156,8 @@ def test_postgres_skip_locked_claims_each_delivery_once(
         environment="production",
         topic="com.example.integration",
     )
-    repository.ingest_hour_by_hour([_item("postgres-baseline")])
-    repository.ingest_hour_by_hour([_item("postgres-new-item"), _item("postgres-baseline")])
+    ingest(repository, [_item("postgres-baseline")])
+    ingest(repository, [_item("postgres-new-item"), _item("postgres-baseline")])
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         claims = list(executor.map(lambda _: repository.claim_deliveries(limit=1), range(2)))

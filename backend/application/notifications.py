@@ -4,6 +4,10 @@ import time
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
+from backend.application.notification_ingestion import (
+    NOTIFICATION_LOCK_KEY,
+    NotificationIngestionService,
+)
 from backend.domain.content.ports import HourByHourSource
 from backend.domain.notifications.models import NotificationDisposition
 from backend.domain.notifications.ports import NotificationGateway, NotificationRepository
@@ -18,10 +22,12 @@ class NotificationRunResult:
     retried: int = 0
     invalidated: int = 0
     failed: int = 0
+    classified: int = 0
+    classification_skipped: int = 0
 
 
 class HourByHourNotificationCoordinator:
-    lock_key = 2_026_072_201
+    lock_key = NOTIFICATION_LOCK_KEY
 
     def __init__(
         self,
@@ -30,6 +36,7 @@ class HourByHourNotificationCoordinator:
         gateway: NotificationGateway,
         *,
         enabled: bool,
+        ingestion_service: NotificationIngestionService,
         batch_size: int = 250,
         time_budget_seconds: float = 45,
     ) -> None:
@@ -37,6 +44,7 @@ class HourByHourNotificationCoordinator:
         self.source = source
         self.gateway = gateway
         self.enabled = enabled
+        self.ingestion_service = ingestion_service
         self.batch_size = batch_size
         self.time_budget_seconds = time_budget_seconds
 
@@ -50,7 +58,10 @@ class HourByHourNotificationCoordinator:
         with lock as acquired:
             if not acquired:
                 return NotificationRunResult(status="already_running")
-            ingestion = self.repository.ingest_hour_by_hour(self.source.fetch())
+            ingestion = self.ingestion_service.ingest(
+                self.source.fetch(),
+                deadline=started + max(0, self.time_budget_seconds - 10),
+            )
             attempted = delivered = retried = invalidated = failed = 0
             deliveries = self.repository.claim_deliveries(limit=self.batch_size)
             for delivery in deliveries:
@@ -97,6 +108,8 @@ class HourByHourNotificationCoordinator:
                 retried=retried,
                 invalidated=invalidated,
                 failed=failed,
+                classified=ingestion.classified,
+                classification_skipped=ingestion.classification_skipped,
             )
 
 

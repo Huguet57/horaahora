@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from backend.domain.notifications.interest import GroupSelection, InterestLevel
+
 
 @dataclass(frozen=True, slots=True)
 class PushSubscriptionRegistration:
@@ -8,6 +10,8 @@ class PushSubscriptionRegistration:
     device_token: str
     app_version: str
     locale: str
+    minimum_interest: InterestLevel | None = None
+    group_selection: GroupSelection | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,12 +21,16 @@ class ActivePushSubscription:
     device_token: str
     environment: str
     topic: str
+    minimum_interest: InterestLevel = InterestLevel.LOW
+    group_selection: GroupSelection = GroupSelection()
 
 
 @dataclass(frozen=True, slots=True)
 class NotificationIngestionResult:
     baseline_created: bool
     notifications_created: int
+    classified: int = 0
+    classification_skipped: int = 0
 
 
 @dataclass(frozen=True, slots=True)

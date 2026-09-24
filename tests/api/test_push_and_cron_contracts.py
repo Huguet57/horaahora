@@ -1,6 +1,7 @@
 from backend.adapters.persistence.database import Database
 from backend.application.notifications import NotificationRunResult
 from backend.config import Settings
+from backend.domain.notifications.interest import GroupSelection, InterestLevel
 from backend.domain.notifications.models import PushSubscriptionRegistration
 from tests.support.application import make_test_client
 
@@ -91,3 +92,22 @@ def test_cron_routes_require_production_secret_and_return_persisted_results() ->
     assert response.status_code == 200
     assert response.json()["delivered"] == 3
     assert coordinator.call_count == 1
+
+
+def test_notification_preferences_are_normalized_and_invalid_levels_rejected():
+    repository = RecordingPushRepository()
+    client = make_test_client(push_repository=repository)
+    payload = {
+        "device_token": "ab" * 32,
+        "minimum_interest": "high",
+        "group_selection": {"mode": "custom", "keys": ["  MINYONS  ", "Minyons"]},
+    }
+    assert client.put("/v1/push-subscriptions/install-1", json=payload).status_code == 204
+    registered = repository.registrations[0][0]
+    assert registered.minimum_interest is InterestLevel.HIGH
+    assert registered.group_selection == GroupSelection("custom", frozenset({"minyons"}))
+    payload["minimum_interest"] = "urgent"
+    assert client.put("/v1/push-subscriptions/install-1", json=payload).status_code == 422
+    payload["minimum_interest"] = "low"
+    payload["group_selection"]["mode"] = "unknown"
+    assert client.put("/v1/push-subscriptions/install-1", json=payload).status_code == 422

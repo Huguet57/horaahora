@@ -1,4 +1,5 @@
 import SwiftUI
+import CastellsDomain
 
 public struct SettingsRootView: View {
     @Bindable private var model: SettingsModel
@@ -40,6 +41,22 @@ public struct SettingsRootView: View {
 
     private var notificationSection: some View {
         Section("Notificacions") {
+            Picker("Interès mínim", selection: Binding(
+                get: { model.minimumInterest },
+                set: { value in Task { await model.setMinimumInterest(value) } }
+            )) {
+                Text("Low — Totes").tag(NotificationInterestLevel.low)
+                Text("Medium — De les teves colles i actualitat interessant")
+                    .tag(NotificationInterestLevel.medium)
+                Text("High — Breaking news i notícies interessants de les teves colles")
+                    .tag(NotificationInterestLevel.high)
+            }
+            .disabled(model.notificationStatus == .loading)
+
+            Text("Les colles es trien a l’Agenda. Amb «Totes les colles» es valora només la rellevància general.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
             Toggle(isOn: notificationsEnabledBinding) {
                 Label("Hora a Hora", systemImage: "bell")
             }
@@ -60,6 +77,12 @@ public struct SettingsRootView: View {
             if let errorMessage = model.notificationErrorMessage {
                 Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.red)
+            }
+            if model.isNotificationSynchronizationPending {
+                Label("Canvi pendent de sincronitzar. Es tornarà a intentar en obrir l’app.",
+                      systemImage: "arrow.triangle.2.circlepath")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
     }

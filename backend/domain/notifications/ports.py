@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Protocol
 
 from backend.domain.content.models import HourByHourItem
+from backend.domain.notifications.interest import ClassificationCandidate, InterestClassification
 from backend.domain.notifications.models import (
     ActivePushSubscription,
     NotificationIngestionResult,
@@ -25,6 +26,12 @@ class PushSubscriptionRepository(Protocol):
 
 class NotificationRepository(Protocol):
     def ingest_hour_by_hour(self, items: list[HourByHourItem]) -> NotificationIngestionResult: ...
+    def recover_interrupted_classifications(self) -> int: ...
+    def pending_classifications(self) -> list[ClassificationCandidate]: ...
+    def begin_classification(self, outbox_id: str) -> bool: ...
+    def complete_classification(self, outbox_id: str, result: InterestClassification) -> None: ...
+    def skip_classification(self, outbox_id: str, reason: str) -> None: ...
+    def observed_groups(self) -> list[str]: ...
     def claim_deliveries(
         self,
         limit: int,
@@ -41,3 +48,9 @@ class NotificationRepository(Protocol):
 
 class NotificationGateway(Protocol):
     def send(self, delivery: PendingNotificationDelivery) -> NotificationSendResult: ...
+
+
+class NewsInterestClassifier(Protocol):
+    def classify(
+        self, title: str, summary: str, groups: list[str], *, timeout: float
+    ) -> InterestClassification: ...

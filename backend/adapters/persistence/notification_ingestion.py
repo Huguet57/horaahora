@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from backend.adapters.persistence.hour_by_hour_repository import update_hour_by_hour_record
 from backend.adapters.persistence.models import (
     HourByHourRecord,
-    NotificationDeliveryRecord,
     NotificationOutboxRecord,
     NotificationSyncStateRecord,
     PushSubscriptionRecord,
@@ -91,28 +90,24 @@ def ingest_hour_by_hour(engine: Engine, items: list[HourByHourItem]) -> Notifica
                 url=item.action_url or item.article_url,
                 collapse_id=collapse_id(item.external_id),
                 created_at=now,
+                classification_status="baseline"
+                if item.source_id in baseline_sources
+                else "pending",
+                audience=[]
+                if item.source_id in baseline_sources
+                else [
+                    {
+                        "id": subscription.id,
+                        "minimum_interest": subscription.minimum_interest,
+                        "group_selection": subscription.group_selection,
+                    }
+                    for subscription in active_subscriptions
+                ],
             )
             session.add(outbox)
             if item.source_id in baseline_sources:
                 continue
             notifications_created += 1
-            session.flush()
-            for subscription in active_subscriptions:
-                session.add(
-                    NotificationDeliveryRecord(
-                        id=str(uuid4()),
-                        outbox_id=outbox.id,
-                        subscription_id=subscription.id,
-                        status="pending",
-                        attempt_count=0,
-                        next_attempt_at=now,
-                        locked_until=None,
-                        delivered_at=None,
-                        last_error="",
-                        created_at=now,
-                        updated_at=now,
-                    )
-                )
     return NotificationIngestionResult(
         baseline_created=baseline_created,
         notifications_created=notifications_created,

@@ -33,6 +33,8 @@ def hour_by_hour_cron(
         "retried": result.retried,
         "invalidated": result.invalidated,
         "failed": result.failed,
+        "classified": result.classified,
+        "classification_skipped": result.classification_skipped,
     }
 
 

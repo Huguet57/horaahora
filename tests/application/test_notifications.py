@@ -27,6 +27,7 @@ from backend.application.notifications import HourByHourNotificationCoordinator
 from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import PushSubscriptionRegistration
 from tests.support.hour_by_hour import hour_item
+from tests.support.notifications import ingest, ingestion_service
 
 
 def repositories() -> tuple[
@@ -73,9 +74,9 @@ def test_first_ingestion_is_a_baseline_and_next_item_creates_one_delivery() -> N
     subscriptions, repo = repositories()
     subscriptions.register(registration(), environment="production", topic="com.example.app")
 
-    baseline = repo.ingest_hour_by_hour([hour_item("one")])
-    update = repo.ingest_hour_by_hour([hour_item("two"), hour_item("one")])
-    repeated = repo.ingest_hour_by_hour([hour_item("two"), hour_item("one")])
+    baseline = ingest(repo, [hour_item("one")])
+    update = ingest(repo, [hour_item("two"), hour_item("one")])
+    repeated = ingest(repo, [hour_item("two"), hour_item("one")])
 
     assert baseline.baseline_created is True
     assert baseline.notifications_created == 0
@@ -95,13 +96,13 @@ def test_first_ingestion_is_a_baseline_and_next_item_creates_one_delivery() -> N
 def test_content_refresh_before_cron_does_not_consume_the_notification() -> None:
     subscriptions, repo = repositories()
     subscriptions.register(registration(), environment="production", topic="com.example.app")
-    repo.ingest_hour_by_hour([hour_item("one")])
+    ingest(repo, [hour_item("one")])
 
     content_repository = SQLAlchemyHourByHourRepository(repo.database)
     content_repository.upsert_hour_by_hour([hour_item("two"), hour_item("one")])
 
-    update = repo.ingest_hour_by_hour([hour_item("two"), hour_item("one")])
-    repeated = repo.ingest_hour_by_hour([hour_item("two"), hour_item("one")])
+    update = ingest(repo, [hour_item("two"), hour_item("one")])
+    repeated = ingest(repo, [hour_item("two"), hour_item("one")])
 
     assert update.notifications_created == 1
     assert repeated.notifications_created == 0
@@ -118,9 +119,9 @@ def test_new_publisher_has_its_own_baseline_and_only_notifies_subsequent_article
         attribution="El Món Casteller",
         action_url="https://www.elmoncasteller.cat/primera-noticia/",
     )
-    repo.ingest_hour_by_hour([revista])
+    ingest(repo, [revista])
 
-    baseline = repo.ingest_hour_by_hour([revista, elmon])
+    baseline = ingest(repo, [revista, elmon])
 
     assert baseline.baseline_created is True
     assert baseline.notifications_created == 0
@@ -132,8 +133,8 @@ def test_new_publisher_has_its_own_baseline_and_only_notifies_subsequent_article
         external_id="elmon-two",
         action_url="https://www.elmoncasteller.cat/segona-noticia/",
     )
-    update = repo.ingest_hour_by_hour([revista, elmon, new_item])
-    repeated = repo.ingest_hour_by_hour([revista, elmon, new_item])
+    update = ingest(repo, [revista, elmon, new_item])
+    repeated = ingest(repo, [revista, elmon, new_item])
 
     assert update.notifications_created == 1
     assert repeated.notifications_created == 0
@@ -145,8 +146,8 @@ def test_new_publisher_has_its_own_baseline_and_only_notifies_subsequent_article
 def test_transient_delivery_is_retried_and_invalid_token_disables_subscription() -> None:
     subscriptions, repo = repositories()
     subscriptions.register(registration(), environment="production", topic="com.example.app")
-    repo.ingest_hour_by_hour([hour_item("one")])
-    repo.ingest_hour_by_hour([hour_item("two"), hour_item("one")])
+    ingest(repo, [hour_item("one")])
+    ingest(repo, [hour_item("two"), hour_item("one")])
     delivery = repo.claim_deliveries(limit=1, lock_seconds=60)[0]
 
     retry_at = datetime.now(UTC) + timedelta(minutes=1)
@@ -163,8 +164,8 @@ def test_transient_delivery_is_retried_and_invalid_token_disables_subscription()
 def test_interrupted_claim_becomes_available_after_its_lock_expires() -> None:
     subscriptions, repo = repositories()
     subscriptions.register(registration(), environment="production", topic="com.example.app")
-    repo.ingest_hour_by_hour([hour_item("one")])
-    repo.ingest_hour_by_hour([hour_item("two"), hour_item("one")])
+    ingest(repo, [hour_item("one")])
+    ingest(repo, [hour_item("two"), hour_item("one")])
     claimed_at = datetime.now(UTC)
 
     first = repo.claim_deliveries(limit=1, now=claimed_at, lock_seconds=60)
@@ -181,8 +182,8 @@ def test_interrupted_claim_becomes_available_after_its_lock_expires() -> None:
 def test_maintenance_expires_personal_state_but_keeps_outbox_deduplication() -> None:
     subscriptions, repo = repositories()
     subscriptions.register(registration(), environment="production", topic="com.example.app")
-    repo.ingest_hour_by_hour([hour_item("one")])
-    repo.ingest_hour_by_hour([hour_item("two"), hour_item("one")])
+    ingest(repo, [hour_item("one")])
+    ingest(repo, [hour_item("two"), hour_item("one")])
     delivery = repo.claim_deliveries(limit=1)[0]
     repo.mark_delivered(delivery.id)
 
@@ -236,7 +237,9 @@ def test_coordinator_is_idempotent_and_does_nothing_while_disabled() -> None:
     subscriptions.register(registration(), environment="production", topic="com.example.app")
     source = MutableSource([hour_item("one")])
     gateway = AcceptingGateway()
-    coordinator = HourByHourNotificationCoordinator(repo, source, gateway, enabled=False)
+    coordinator = HourByHourNotificationCoordinator(
+        repo, source, gateway, enabled=False, ingestion_service=ingestion_service(repo)
+    )
 
     disabled = coordinator.run()
     assert disabled.status == "disabled"
