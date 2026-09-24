@@ -43,7 +43,7 @@ class NewsClassificationPersistence:
                 .where(NotificationOutboxRecord.classification_status == "pending")
                 .order_by(NotificationOutboxRecord.created_at, NotificationOutboxRecord.id)
             ).all()
-            return [ClassificationCandidate(row.id, row.title, row.body) for row in rows]
+            return [ClassificationCandidate(row.id, row.title, row.body, row.url) for row in rows]
 
     def begin(self, outbox_id: str) -> bool:
         with Session(self.engine) as session, session.begin():
@@ -84,6 +84,7 @@ class NewsClassificationPersistence:
                 "probabilities": result.probabilities,
                 "confidence": result.confidence,
                 "usage": result.usage,
+                "input": result.input_metadata,
             }
             outbox.classification_status = "classified"
             for recipient in outbox.audience:

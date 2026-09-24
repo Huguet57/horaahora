@@ -12,7 +12,7 @@ from tests.support.hour_by_hour import hour_item
 
 
 class RoutineNewsClassifier:
-    def classify(self, title, summary, groups, *, timeout):
+    def classify(self, title, summary, groups, *, timeout, content=""):
         return InterestClassification(InterestLevel.LOW, frozenset(), "fake", "test", {}, 1.0)
 
 

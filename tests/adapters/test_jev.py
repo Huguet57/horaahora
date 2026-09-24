@@ -82,3 +82,20 @@ def test_provider_failure_is_not_retried():
             "T", "S", [], timeout=1
         )
     assert len(calls) == 1
+
+
+def test_article_content_is_sent_in_the_same_request_as_title_summary_and_groups():
+    requests = []
+
+    def handle(request):
+        import json
+
+        requests.append(json.loads(request.content))
+        return httpx.Response(200, json=response())
+
+    classifier = JevNewsInterestClassifier("test-secret", transport=httpx.MockTransport(handle))
+    body = "La colla completa la millor actuació de la seva història."
+    result = classifier.classify("Resultats", "Crònica", ["a", "b"], content=body, timeout=2)
+    assert len(requests) == 1
+    assert requests[0]["state"] == {"title": "Resultats", "summary": "Crònica", "content": body}
+    assert result.input_metadata == {"mode": "article", "content_chars": len(body)}

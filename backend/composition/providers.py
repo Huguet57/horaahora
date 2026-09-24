@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from backend.adapters.ai.jev import JevNewsInterestClassifier
+from backend.adapters.content.article_text import PublisherArticleTextSource
 from backend.adapters.content.cccc_agenda import (
     CCCCAgendaFixtureSource,
     CCCCAgendaHTMLSource,
@@ -103,6 +104,7 @@ def build_notification_ingestion(settings: Settings, repository: NotificationRep
         repository,
         JevNewsInterestClassifier(settings.jev_api_key, settings.jev_model),
         load_group_directory().groups,
+        article_source=PublisherArticleTextSource(),
     )
 
 

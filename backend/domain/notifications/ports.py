@@ -52,5 +52,5 @@ class NotificationGateway(Protocol):
 
 class NewsInterestClassifier(Protocol):
     def classify(
-        self, title: str, summary: str, groups: list[str], *, timeout: float
+        self, title: str, summary: str, groups: list[str], *, timeout: float, content: str = ""
     ) -> InterestClassification: ...

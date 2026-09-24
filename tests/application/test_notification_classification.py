@@ -32,7 +32,7 @@ class Classifier:
         self.calls = 0
         self.level, self.groups, self.fail = level, groups, fail
 
-    def classify(self, title, summary, groups, *, timeout):
+    def classify(self, title, summary, groups, *, timeout, content=""):
         self.calls += 1
         if self.fail:
             raise TimeoutError()
@@ -208,3 +208,74 @@ def test_coordinator_sends_eligible_recipients_in_the_same_run_after_skips():
 
     assert result.attempted == result.delivered == 2
     assert [delivery.id for delivery in gateway.deliveries] == ["queued-5", "queued-6"]
+
+
+class ArticleSource:
+    def __init__(self, text="La millor diada de la seva història.", error=None):
+        self.text, self.error, self.calls = text, error, []
+
+    def fetch(self, url, *, timeout):
+        self.calls.append((url, timeout))
+        if self.error:
+            raise self.error
+        return self.text
+
+
+class ContentClassifier(Classifier):
+    def classify(self, title, summary, groups, *, timeout, content=""):
+        self.received_content = content
+        return super().classify(title, summary, groups, timeout=timeout)
+
+
+def test_article_is_fetched_once_and_forwarded_before_classification():
+    _, repo = repositories()
+    classifier, articles = ContentClassifier(), ArticleSource()
+    service = NotificationIngestionService(repo, classifier, [], article_source=articles)
+    service.ingest([hour_item("baseline")])
+    assert articles.calls == []
+    item = replace(hour_item("new"), action_url="https://revistacastells.cat/cronica/")
+    service.ingest([item])
+    service.ingest([item])
+    assert classifier.calls == 1
+    assert classifier.received_content == articles.text
+    assert len(articles.calls) == 1
+    assert articles.calls[0][0] == item.action_url
+
+
+@pytest.mark.parametrize("error", [None, TimeoutError(), ValueError("invalid page")])
+def test_article_unavailable_falls_back_to_summary(error):
+    subscriptions, repo = repositories()
+    subscriptions.register(registration(), environment="production", topic="app")
+    classifier = ContentClassifier()
+    service = NotificationIngestionService(
+        repo, classifier, [], article_source=ArticleSource(text="", error=error)
+    )
+    service.ingest([hour_item("baseline")])
+    result = service.ingest([hour_item("new")])
+    assert result.classified == 1
+    assert result.classification_skipped == 0
+    assert classifier.received_content == ""
+    assert len(repo.claim_deliveries(10)) == 1
+
+
+def test_article_fetch_that_exhausts_budget_leaves_jev_unstarted(monkeypatch):
+    _, repo = repositories()
+    classifier = ContentClassifier()
+    clock = [100.0]
+    monkeypatch.setattr(
+        "backend.application.notification_ingestion.time.monotonic", lambda: clock[0]
+    )
+
+    class SlowSource(ArticleSource):
+        def fetch(self, url, *, timeout):
+            clock[0] += 2
+            return self.text
+
+    service = NotificationIngestionService(repo, classifier, [], article_source=SlowSource())
+    service.ingest([hour_item("baseline")])
+    result = service.ingest([hour_item("new")], deadline=101)
+    assert result.classified == result.classification_skipped == 0
+    assert classifier.calls == 0
+    assert len(repo.pending_classifications()) == 1
+    service.ingest([], deadline=110)
+    assert classifier.calls == 1

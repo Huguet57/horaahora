@@ -58,6 +58,7 @@ class InterestClassification:
     probabilities: dict
     confidence: float
     usage: dict = field(default_factory=dict)
+    input_metadata: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,3 +66,4 @@ class ClassificationCandidate:
     id: str
     title: str
     summary: str
+    url: str

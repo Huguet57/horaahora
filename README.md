@@ -260,8 +260,25 @@ usuaris que ja tenien avisos actius. Els destacats de l'Agenda no afecten la reg
 Els criteris són tres definicions generals, sense excepcions per notícia o colla:
 Low per informació rutinària, Medium per actualitat interessant i High per fets
 excepcionals, diades històriques i castells inèdits d'una colla, tant anunciats com
-assolits. La fita es valora a escala de cada colla. Jev només utilitza el títol i resum
-i no ha d'inventar el context històric que hi falti.
+assolits. La fita es valora a escala de cada colla. Jev utilitza el títol, el resum i
+el cos públic de l’article quan està disponible, i no ha d’inventar el context
+històric que hi falti.
+
+Abans de la petició única a Jev, el backend llegeix l’enllaç original de la notícia:
+la crònica, el post públic o la transcripció disponible. Admet Revista Castells,
+El Món Casteller, Instagram, X, YouTube, 3Cat i el Diari Digital de la URV. Conserva
+el text editorial, els peus de publicacions i les transcripcions públiques, amb un
+límit de 20.000 caràcters, 2 MB d’HTML i 5 segons de lectura. Només elimina elements
+aliens com menús, scripts, publicitat i recomanacions; també llegeix descripcions
+públiques d’Instagram i YouTube encara que no hi hagi un cos HTML convencional.
+
+Els enllaços no admesos (incloent-hi PDF), les stories sense text públic, les notes
+sense cos i els errors de lectura fan servir el títol i el resum. No es busquen
+altres articles per completar una nota breu. La lectura es fa fora de transaccions
+d’escriptura; si esgota el pressupost del cron abans de cridar Jev, la notícia queda
+pendent per a la següent execució. L’outbox registra si s’ha utilitzat text addicional
+i la seva longitud; els logs inclouen latència, consum i errors de lectura. No es
+desa el cos complet a la base de dades.
 
 El catàleg d'àlies és a `backend/adapters/ai/group_aliases.py`, amb una entrada explícita
 per a cadascuna de les 118 colles del directori, incloses les universitàries i internacionals.
@@ -269,7 +286,7 @@ Combina sobrenoms documentats, noms abreujats distintius i variants descriptives
 per a les colles sense sobrenom conegut. No s'utilitzen topònims sols ni sigles inventades.
 Les fonts són al mateix fitxer; les proves exigeixen cobertura del directori i àlies
 sense duplicats entre colles. Els canvis al catàleg han d'incrementar `CRITERIA_VERSION`
-(actualment `castells-interest-v4`), ja que poden modificar les classificacions futures.
+(actualment `castells-interest-v5`), ja que poden modificar les classificacions futures.
 
 Configura `JEV_API_KEY` només al servidor i `JEV_MODEL=jev-1.13.0`. La clau és independent
 de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` accepta
