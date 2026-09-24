@@ -54,3 +54,34 @@ def test_interest_migration_preserves_existing_subscriptions(tmp_path, monkeypat
     assert "minimum_interest" not in {
         c["name"] for c in inspect(engine).get_columns("push_subscriptions")
     }
+
+
+def test_provenance_migration_preserves_pending_and_completed_rows(tmp_path, monkeypatch):
+    url = f"sqlite+pysqlite:///{tmp_path / 'provenance.db'}"
+    monkeypatch.setenv("DATABASE_URL", url)
+    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    command.upgrade(config, "20260924_06")
+    engine = create_engine(url)
+    with engine.begin() as connection:
+        for status in ["pending", "classified", "skipped", "baseline", "legacy"]:
+            connection.execute(
+                text("""INSERT INTO notification_outbox
+                (id, event_type, source_id, external_id, title, body, url, collapse_id,
+                 created_at, classification_status)
+                VALUES (:status, 'hour_by_hour', 'source', :status, 'Title', 'Summary',
+                        'https://example.com/context', :status, CURRENT_TIMESTAMP, :status)
+                """),
+                {"status": status},
+            )
+    command.upgrade(config, "head")
+    with engine.connect() as connection:
+        rows = connection.execute(
+            text("SELECT id, classification_status, article_url FROM notification_outbox")
+        ).all()
+        assert len(rows) == 5
+        assert all(row.article_url == "" and row.id == row.classification_status for row in rows)
+    command.check(config)
+    command.downgrade(config, "20260924_06")
+    assert "article_url" not in {
+        column["name"] for column in inspect(engine).get_columns("notification_outbox")
+    }

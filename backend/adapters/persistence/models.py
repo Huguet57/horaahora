@@ -131,6 +131,7 @@ class NotificationOutboxRecord(Base):
     title: Mapped[str] = mapped_column(Text)
     body: Mapped[str] = mapped_column(Text)
     url: Mapped[str] = mapped_column(Text, default="")
+    article_url: Mapped[str] = mapped_column(Text, default="", server_default="")
     collapse_id: Mapped[str] = mapped_column(String(64))
     classification_status: Mapped[str] = mapped_column(
         String(20), default="legacy", server_default="legacy"

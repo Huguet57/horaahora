@@ -32,7 +32,7 @@ class Classifier:
         self.calls = 0
         self.level, self.groups, self.fail = level, groups, fail
 
-    def classify(self, title, summary, groups, *, timeout, content=""):
+    def classify(self, title, summary, groups, *, timeout, content=None):
         self.calls += 1
         if self.fail:
             raise TimeoutError()
@@ -222,7 +222,7 @@ class ArticleSource:
 
 
 class ContentClassifier(Classifier):
-    def classify(self, title, summary, groups, *, timeout, content=""):
+    def classify(self, title, summary, groups, *, timeout, content=None):
         self.received_content = content
         return super().classify(title, summary, groups, timeout=timeout)
 
@@ -237,7 +237,7 @@ def test_article_is_fetched_once_and_forwarded_before_classification():
     service.ingest([item])
     service.ingest([item])
     assert classifier.calls == 1
-    assert classifier.received_content == articles.text
+    assert classifier.received_content.text == articles.text
     assert len(articles.calls) == 1
     assert articles.calls[0][0] == item.action_url
 
@@ -254,7 +254,7 @@ def test_article_unavailable_falls_back_to_summary(error):
     result = service.ingest([hour_item("new")])
     assert result.classified == 1
     assert result.classification_skipped == 0
-    assert classifier.received_content == ""
+    assert classifier.received_content is None
     assert len(repo.claim_deliveries(10)) == 1
 
 
@@ -279,3 +279,42 @@ def test_article_fetch_that_exhausts_budget_leaves_jev_unstarted(monkeypatch):
     assert len(repo.pending_classifications()) == 1
     service.ingest([], deadline=110)
     assert classifier.calls == 1
+
+
+@pytest.mark.parametrize("separate_link", [False, True])
+def test_content_provenance_is_frozen_when_discovered(separate_link):
+    _, repo = repositories()
+    classifier, articles = ContentClassifier(), ArticleSource()
+    service = NotificationIngestionService(repo, classifier, [], article_source=articles)
+    service.ingest([hour_item("baseline")])
+    article_url = "https://revistacastells.cat/hora-a-hora/actualitat/"
+    target = "https://revistacastells.cat/2015/perfil/" if separate_link else article_url
+    item = replace(hour_item("new"), article_url=article_url, action_url=target)
+    service.ingest([item], deadline=time.monotonic() - 1)
+    # A feed refresh must not change the reference paired with the queued title/summary.
+    changed = replace(item, article_url=target, action_url=None)
+    service.ingest([changed])
+    content = classifier.received_content
+    assert content.text == articles.text
+    assert content.url == target
+    assert content.role == ("linked_context" if separate_link else "article_body")
+    with Session(repo.engine) as session:
+        record = session.scalar(
+            select(NotificationOutboxRecord).where(NotificationOutboxRecord.external_id == "new")
+        )
+        assert record.article_url == article_url
+
+
+def test_pre_migration_pending_content_has_conservative_provenance():
+    _, repo = repositories()
+    classifier, articles = ContentClassifier(), ArticleSource()
+    service = NotificationIngestionService(repo, classifier, [], article_source=articles)
+    service.ingest([hour_item("baseline")])
+    service.ingest([hour_item("new")], deadline=time.monotonic() - 1)
+    with Session(repo.engine) as session, session.begin():
+        record = session.scalar(
+            select(NotificationOutboxRecord).where(NotificationOutboxRecord.external_id == "new")
+        )
+        record.article_url = ""
+    service.ingest([])
+    assert classifier.received_content.role == "linked_context"

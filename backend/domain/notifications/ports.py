@@ -2,7 +2,11 @@ from datetime import datetime
 from typing import Protocol
 
 from backend.domain.content.models import HourByHourItem
-from backend.domain.notifications.interest import ClassificationCandidate, InterestClassification
+from backend.domain.notifications.interest import (
+    ClassificationCandidate,
+    InterestClassification,
+    NewsContent,
+)
 from backend.domain.notifications.models import (
     ActivePushSubscription,
     NotificationIngestionResult,
@@ -52,5 +56,11 @@ class NotificationGateway(Protocol):
 
 class NewsInterestClassifier(Protocol):
     def classify(
-        self, title: str, summary: str, groups: list[str], *, timeout: float, content: str = ""
+        self,
+        title: str,
+        summary: str,
+        groups: list[str],
+        *,
+        timeout: float,
+        content: NewsContent | None = None,
     ) -> InterestClassification: ...

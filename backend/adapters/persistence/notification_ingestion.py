@@ -88,6 +88,7 @@ def ingest_hour_by_hour(engine: Engine, items: list[HourByHourItem]) -> Notifica
                 title=item.display_title or item.title,
                 body=item.summary or item.title,
                 url=item.action_url or item.article_url,
+                article_url=item.article_url,
                 collapse_id=collapse_id(item.external_id),
                 created_at=now,
                 classification_status="baseline"

@@ -49,7 +49,7 @@ class NotificationIngestionService:
                     candidate.summary,
                     groups,
                     timeout=min(8, remaining),
-                    content=content,
+                    content=candidate.content_for_classification(content),
                 )
             except Exception as error:
                 self.repository.skip_classification(candidate.id, type(error).__name__)
@@ -64,13 +64,15 @@ class NotificationIngestionService:
             classified += 1
             logger.info(
                 "news_classified id=%s level=%s model=%s criteria=%s latency_ms=%d "
-                "content_chars=%d usage=%s",
+                "content_chars=%d input_mode=%s request_sha256=%s usage=%s",
                 candidate.id,
                 result.level.value,
                 result.model,
                 result.criteria_version,
                 (time.monotonic() - started) * 1000,
                 len(content),
+                result.input_metadata.get("mode", "summary"),
+                result.input_metadata.get("request_sha256", ""),
                 result.usage,
             )
         return NotificationIngestionResult(

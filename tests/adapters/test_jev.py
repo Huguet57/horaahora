@@ -2,7 +2,7 @@ import httpx
 import pytest
 
 from backend.adapters.ai.jev import JevNewsInterestClassifier
-from backend.domain.notifications.interest import InterestLevel
+from backend.domain.notifications.interest import InterestLevel, NewsContent
 
 
 def response():
@@ -95,7 +95,54 @@ def test_article_content_is_sent_in_the_same_request_as_title_summary_and_groups
 
     classifier = JevNewsInterestClassifier("test-secret", transport=httpx.MockTransport(handle))
     body = "La colla completa la millor actuació de la seva història."
-    result = classifier.classify("Resultats", "Crònica", ["a", "b"], content=body, timeout=2)
+    result = classifier.classify(
+        "Resultats",
+        "Crònica",
+        ["a", "b"],
+        content=NewsContent(body, "https://example.com/article", "article_body"),
+        timeout=2,
+    )
     assert len(requests) == 1
-    assert requests[0]["state"] == {"title": "Resultats", "summary": "Crònica", "content": body}
-    assert result.input_metadata == {"mode": "article", "content_chars": len(body)}
+    assert requests[0]["state"]["supplemental_text"]["text"] == body
+    assert result.input_metadata["mode"] == "article_body"
+    assert result.input_metadata["content_chars"] == len(body)
+
+
+@pytest.mark.parametrize("role", ["article_body", "linked_context"])
+def test_request_distinguishes_provenance_and_records_reproducible_hash(role):
+    import hashlib
+    import json
+
+    requests = []
+
+    def handle(request):
+        requests.append(request)
+        return httpx.Response(200, json=response())
+
+    classifier = JevNewsInterestClassifier("test-secret", transport=httpx.MockTransport(handle))
+    content = NewsContent(
+        "Un perfil de la colla amb fites antigues.", "https://example.com/2015/perfil/", role
+    )
+    results = [
+        classifier.classify(
+            "Notícia actual", "Resum actual", ["b", "a"], content=content, timeout=2
+        )
+        for _ in range(2)
+    ]
+    state = json.loads(requests[0].content)["state"]
+    assert state == {
+        "title": "Notícia actual",
+        "summary": "Resum actual",
+        "supplemental_text": {
+            "role": role,
+            "source_url": content.url,
+            "text": content.text,
+        },
+    }
+    metadata = results[0].input_metadata
+    assert metadata["mode"] == role
+    assert metadata["source_url"] == content.url
+    assert metadata["content_chars"] == len(content.text)
+    assert metadata["request_sha256"] == hashlib.sha256(requests[0].content).hexdigest()
+    assert results[1].input_metadata == metadata
+    assert "text" not in metadata

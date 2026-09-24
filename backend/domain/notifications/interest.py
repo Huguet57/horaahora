@@ -1,6 +1,7 @@
 import unicodedata
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Literal
 
 
 class InterestLevel(str, Enum):
@@ -62,8 +63,27 @@ class InterestClassification:
 
 
 @dataclass(frozen=True, slots=True)
+class NewsContent:
+    text: str
+    url: str
+    role: Literal["article_body", "linked_context"]
+
+
+@dataclass(frozen=True, slots=True)
 class ClassificationCandidate:
     id: str
     title: str
     summary: str
     url: str
+    article_url: str = ""
+
+    def content_for_classification(self, text: str) -> NewsContent | None:
+        if not text:
+            return None
+        # Separate links (and legacy rows with unknown provenance) are context.
+        role = (
+            "article_body"
+            if self.article_url and self.article_url == self.url
+            else "linked_context"
+        )
+        return NewsContent(text, self.url, role)

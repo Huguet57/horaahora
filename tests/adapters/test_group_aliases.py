@@ -71,4 +71,4 @@ def test_jev_sends_catalog_aliases_for_all_groups_and_keeps_unknown_agenda_group
     )
     assert len(requests) == 1
     assert len(requests[0]["questions"]) == len(catalog) + 1
-    assert result.criteria_version == CRITERIA_VERSION == "castells-interest-v5"
+    assert result.criteria_version == CRITERIA_VERSION == "castells-interest-v8"
