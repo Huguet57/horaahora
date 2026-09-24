@@ -262,10 +262,17 @@ Low per informació rutinària, Medium per actualitat interessant i High per fet
 excepcionals, diades històriques i castells inèdits d'una colla, tant anunciats com
 assolits. La fita es valora a escala de cada colla. Jev utilitza el títol, el resum i
 el cos públic de l’article quan està disponible, i no ha d’inventar el context
-històric que hi falti.
+històric que hi falti. Les recuperacions i els millors registres de temporada són
+Medium; High requereix una fita històrica o un fet excepcional actual.
 
-Abans de la petició única a Jev, el backend llegeix l’enllaç original de la notícia:
-la crònica, el post públic o la transcripció disponible. Admet Revista Castells,
+Abans de la petició única a Jev, el backend llegeix la destinació de la notícia:
+la crònica, el post públic o la transcripció disponible. L’outbox conserva per separat
+la URL de la notícia original i la destinació de l’avís, tal com eren en detectar-la.
+Si coincideixen, el text es marca `article_body`; si són diferents, `linked_context`.
+Els enllaços de context poden ampliar el fet actual, però els seus fets antics o
+altres protagonistes no han de substituir la notícia. Aquesta distinció s’aplica
+tant a l’interès com a les colles. Les files antigues sense procedència coneguda
+utilitzen conservadorament `linked_context`. Admet Revista Castells,
 El Món Casteller, Instagram, X, YouTube, 3Cat i el Diari Digital de la URV. Conserva
 el text editorial, els peus de publicacions i les transcripcions públiques, amb un
 límit de 20.000 caràcters, 2 MB d’HTML i 5 segons de lectura. Només elimina elements
@@ -276,8 +283,9 @@ Els enllaços no admesos (incloent-hi PDF), les stories sense text públic, les 
 sense cos i els errors de lectura fan servir el títol i el resum. No es busquen
 altres articles per completar una nota breu. La lectura es fa fora de transaccions
 d’escriptura; si esgota el pressupost del cron abans de cridar Jev, la notícia queda
-pendent per a la següent execució. L’outbox registra si s’ha utilitzat text addicional
-i la seva longitud; els logs inclouen latència, consum i errors de lectura. No es
+pendent per a la següent execució. L’outbox registra el tipus i la URL del text
+addicional, la longitud i el SHA-256 del cos de la petició. Els logs inclouen aquest
+hash, el tipus d’entrada, la latència, el consum i els errors de lectura. No es
 desa el cos complet a la base de dades.
 
 El catàleg d'àlies és a `backend/adapters/ai/group_aliases.py`, amb una entrada explícita
@@ -286,7 +294,7 @@ Combina sobrenoms documentats, noms abreujats distintius i variants descriptives
 per a les colles sense sobrenom conegut. No s'utilitzen topònims sols ni sigles inventades.
 Les fonts són al mateix fitxer; les proves exigeixen cobertura del directori i àlies
 sense duplicats entre colles. Els canvis al catàleg han d'incrementar `CRITERIA_VERSION`
-(actualment `castells-interest-v5`), ja que poden modificar les classificacions futures.
+(actualment `castells-interest-v8`), ja que poden modificar les classificacions futures.
 
 Configura `JEV_API_KEY` només al servidor i `JEV_MODEL=jev-1.13.0`. La clau és independent
 de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` accepta
@@ -317,6 +325,23 @@ Per validar el model en català sense escriure a la base de dades ni enviar avis
 uv run --env-file .env.jev.local python -m scripts.smoke_jev_news --live-count 5
 ```
 
+La mostra de regressió versionada conté 40 casos en català, amb paràfrasis del text
+addicional i les decisions acordades incorporades. No és una estimació d’exactitud
+sobre tot el feed. Es pot executar amb repeticions explícites, sense base de dades:
+
+```bash
+uv run --env-file .env.jev.local python -m scripts.evaluate_jev_news \
+  --output /tmp/jev-evaluation.json --repetitions 3
+```
+
+L’avaluador mostra discrepàncies editorials, falsos High, High perduts i variació
+entre repeticions; retorna error si hi ha discrepàncies. No s’executa amb credencials
+en CI. Les proves automatitzades cobreixen el contracte, la procedència i la ingesta.
+Els resultats es desen una sola vegada en producció: el sistema no depèn que Jev
+retorni exactament la mateixa resposta en una nova crida. Vegeu
+[avaluació i límits coneguts](docs/jev-evaluation-20260924.md) i
+[ordre de desplegament i rollback](docs/jev-notifications-rollout.md).
+
 El fitxer local amb la clau ha de quedar fora de Git i Vercel. El smoke mostra nivells,
 colles, latència i consum, sense mostrar credencials. Comprova diades històriques, primers
 intents i assoliments inèdits per a una colla, i els distingeix d'estrenes de temporada
@@ -324,7 +349,7 @@ i prèvies sense context històric. Retorna un codi d'error si no coincideix amb
 esperats. Els logs de classificació i el cron exposen `classified` i
 `classification_skipped` per diagnosticar omissions.
 
-Desplegament: configurar el secret, aplicar Alembic (`20260924_06`), desplegar el backend
+Desplegament: configurar el secret, aplicar Alembic fins a `20260924_07`, desplegar el backend
 compatible i verificar-lo; després publicar l'app iOS. No reclassificar ni notificar
 l'històric. Els outboxes previs a la migració només mantenen entregues ja pendents per a
 subscripcions Low. Un rollback de codi pot mantenir les columnes additives; no rebaixar

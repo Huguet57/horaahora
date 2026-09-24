@@ -1,0 +1,431 @@
+{
+  "version": "castells-editorial-20260924-v1",
+  "description": "40 casos seleccionats de la captura de 500, amb titulars i resums públics i paràfrasis editorials del text addicional. Els casos derivats dels criteris no s’han de confondre amb etiquetes aprovades individualment per l’usuari. És una mostra de regressió, no una estimació estadística d’exactitud.",
+  "cases": [
+    {
+      "id": "news-006",
+      "title": "Els Castellers de Mallorca intentaran el 3de7.",
+      "summary": "Tenen previst portar-lo ala Diada de la Colla, el 16 d'octubre vinent a Palma. Veieu post .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dijous-24-11h-els-castellers-de-mallorca-intentaran-el-3de7/",
+      "label_basis": "user_feedback",
+      "content": {
+        "text": "Els Castellers de Mallorca preparen el 3de7 per a la seva diada a Palma. El post anuncia els assajos i la data.",
+        "url": "https://www.instagram.com/p/DdnxmeNIzNW/?stkn=c3BoNDAyOGwzczd1",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-010",
+      "title": "Sant Pere i Sant Pau i el Serrallo fan la seva millor actuació per Santa Tecla",
+      "summary": "La Jove torna a completar el 5de9f, mentre els Xiquets revaliden el 4de9f i deixen a mitges el 3",
+      "expected": "high",
+      "source_url": "https://www.elmoncasteller.cat/sant-pere-i-sant-pau-i-el-serrallo-fan-la-seva-millor-actuacio-per-santa-tecla/",
+      "label_basis": "user_feedback",
+      "content": {
+        "text": "Sant Pere i Sant Pau i els Xiquets del Serrallo han superat les millors actuacions de tota la seva trajectòria. Sant Pere i Sant Pau ha completat el seu millor conjunt de castells en una diada; el Serrallo ha fet un altre pas històric amb els castells de vuit.",
+        "url": "https://www.elmoncasteller.cat/sant-pere-i-sant-pau-i-el-serrallo-fan-la-seva-millor-actuacio-per-santa-tecla/",
+        "role": "article_body"
+      }
+    },
+    {
+      "id": "news-011",
+      "title": "Primera Santa Tecla de la història sense castells de 7. La Crònica.",
+      "summary": "Podeu llegir-la, amb les dades i els vídeos de la diada, aquí .",
+      "expected": "high",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimecres-23-18h-primera-santa-tecla-de-la-historia-sense-castells-de-7-la-cronica/",
+      "label_basis": "user_feedback",
+      "content": {
+        "text": "Per primera vegada des que Tarragona té quatre colles, totes les construccions de Santa Tecla han estat de vuit pisos o més. Sant Pere i Sant Pau i el Serrallo han fet les millors actuacions de la seva història.",
+        "url": "https://revistacastells.cat/2026/09/primera-santa-tecla-de-la-historia-sense-castells-de-7/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-035",
+      "title": "Els Bous de la Bisbal s’adjudiquen el Concurs Quarts Amunt amb una entrada triomfal a la gamma alta de 7",
+      "summary": "Els Bous estrenen construccions de gamma alta de set i Mediona completa el seu primer 5de7.",
+      "expected": "high",
+      "source_url": "https://www.elmoncasteller.cat/els-bous-de-la-bisbal-sadjudiquen-el-concurs-quarts-amunt-amb-una-entrada-triomfal-a-la-gamma-alta-de-7/",
+      "label_basis": "user_feedback",
+      "content": {
+        "text": "Els Bous han guanyat amb els seus primers castells de gamma alta de set. Han estrenat els dos bàsics amb agulla i han coronat la primera torre de set del seu historial. Mediona també ha completat per primer cop el 5de7.",
+        "url": "https://www.elmoncasteller.cat/els-bous-de-la-bisbal-sadjudiquen-el-concurs-quarts-amunt-amb-una-entrada-triomfal-a-la-gamma-alta-de-7/",
+        "role": "article_body"
+      }
+    },
+    {
+      "id": "news-037",
+      "title": "Els Verds regnen a Tarragona i els Xiquets recuperen el somriure",
+      "summary": "Els de Vilafranca completen el 3de10fm i signen la millor actuació feta mai a Tarragona, en una jornada en què la Vella domina el 4de9sf però ensopega amb el 4de10fm, la Jove deixa el 3de10fm en intent i els Xiquets recuperen la tripleta màgica",
+      "expected": "high",
+      "source_url": "https://www.elmoncasteller.cat/els-verds-regnen-a-tarragona-i-els-xiquets-recuperen-el-somriure/",
+      "label_basis": "user_feedback",
+      "content": {
+        "text": "Vilafranca ha fet el millor conjunt de castells mai assolit a Tarragona. El 3de10fm, dos castells de nou amb agulla i el pilar de vuit completen una actuació històrica.",
+        "url": "https://www.elmoncasteller.cat/els-verds-regnen-a-tarragona-i-els-xiquets-recuperen-el-somriure/",
+        "role": "article_body"
+      }
+    },
+    {
+      "id": "news-038",
+      "title": "Domini verd, ambició rosada, alegria matalassera i èxit del concurs de la Bisbal.",
+      "summary": "Crònica, resultats i vídeos del cap de setmana. Entreu aquí .",
+      "expected": "high",
+      "source_url": "https://revistacastells.cat/hora-a-hora/diumenge-20-21h-domini-verd-ambicio-rosada-alegria-matalassera-i-exit-del-concurs-de-la-bisbal/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "La crònica del cap de setmana destaca que Vilafranca ha fet la millor actuació que havia portat al Primer Diumenge de Festes. Els Bous també han estrenat construccions que no havien fet mai.",
+        "url": "https://revistacastells.cat/2026/09/domini-verd-ambicio-rosada-alegria-matalassera-i-exit-del-concurs-de-la-bisbal/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-047",
+      "title": "Les tres colles es reivindiquen a la Misericòrdia",
+      "summary": "Diada rodona amb l'estrena del castell de 9 dels Xiquets de Reus, el 4de9f revalidat dels Moixiganguers i la primera tripleta de 8 dels Castellers de Lleida des del 2012",
+      "expected": "medium",
+      "source_url": "https://www.elmoncasteller.cat/les-tres-colles-es-reivindiquen-a-la-misericordia/",
+      "label_basis": "user_feedback",
+      "content": {
+        "text": "Reus ha estrenat el castell de nou d’enguany, Igualada ha repetit el 4de9f i Lleida ha recuperat una tripleta de vuit que no feia des del 2012. Les tres formacions han signat els seus millors registres d’aquesta temporada.",
+        "url": "https://www.elmoncasteller.cat/les-tres-colles-es-reivindiquen-a-la-misericordia/",
+        "role": "article_body"
+      }
+    },
+    {
+      "id": "news-048",
+      "title": "La colla d’Euskadi estrena lloc d’assaig.",
+      "summary": "Es tracta d'un local cultural de toitularitat municipal a Sant Sebastià. Veieu fotos .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/diumenge-20-9h-la-colla-deuskadi-estrena-lloc-dassaig/",
+      "label_basis": "user_feedback"
+    },
+    {
+      "id": "news-056",
+      "title": "Els Bous guanyen el Concurs del Quarts Amunt, on tres colles han fet estrenes.",
+      "summary": "La nota anuncia la victòria dels Bous i publica els resultats de les sis colles. Indica que hi ha hagut estrenes, sense explicitar que siguin primeres de tota la història.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dissabte-19-20h-els-bous-guanyen-el-concurs-del-quarts-amunt-on-tres-colles-han-fet-estrenes/",
+      "label_basis": "user_feedback"
+    },
+    {
+      "id": "news-062",
+      "title": "Deu actuacions per a avui dissabte.",
+      "summary": "Reus, la Bisbal i Vilanova són les principals cites d'aquesa tarda. Veieu agenda i previsions .",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dissabte-9-8h-deu-actuacions-per-a-avui-dissabte/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "La prèvia presenta el calendari del cap de setmana i els objectius dels participants. Enumera les places, les colles i els castells que estan preparant per a les pròximes actuacions.",
+        "url": "https://revistacastells.cat/2026/09/el-primer-diumenge-de-festes-posa-a-prova-les-cartes-ambicioses-abans-del-concurs/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-077",
+      "title": "La Bisbal del Penedès estrena el Concurs de Quarts Amunt",
+      "summary": "La Bisbal acull la nova competició, amb la participació de sis colles petites i mitjanes.",
+      "expected": "high",
+      "source_url": "https://www.elmoncasteller.cat/la-bisbal-del-penedes-estrena-el-concurs-de-quarts-amunt/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "Els Bous preparen el primer intent de torre de set i del 3de7 amb agulla, dues construccions inèdites per a la colla. Viladecans també anuncia el seu primer 3de7 amb agulla. El programa inclou rondes, premis i activitats de la nova competició.",
+        "url": "https://www.elmoncasteller.cat/la-bisbal-del-penedes-estrena-el-concurs-de-quarts-amunt/",
+        "role": "article_body"
+      }
+    },
+    {
+      "id": "news-095",
+      "title": "La Jove convoca els Premis Agustí Forné a la Comunicació castellera.",
+      "summary": "Tenen tres categories: Informació i divulgació, Promoció, i Entreteniment i els candidats destaran seleccionats per un jurat integrat per cinc professionals a nivell nacional.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dilluns-14-17h-la-jove-convoca-els-premis-agusti-forne-a-la-comunicacio-castellera/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-102",
+      "title": "Els èxits del Serrallo i Barcelona marquen la Diada",
+      "summary": "La vigília de la Diada Nacional a Valls, culmina amb castells de 9 i pilars de 8 per les dues colles",
+      "expected": "high",
+      "source_url": "https://www.elmoncasteller.cat/els-exits-del-serrallo-i-barcelona-marquen-la-diada/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "El Serrallo ha carregat per primera vegada el 2de8f, el primer folre del seu historial. Barcelona ha recuperat el 5de8 i altres colles han presentat novetats de temporada.",
+        "url": "https://www.elmoncasteller.cat/els-exits-del-serrallo-i-barcelona-marquen-la-diada/",
+        "role": "article_body"
+      }
+    },
+    {
+      "id": "news-110",
+      "title": "Els Castellers of Eire fan el seu primer pilar de 4.",
+      "summary": "Va ser ahir en un acte a Dublín per a celebrar la Diada. Veieu vídeo .",
+      "expected": "high",
+      "source_url": "https://revistacastells.cat/hora-a-hora/diumenge-13-11h-els-castellers-of-eire-fan-el-seu-primer-pilar-de-4/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-111",
+      "title": "Terrassa, Horta i Hostalets de Pierola centren l’agenda d’avui.",
+      "summary": "Hi ha sis actuacions programades. Veieu aquí .",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/diumenge-13-8h-terrassa-horta-i-hostalets-de-pierola-centren-lagenda-davui/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "El calendari del cap de setmana de la Diada Nacional recull actuacions a Terrassa, Horta i els Hostalets de Pierola, amb les previsions de castells de cada colla.",
+        "url": "https://revistacastells.cat/2026/09/gran-accent-casteller-en-el-cap-de-setmana-llarg-de-la-diada-nacional/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-114",
+      "title": "Castellar fa el 3de6s, el primer des de la pandèmia.",
+      "summary": "Festa Major de Castellar. Castellers de l'Adroc: 3de6, 3de6a; Castellers de Castellar: 5de6, 3de6s, 4de6; Esperxats de l'Estany: 3de6, 5de6, (id)4de6, 4de6.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dissabte-12-20-15/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-116",
+      "title": "Bàsics de 7 de Sitges i Sarrià.",
+      "summary": "Festa Major de Vallvidrera. Castellers de Sarrià: 3de7, 4de7, 5de6; Jove de Sitges: 3de7, 4de7, 5de6.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dissabte-12-19h-basics-de-7-de-sitges-i-sarria/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-125",
+      "title": "Castells de 7 a Badalona.",
+      "summary": "Actuació de la Diada. Castellers de Badalona 5de7, 3de7, (id)4de7, 4de7; Castellers de la Sagrada Família: 3de7, 4de7, 5de6; Castellers de Terrassa: 4de7a, 4de7, 3de7.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/divendres-11-15-30h-castells-de-7-a-badalona/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-128",
+      "title": "5de8 dels Castellers de Barcelona.",
+      "summary": "Festa Major del Poblenou a Barcelona. Castellers de Barcelona: 5de8, (id)2e8f, 2de8f, 3de8, pde6(c); Colla Castellera de l’Esquerra de l’Eixample: 5de6, 3de7, (id)4de7, 4de7.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/divendres-11-13-45h-5de8-dels-castellers-de-barcelona/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-141",
+      "title": "La diada castellera de la Mercè Històrica commorarà el 25è aniversari del primer 3de9f dels Castellers de Barcelona.",
+      "summary": "La presentació de l'actuació serà dilluns 14 de setembre a les 19 hores al Palau de la Virreina.",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dijous-10-11h-la-diada-castellera-de-la-merce-historica-commorara-el-25e-aniversari-del-primer-3de9f-dels-castellers-de-barcelona/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-163",
+      "title": "Els Castellers de Sarrià assagen el 3de8 fins a quints i el 2de7 fins a dosos.",
+      "summary": "També fan proves de pde7f a la barra. Veieu les imatges .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dilluns-7-15h-els-castellers-de-sarria-assagen-el-3de8-fins-a-quins-i-el-2de7-fins-a-dosos/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-174",
+      "title": "3de9f dels Xiquets de Valls a Montblanc.",
+      "summary": "Festes de la Serra a Montblanc.\r\nColla Joves Xiquets de Valls: 2de8f, 3de9f, 4de8.\r\nColla Vella dels Xiquets de Valls: 3de9f, 4de8p, 5de8, pde7f.\r\nTorraires de Montblanc: 3de7, 4de7(c), 2de6.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/diumenge-6-14h-3de9f-dels-xiquets-de-valls-a-montblanc/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-194",
+      "title": "Gairebé una vintena de places on veure castells avui dissabte.",
+      "summary": "Els Xiquets de Valls actuen a la Sagrada Família per homenatjar Antoni Gaudí. La prèvia .",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dissabte-5-9h-gairebe-una-vintena-de-places-on-veure-castells-avui-dissabte/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "La prèvia recull l’activitat castellera del dissabte i diumenge, les places i les colles participants. També exposa les previsions tècniques dels Minyons i d’altres formacions.",
+        "url": "https://revistacastells.cat/2026/09/el-dos-emmanillat-dels-minyons-torna-a-mirar-cap-a-sabadell/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-197",
+      "title": "Els Xiquets de Tarragona celebren el centenari el proper dissabte 12 de setembre.",
+      "summary": "L'acte institucional tindrà lloc al Teatre Tarragona.",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/divendres-4-15h-els-xiquets-de-tarragona-celebren-el-centenari-el-proper-dissabte-12-de-setembre/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-214",
+      "title": "La nova colla d’Horta s’estrena el 13 de setembre.",
+      "summary": "Actuaran al seu barri, amb els Castellers de Barcelona, els Marrecs i els Sagals.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimecres-2-10h-la-nova-colla-dhorta-sestrena-el-13-de-setembre/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-218",
+      "title": "Anunciat el llistat defintiu del Concurs.",
+      "summary": "Dues colles han anunciat que no hi participaran. Llegiu article .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimarts-1-14h-anunciat-el-llistat-defintiu-del-concurs/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "S’ha publicat la relació definitiva de colles participants a les diferents jornades del Concurs. La llista confirma les places que ja s’havien anat definint.",
+        "url": "https://revistacastells.cat/2026/09/classificacio-concurs-llistat-definitiu/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-221",
+      "title": "Nou article: ‘Setembre: exigència o conservadorisme?’.",
+      "summary": "Un mes que concentra part de les grans diades i reptes del curs. Llegiu l'article .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimarts-1-9h-nou-article-setembre-exigencia-o-conservadorisme/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "L’article analitza les decisions tècniques de setembre: quan arriscar per avançar i quan consolidar els castells ja assolits abans del Concurs.",
+        "url": "https://revistacastells.cat/2026/09/setembre-exigencia-o-conservadorisme/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-246",
+      "title": "La clàssica de 8 torna a ser dels Xicots",
+      "summary": "Els verds completen els castells que demà, a la Diada de Sant Fèlix, voldran aixecar un pis més",
+      "expected": "medium",
+      "source_url": "https://www.elmoncasteller.cat/la-classica-de-8-torna-a-ser-dels-xicots/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "Els Xicots han tornat a reunir els dos bàsics de vuit i la torre de set. No completaven aquesta combinació des del 2019; la torre és la primera de la temporada.",
+        "url": "https://www.elmoncasteller.cat/la-classica-de-8-torna-a-ser-dels-xicots/",
+        "role": "article_body"
+      }
+    },
+    {
+      "id": "news-280",
+      "title": "Els Castellers de Tortosa estrenen mural.",
+      "summary": "És obra de Jordi Estrader. Veieu aquí .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimarts-25-10h-els-castellers-de-tortosa-estrenen-mural/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "La colla ha presentat un mural nou al seu espai.",
+        "url": "https://www.instagram.com/p/DcWOtkws59-agdGE54xTmg9ON0a46XPsgUYCwY0/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-314",
+      "title": "Classificació per al Concurs: Sacsejada confirmada de Sant Pere i Sant Pau.",
+      "summary": "La diada de Sant Magí ha acabat de definir les places per al Concurs de Castells de diumenge. Llegiu l'article.",
+      "expected": "high",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dijous-20-16h-classificacio-per-al-concurs-sacsejada-confirmada-de-sant-pere-i-sant-pau/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "Sant Pere i Sant Pau ha fet la millor actuació de tota la seva història per Sant Magí. Aquest resultat també l’ha fet pujar posicions i ha acabat de definir les places de diumenge al Concurs.",
+        "url": "https://revistacastells.cat/2026/08/classificacio-per-al-concurs-sacsejada-confirmada-de-sant-pere-i-sant-pau/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-325",
+      "title": "El Pom de Baix: El fenomen dels Govindes de l’Índia.",
+      "summary": "Amb Toni Bach, ex-cap de colla dels Castellers de Vilafranca i que continua en contacte permanent amb el món govinda, i Fèlix Miret i Santi Terraza, que van formar part de la primera expedició castellera que va fer un pilar a l’Índia, ara fa 20 anys. Escolteu el programa .",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimecres-19-12h-el-pom-de-baix-el-fenomen-dels-govindes-de-lindia/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "El programa convida a escoltar una conversa sobre les torres humanes dels Govindes de l’Índia.",
+        "url": "https://revistacastells.cat/2026/08/el-pom-de-baix-el-fenomen-dels-govindes-de-lindia/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-340",
+      "title": "Mor Manel Huguet, ‘Gastby’, emblemàtic component dels Castellers de Vilafranca.",
+      "summary": "El casteller ha mort després d’un accident. La notícia explica la commoció a Vilafranca i enllaça, per ampliar la seva trajectòria, un perfil publicat el 2015.",
+      "expected": "high",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimarts-19h-mor-joan-huguet-gastby-emblematic-component-dels-castellers-de-vilafranca/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "Perfil publicat el 2015 sobre veterans dels troncs. Presenta la trajectòria de Manel Huguet als Castellers de Vilafranca, de Quico Pino als Xiquets de Tarragona i d’altres veterans de la Joves i dels Minyons. Repasa construccions i responsabilitats que havien assumit anys enrere.",
+        "url": "https://revistacastells.cat/2015/08/els-vells-rockers-del-mon-casteller/",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-373",
+      "title": "La Jove fa proves de 3 i 4de10fm.",
+      "summary": "En l'assaig celebrat ahir (una part al local i l'altra a la plaça Verdaguer) va pujar el 3 amb una part del folre i de les manilles fins a quints i en el cas del 4 fins a quarts, a més de proves de 5de9f i de 4de9fa fins a quints. Veieu fotos .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dissabte-8-8h-la-jove-fa-proves-de-3-i-4de10fm/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-380",
+      "title": "La Vella treu pit pels 25 4de9sf descarregats.",
+      "summary": "No és un castell més. És el nostre castell resa la publicacló amb les imatges de tots els completats des de Sant Fèlix el 2015. Veieu post.",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dijous-6-18h-la-vella-treu-pit-pels-25-4de9sf-descarregats/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "La colla comparteix un recull d’imatges dels vint-i-cinc 4de9 sense folre completats al llarg dels anys, des del 2015.",
+        "url": "https://www.instagram.com/p/Dbsa31Zt8Dv/?igsh=MTdtNXc0cmxidTlhcQ%3D%3D",
+        "role": "linked_context"
+      }
+    },
+    {
+      "id": "news-389",
+      "title": "Els Castellers de Sant Vicenç rememoren els seus 100 pilars de 5.",
+      "summary": "Ho han fet en aquest vídeo amb imatges d'alguns dels espadats al llarg dels anys. Veieu aquí.",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimecres-5-18h-els-castellers-de-sant-vicenc-rememoren-els-seus-100-pilars-de-5/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-393",
+      "title": "Els Xiquets de Flix faran la seva primera actuació el 16 d’agost.",
+      "summary": "La nova i primera colla de la Ribera d'Ebre faran un assaig especial demà dijous. Veieu promoció .",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dimecres-5-13h-els-xiquets-de-fliz-faran-la-seva-primera-actuacio-el-16-dagost/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-414",
+      "title": "Sant Pere i Sant Pau firma la millor actuació de la seva història.",
+      "summary": "Festa Major dels Pallaressos. Colla Castellera de Sant Pere i Sant Pau: 3de8, 4de8a, 4de8, pde6; Nois de la Torre: 3de7, 4de7, 4de7a; Xiquets de Cambrils: 3de6, 2de6, 3de6a.",
+      "expected": "high",
+      "source_url": "https://revistacastells.cat/hora-a-hora/diumenge-2-20-30h-sant-pere-i-sant-pau-firma-la-millor-actuacio-de-la-seva-historia/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-474",
+      "title": "Els Nens fan el 4de8 com a millor castell.",
+      "summary": "Diada de Santa Anna al vendrell. Nens del Vendrell: Tde7, 4de8, 7de7.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/diumenge-26-14-45h-els-nens-fan-el-4de8-om-a-millor-castell/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-481",
+      "title": "Primers 3de7(c) i 5de6 dels Castellers de Tortosa.",
+      "summary": "Tortosa ha carregat el 3de7 i ha completat el 5de6. La nota publica els resultats de la diada, sense precisar si les estrenes són de temporada o de tota la història.",
+      "expected": "medium",
+      "source_url": "https://revistacastells.cat/hora-a-hora/dissabte-25-22h-primers-3de7c-i-5de6-dels-castellers-de-tortosa-a-la-pineda/",
+      "label_basis": "editorial_application_of_criteria"
+    },
+    {
+      "id": "news-499",
+      "title": "Agenda i previsions del cap de setmana.",
+      "summary": "Les Santes i Vilallonga són les dues principals cites, si bé l'atenció també se centra en Constantí, Reus i el Vendrell. Llegiu aquí .",
+      "expected": "low",
+      "source_url": "https://revistacastells.cat/hora-a-hora/divendres-24-8h-agenda-i-previsions-del-cap-de-setmana/",
+      "label_basis": "editorial_application_of_criteria",
+      "content": {
+        "text": "La prèvia enumera els actes del cap de setmana, els horaris i les previsions de les colles per a les Santes i Vilallonga.",
+        "url": "https://revistacastells.cat/2026/07/les-santes-i-vilallonga-les-ultimes-dun-juliol-dalt-nivell/",
+        "role": "linked_context"
+      }
+    }
+  ]
+}
