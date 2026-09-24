@@ -1,18 +1,30 @@
 import time
 from dataclasses import replace
 
+import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.adapters.persistence.hour_by_hour_repository import SQLAlchemyHourByHourRepository
-from backend.adapters.persistence.models import NotificationOutboxRecord
+from backend.adapters.persistence.models import (
+    NotificationDeliveryRecord,
+    NotificationOutboxRecord,
+)
 from backend.application.notification_ingestion import NotificationIngestionService
+from backend.application.notifications import HourByHourNotificationCoordinator
 from backend.domain.notifications.interest import (
     GroupSelection,
     InterestClassification,
     InterestLevel,
 )
-from tests.application.test_notifications import hour_item, registration, repositories
+from tests.application.test_notifications import (
+    AcceptingGateway,
+    MutableSource,
+    hour_item,
+    registration,
+    repositories,
+)
+from tests.support.notifications import queue_recipients_before_threshold_changes
 
 
 class Classifier:
@@ -134,3 +146,65 @@ def test_old_clients_preserve_preferences_and_pending_deliveries_are_rechecked()
     assert repo.claim_deliveries(10) == []
     subscriptions.register(selected, environment="production", topic="app")
     assert repo.claim_deliveries(10) == []
+
+
+@pytest.mark.parametrize(
+    ("eligibility", "limit", "expected"),
+    [
+        ([False] * 5 + [True] * 3, 2, [5, 6]),
+        ([True, False, False, False, True, True], 2, [0, 4]),
+        ([False] * 5 + [True], 2, [5]),
+        ([False] * 5, 2, []),
+        ([False, True, True], 1, [1]),
+    ],
+)
+def test_claim_refills_after_preference_skips_and_respects_limit(eligibility, limit, expected):
+    subscriptions, repo = repositories()
+    queue_recipients_before_threshold_changes(subscriptions, repo, eligibility)
+
+    claimed = repo.claim_deliveries(limit)
+
+    assert [delivery.id for delivery in claimed] == [f"queued-{index}" for index in expected]
+    if len(expected) < limit:
+        with Session(repo.engine) as session:
+            assert all(
+                delivery.status == "skipped"
+                for delivery in session.scalars(select(NotificationDeliveryRecord))
+                if not eligibility[int(delivery.id.removeprefix("queued-"))]
+            )
+    remaining = repo.claim_deliveries(100)
+    assert {delivery.id for delivery in remaining} == {
+        f"queued-{index}"
+        for index, eligible in enumerate(eligibility)
+        if eligible and index not in expected
+    }
+    with Session(repo.engine) as session:
+        for delivery in session.scalars(select(NotificationDeliveryRecord)):
+            index = int(delivery.id.removeprefix("queued-"))
+            if eligibility[index]:
+                assert delivery.status == "processing"
+                assert delivery.attempt_count == 1
+            else:
+                assert delivery.status == "skipped"
+                assert delivery.last_error == "PreferenceChanged"
+                assert delivery.locked_until is None
+                assert delivery.attempt_count == 0
+
+
+def test_coordinator_sends_eligible_recipients_in_the_same_run_after_skips():
+    subscriptions, repo = repositories()
+    service = queue_recipients_before_threshold_changes(
+        subscriptions, repo, [False] * 5 + [True] * 3
+    )
+    gateway = AcceptingGateway()
+    result = HourByHourNotificationCoordinator(
+        repo,
+        MutableSource([]),
+        gateway,
+        enabled=True,
+        ingestion_service=service,
+        batch_size=2,
+    ).run()
+
+    assert result.attempted == result.delivered == 2
+    assert [delivery.id for delivery in gateway.deliveries] == ["queued-5", "queued-6"]

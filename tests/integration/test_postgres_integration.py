@@ -13,7 +13,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from backend.adapters.persistence.database import Database
-from backend.adapters.persistence.models import RateLimitBucketRecord
+from backend.adapters.persistence.models import NotificationDeliveryRecord, RateLimitBucketRecord
 from backend.adapters.persistence.notification_repository import (
     SQLAlchemyNotificationRepository,
 )
@@ -23,7 +23,7 @@ from backend.adapters.persistence.push_subscription_repository import (
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import PushSubscriptionRegistration
-from tests.support.notifications import ingest
+from tests.support.notifications import ingest, queue_recipients_before_threshold_changes
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "")
 PUBLIC_TABLES = {
@@ -163,6 +163,34 @@ def test_postgres_skip_locked_claims_each_delivery_once(
         claims = list(executor.map(lambda _: repository.claim_deliveries(limit=1), range(2)))
 
     assert sum(len(claim) for claim in claims) == 1
+
+
+def test_postgres_refills_after_preference_skips_without_claiming_locked_rows(
+    postgres_database: Database,
+) -> None:
+    repository = SQLAlchemyNotificationRepository(postgres_database)
+    subscriptions = SQLAlchemyPushSubscriptionRepository(postgres_database)
+    queue_recipients_before_threshold_changes(subscriptions, repository, [False] * 5 + [True] * 3)
+
+    with Session(postgres_database.engine) as other_worker, other_worker.begin():
+        other_worker.scalar(
+            select(NotificationDeliveryRecord)
+            .where(NotificationDeliveryRecord.id == "queued-5")
+            .with_for_update()
+        )
+        claimed = repository.claim_deliveries(limit=2)
+        assert [delivery.id for delivery in claimed] == ["queued-6", "queued-7"]
+
+    # A row skipped because another worker held its lock stays available after release.
+    assert [delivery.id for delivery in repository.claim_deliveries(limit=1)] == ["queued-5"]
+    with Session(postgres_database.engine) as session:
+        skipped = session.scalars(
+            select(NotificationDeliveryRecord).where(
+                NotificationDeliveryRecord.id.in_([f"queued-{index}" for index in range(5)])
+            )
+        ).all()
+        assert all(delivery.status == "skipped" for delivery in skipped)
+        assert all(delivery.attempt_count == 0 for delivery in skipped)
 
 
 def _item(external_id: str) -> HourByHourItem:
