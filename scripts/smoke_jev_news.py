@@ -34,6 +34,50 @@ EXAMPLES = [
         "La CCCC presenta conclusions rellevants sobre els canvis en la participació de les colles.",
         "medium",
     ),
+    (
+        "Sant Pere i Sant Pau i el Serrallo fan la seva millor actuació per Santa Tecla",
+        "La Jove torna a completar el 5de9f, mentre els Xiquets revaliden el 4de9f "
+        "i deixen a mitges el 3",
+        "high",
+    ),
+    (
+        "Una colla de set signa la millor diada de la seva història",
+        "La colla supera la seva millor actuació de tots els temps amb tres castells de set.",
+        "high",
+    ),
+    (
+        "La colla descarrega el 3de7 per primer cop a la seva història",
+        "Mai abans havia assolit aquest castell; avui l'ha completat per primera vegada.",
+        "high",
+    ),
+    (
+        "La colla anuncia el primer intent de 3de7 de la seva història",
+        "L'equip tècnic confirma que diumenge provaran aquest castell inèdit per a la colla.",
+        "high",
+    ),
+    (
+        "Els Xiquets de Reus completen el primer 3de9f de la temporada",
+        "És el primer d'aquest any; ja l'havien descarregat en temporades anteriors.",
+        "medium",
+    ),
+    (
+        "Els Castellers de Mallorca intentaran el 3de7.",
+        "Tenen previst portar-lo ala Diada de la Colla, el 16 d'octubre vinent a Palma. "
+        "Veieu post .",
+        "medium",
+    ),
+    (
+        "L’equip de la CBS que farà un especial de castells entrarà avui a la TAP "
+        "a localitzar l’espai.",
+        "Seran el 4 d'octubre al Concurs per elaborar un programa 60 minuts dedicat als castells.",
+        "medium",
+    ),
+    (
+        "Nou article: ‘El Concurs amplia la mirada internacional’.",
+        "Més de 300 professionals de més d’un centenar de capçaleres de gairebé una vintena "
+        "de països han sol·licitat l'acreditació. Llegiu l'article .",
+        "medium",
+    ),
 ]
 
 
