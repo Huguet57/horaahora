@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Privacy policy</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Last updated: 26 August 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Last updated: 24 September 2026</p>
   <p>This policy explains how the current version of Castells en vena, a free app with no user accounts, processes personal data.</p>
 
   <h2>1. Controller</h2>
@@ -44,7 +44,7 @@
   <ul>
     <li>Calculator conversations, including their titles and messages.</li>
     <li>Local copies of the agenda and Hour by Hour content to improve availability and offline reading.</li>
-    <li>App preferences and a random installation identifier. It is not an advertising identifier and is not used to track you across apps or websites.</li>
+    <li>Local display preferences. When notifications are enabled, the interest threshold and followed groups are also synchronized with the backend, as explained below.</li>
   </ul>
   <p>Conversations can be deleted individually. Other local data is removed when the app is uninstalled or its data is deleted through the operating system.</p>
 
@@ -57,6 +57,9 @@
 
   <h3>Notifications</h3>
   <p>If you voluntarily enable notifications, iOS manages the permission and Apple assigns an Apple Push Notification service (APNs) token to this installation. The app sends the backend that token, the random installation identifier, app version and language so that requested alerts can be delivered. They are not used for analytics, advertising or tracking. When notifications are disabled or Apple invalidates the token, the backend immediately replaces it with a revocation marker.</p>
+
+  <p>While notifications are enabled, the minimum interest level (Low, Medium or High) and groups selected in the Agenda are also sent to personalize alerts. Changes synchronize when the app is opened; while offline, the server uses the last settings it received. Jev, from TypeSafe AI, classifies public news titles and summaries. It does not receive APNs tokens, installation identifiers or personal preferences. Our backend combines the classification with followed groups.</p>
+  <p>The threshold and group selection stored in the subscription are cleared when the token is revoked; the local copy is retained. Temporary copies used to prepare an alert are cleared when its classification finishes or is skipped.</p>
 
   <h3>Support communications</h3>
   <p>When you select “Contact support”, the app prepares an editable email containing the version, build number and technical identifier. This information is only transmitted if you review the email and manually tap the send button; you can also cancel it. If you send it, your email address, message contents and any files you choose to attach will be processed. The app does not export conversations or attach them automatically.</p>
@@ -74,6 +77,7 @@
     <li><strong>Vercel:</strong> backend hosting and execution. The primary function is configured in Paris (<code>cdg1</code>), although Vercel and its subprocessors may process data in other countries.</li>
     <li><strong>Supabase:</strong> managed PostgreSQL database in the Paris region storing synchronized content, technical security counters and active notification subscriptions.</li>
     <li><strong>OpenAI:</strong> linguistic interpretation of calculator queries through the API. Requests are sent with response storage disabled (<code>store: false</code>).</li>
+    <li><strong>TypeSafe AI (Jev):</strong> classifies public news content by relevance and the groups involved.</li>
     <li><strong>Apple:</strong> app distribution, system permissions and APNs when you enable notifications.</li>
     <li><strong>Google/Gmail:</strong> receiving and managing emails you voluntarily send to the support or privacy contact.</li>
   </ul>
@@ -110,7 +114,7 @@
   <p>Proportionate measures are applied, including HTTPS communications, restricted infrastructure access and no first-party chat persistence on the backend. No system is completely infallible.</p>
   <p>Material changes will be published at these same URLs and the date will be updated. If a change requires consent, it will be requested before the change applies.</p>
 
-  <footer>Castells en vena · Privacy policy · 26 August 2026</footer>
+  <footer>Castells en vena · Privacy policy · 24 September 2026</footer>
 </main>
 </body>
 </html>

@@ -107,3 +107,5 @@ def _invalidate(record: PushSubscriptionRecord, now: datetime) -> None:
     record.invalidated_at = now
     record.updated_at = now
     record.device_token = revoked_token(record.id)
+    record.minimum_interest = "low"
+    record.group_selection = {"mode": "all", "keys": []}

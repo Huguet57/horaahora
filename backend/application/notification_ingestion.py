@@ -6,6 +6,7 @@ from backend.domain.notifications.models import NotificationIngestionResult
 from backend.domain.notifications.ports import NewsInterestClassifier, NotificationRepository
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 NOTIFICATION_LOCK_KEY = 2_026_072_201
 
 

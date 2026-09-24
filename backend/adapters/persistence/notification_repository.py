@@ -158,6 +158,8 @@ class SQLAlchemyNotificationRepository:
                 subscription.invalidated_at = now
                 subscription.updated_at = now
                 subscription.device_token = revoked_token(subscription.id)
+                subscription.minimum_interest = "low"
+                subscription.group_selection = {"mode": "all", "keys": []}
             session.execute(
                 update(NotificationDeliveryRecord)
                 .where(
@@ -184,6 +186,8 @@ class SQLAlchemyNotificationRepository:
                 subscription.invalidated_at = database_now
                 subscription.updated_at = database_now
                 subscription.device_token = revoked_token(subscription.id)
+                subscription.minimum_interest = "low"
+                subscription.group_selection = {"mode": "all", "keys": []}
             deliveries = session.execute(
                 delete(NotificationDeliveryRecord).where(
                     NotificationDeliveryRecord.created_at < delivery_cutoff

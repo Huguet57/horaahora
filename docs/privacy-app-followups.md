@@ -14,6 +14,8 @@ Aquest document separa els controls de privacitat ja disponibles del treball fut
 - Els tokens es desen a Supabase exclusivament per lliurar notificacions, es reenvien quan APNs els rota i se substitueixen per una marca de revocació quan l'usuari desactiva els avisos o Apple els invalida.
 - El rate limiting, el contingut sincronitzat, l'outbox i les entregues també es conserven a PostgreSQL; les converses continuen només al dispositiu.
 
+- Les notificacions sincronitzen el llindar d'interès i les colles seguides amb el backend. Jev rep només el contingut públic de les notícies; la personalització es calcula al backend.
+
 ## Pendent
 
 ### Compartició explícita de converses

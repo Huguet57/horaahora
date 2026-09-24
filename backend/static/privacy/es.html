@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Política de privacidad</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Última actualización: 26 de agosto de 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Última actualización: 24 de septiembre de 2026</p>
   <p>Esta política explica cómo trata los datos personales la versión actual de Castells en vena, una app gratuita y sin cuenta de usuario.</p>
 
   <h2>1. Responsable</h2>
@@ -44,7 +44,7 @@
   <ul>
     <li>Conversaciones de la calculadora, incluidos sus títulos y mensajes.</li>
     <li>Copias locales de la agenda y de Hora a Hora para mejorar la disponibilidad y la lectura sin conexión.</li>
-    <li>Preferencias de la app y un identificador de instalación aleatorio. No es un identificador publicitario ni se utiliza para seguirte entre apps o sitios web.</li>
+    <li>Preferencias locales de visualización. Al activar las notificaciones, el umbral de interés y las colles seguidas también se sincronizan con el backend, como se explica a continuación.</li>
   </ul>
   <p>Las conversaciones pueden eliminarse individualmente. Los demás datos locales desaparecen al desinstalar la app o borrar sus datos desde el sistema.</p>
 
@@ -57,6 +57,9 @@
 
   <h3>Notificaciones</h3>
   <p>Si activas voluntariamente las notificaciones, iOS gestiona el permiso y Apple asigna un token de Apple Push Notification service (APNs) a esta instalación. La app envía al backend ese token, el identificador aleatorio de instalación, la versión de la app y el idioma para poder entregar los avisos solicitados. No se utilizan para analítica, publicidad ni seguimiento. Al desactivar las notificaciones o cuando Apple invalida el token, el backend lo sustituye inmediatamente por una marca de revocación.</p>
+
+  <p>Con las notificaciones activas, también se envían el nivel mínimo de interés (Low, Medium o High) y las colles seleccionadas en la Agenda para personalizar los avisos. Los cambios se sincronizan al abrir la app; sin conexión se aplica la última configuración recibida por el servidor. Jev, de TypeSafe AI, clasifica el título y el resumen públicos de las noticias. No recibe el token APNs, el identificador de instalación ni las preferencias personales. La combinación con las colles seguidas se calcula en nuestro backend.</p>
+  <p>El umbral y la selección de colles guardados en la suscripción se vacían al revocar el token; la copia local se conserva. Las copias temporales utilizadas para preparar un aviso se eliminan al completar u omitir su clasificación.</p>
 
   <h3>Comunicaciones de soporte</h3>
   <p>Al seleccionar «Contacta con soporte», la app prepara un correo editable con la versión, el número de build y el identificador técnico. Esta información solo se transmite si revisas el correo y pulsas manualmente el botón de envío; también puedes cancelarlo. Si lo envías, se tratarán la dirección de correo, el contenido del mensaje y los archivos que decidas adjuntar. La app no exporta conversaciones ni las adjunta automáticamente.</p>
@@ -74,6 +77,7 @@
     <li><strong>Vercel:</strong> alojamiento y ejecución del backend. La función principal está configurada en París (<code>cdg1</code>), aunque Vercel y sus subencargados pueden tratar datos en otros países.</li>
     <li><strong>Supabase:</strong> base de datos PostgreSQL gestionada en la región de París donde se conservan el contenido sincronizado, los contadores técnicos de seguridad y las suscripciones de notificaciones activas.</li>
     <li><strong>OpenAI:</strong> interpretación lingüística de las consultas mediante la API. Las peticiones se envían con la opción de no almacenamiento de la respuesta activada (<code>store: false</code>).</li>
+    <li><strong>TypeSafe AI (Jev):</strong> clasificación del contenido público de las noticias por relevancia y colles implicadas.</li>
     <li><strong>Apple:</strong> distribución de la app, permisos del sistema y APNs cuando activas las notificaciones.</li>
     <li><strong>Google/Gmail:</strong> recepción y gestión de los correos que envíes voluntariamente al contacto de soporte o privacidad.</li>
   </ul>
@@ -110,7 +114,7 @@
   <p>Se aplican medidas proporcionadas, como comunicaciones HTTPS, acceso restringido a la infraestructura y ausencia de persistencia propia de los chats en el backend. Ningún sistema es completamente infalible.</p>
   <p>Los cambios materiales se publicarán en estas mismas URLs y se actualizará la fecha. Si un cambio requiere consentimiento, se solicitará antes de aplicarlo.</p>
 
-  <footer>Castells en vena · Política de privacidad · 26 de agosto de 2026</footer>
+  <footer>Castells en vena · Política de privacidad · 24 de septiembre de 2026</footer>
 </main>
 </body>
 </html>

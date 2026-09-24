@@ -91,7 +91,7 @@ python -m backend.jobs.sync_agenda --from-month 2026-07 --to-month 2026-07
 incloses les categories actives, discontínues, en formació, universitàries i de l'exterior.
 No consulta la web de la CCCC en temps d'execució. L'app en conserva una còpia a
 `UserDefaults`, la combina amb les colles observades a l'agenda i aplica el filtre només al
-dispositiu; les preferències de seguiment no s'envien al backend.
+dispositiu; les preferències de seguiment se sincronitzen amb el backend quan les notificacions estan actives.
 
 ### Interpretació de consultes
 
@@ -246,6 +246,46 @@ vercel env run -e production -- \
 Vercel Pro invoca `/internal/cron/hour-by-hour` cada minut i `/internal/cron/maintenance`
 diàriament. Tots dos exigeixen el `Bearer CRON_SECRET`; l'outbox, les restriccions úniques
 i l'advisory lock de PostgreSQL fan que execucions duplicades siguin idempotents.
+
+## Notificacions personalitzades amb Jev
+
+El servidor classifica cada notícia nova una vegada amb Jev (`jev-1.13.0`), tant de Revista
+Castells com d'El Món Casteller. La rellevància general és Low (rutinària), Medium
+(interessant) o High (breaking news). Una coincidència amb les colles seguides a l'Agenda
+puja un nivell, amb màxim High; «Totes» i una selecció buida no apliquen cap pujada.
+L'app ofereix el selector a Ajustos, amb High per a noves activacions i Low per als
+usuaris que ja tenien avisos actius. Els destacats de l'Agenda no afecten la regla.
+
+Configura `JEV_API_KEY` només al servidor i `JEV_MODEL=jev-1.13.0`. La clau és independent
+de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` accepta
+`minimum_interest` (`low`, `medium`, `high`) i `group_selection`
+(`{"mode":"custom","keys":["castellers de vilafranca"]}` o `{"mode":"all","keys":[]}`).
+Les peticions antigues preserven els valors existents, amb Low i totes com a defaults.
+
+L'outbox conserva l'estat de classificació i el resultat, amb model, criteris i probabilitats.
+Les preferències de l'audiència es capturen en detectar la novetat i es buiden en acabar.
+El cron revalida la preferència actual abans de reclamar les entregues. Les pujades de
+llindar poden suprimir avisos pendents; abaixar-lo o seguir colles no recupera avisos antics.
+Els errors de Jev són omissions definitives; els errors transitoris d'APNs es reintenten.
+Si s'esgota el pressupost, les classificacions no iniciades queden per al següent cron.
+Un intent interromput es marca omès en recuperar el bloqueig. Les crides Jev no mantenen
+cap transacció d'escriptura oberta i les dues rutes d'ingesta comparteixen l'advisory lock.
+
+Per validar el model en català sense escriure a la base de dades ni enviar avisos:
+
+```bash
+uv run --env-file .env.jev.local python -m scripts.smoke_jev_news --live-count 5
+```
+
+El fitxer local amb la clau ha de quedar fora de Git i Vercel. El smoke mostra nivells,
+colles, latència i consum, sense mostrar credencials. Els logs de classificació i el cron
+exposen `classified` i `classification_skipped` per diagnosticar omissions.
+
+Desplegament: configurar el secret, aplicar Alembic (`20260924_06`), desplegar el backend
+compatible i verificar-lo; després publicar l'app iOS. No reclassificar ni notificar
+l'històric. Els outboxes previs a la migració només mantenen entregues ja pendents per a
+subscripcions Low. Un rollback de codi pot mantenir les columnes additives; no rebaixar
+l'esquema mentre hi hagi instàncies del backend nou en execució.
 
 ## Proves
 
