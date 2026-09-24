@@ -257,12 +257,11 @@ apliquen cap pujada.
 L'app ofereix el selector a Ajustos, amb High per a noves activacions i Low per als
 usuaris que ja tenien avisos actius. Els destacats de l'Agenda no afecten la regla.
 
-High inclou les diades històriques i les millors actuacions d'una colla, també en una
-diada concreta, així com els castells inèdits en la seva història: tant l'anunci del
-primer intent com el primer carregat o descarregat. La fita es valora a escala de cada
-colla, independentment del nivell del castell. Una estrena només de temporada o recuperar
-un castell ja assolit no equival a una fita històrica. El títol o resum ha d'indicar
-el caràcter inèdit; anunciar un intent sense aquest context no és suficient per ser High.
+Els criteris són tres definicions generals, sense excepcions per notícia o colla:
+Low per informació rutinària, Medium per actualitat interessant i High per fets
+excepcionals, diades històriques i castells inèdits d'una colla, tant anunciats com
+assolits. La fita es valora a escala de cada colla. Jev només utilitza el títol i resum
+i no ha d'inventar el context històric que hi falti.
 
 El catàleg d'àlies és a `backend/adapters/ai/group_aliases.py`, amb una entrada explícita
 per a cadascuna de les 118 colles del directori, incloses les universitàries i internacionals.
@@ -270,7 +269,7 @@ Combina sobrenoms documentats, noms abreujats distintius i variants descriptives
 per a les colles sense sobrenom conegut. No s'utilitzen topònims sols ni sigles inventades.
 Les fonts són al mateix fitxer; les proves exigeixen cobertura del directori i àlies
 sense duplicats entre colles. Els canvis al catàleg han d'incrementar `CRITERIA_VERSION`
-(actualment `castells-interest-v3`), ja que poden modificar les classificacions futures.
+(actualment `castells-interest-v4`), ja que poden modificar les classificacions futures.
 
 Configura `JEV_API_KEY` només al servidor i `JEV_MODEL=jev-1.13.0`. La clau és independent
 de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` accepta
