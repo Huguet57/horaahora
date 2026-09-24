@@ -6,6 +6,8 @@ public struct SettingsRootView: View {
     @State private var identifierWasCopied = false
 
     private let configuration: SettingsConfiguration
+    private let hasFollowedGroups: Bool
+    private let onChooseGroups: () -> Void
     private let onOpenURL: (URL) -> Void
     private let onContactSupport: (URL) -> Void
     private let onCopyIdentifier: (String) -> Void
@@ -13,12 +15,16 @@ public struct SettingsRootView: View {
     public init(
         model: SettingsModel,
         configuration: SettingsConfiguration,
+        hasFollowedGroups: Bool,
+        onChooseGroups: @escaping () -> Void,
         onOpenURL: @escaping (URL) -> Void,
         onContactSupport: @escaping (URL) -> Void,
         onCopyIdentifier: @escaping (String) -> Void
     ) {
         self.model = model
         self.configuration = configuration
+        self.hasFollowedGroups = hasFollowedGroups
+        self.onChooseGroups = onChooseGroups
         self.onOpenURL = onOpenURL
         self.onContactSupport = onContactSupport
         self.onCopyIdentifier = onCopyIdentifier
@@ -40,31 +46,32 @@ public struct SettingsRootView: View {
     }
 
     private var notificationSection: some View {
-        Section("Notificacions") {
-            Picker("Interès mínim", selection: Binding(
-                get: { model.minimumInterest },
-                set: { value in Task { await model.setMinimumInterest(value) } }
-            )) {
-                Text("Low — Totes").tag(NotificationInterestLevel.low)
-                Text("Medium — De les teves colles i actualitat interessant")
-                    .tag(NotificationInterestLevel.medium)
-                Text("High — Breaking news i notícies interessants de les teves colles")
-                    .tag(NotificationInterestLevel.high)
-            }
-            .disabled(model.notificationStatus == .loading)
-
-            Text("Les colles es trien a l’Agenda. Amb «Totes les colles» es valora només la rellevància general.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-
+        Section {
             Toggle(isOn: notificationsEnabledBinding) {
-                Label("Hora a Hora", systemImage: "bell")
+                Label("Avisos de notícies", systemImage: "bell")
             }
             .disabled(
                 model.notificationStatus == .loading
                     || model.notificationStatus == .denied
                     || model.isUpdatingNotifications
             )
+
+            NavigationLink {
+                NotificationInterestSettingsView(
+                    model: model,
+                    hasFollowedGroups: hasFollowedGroups,
+                    onChooseGroups: onChooseGroups
+                )
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Quines notícies?")
+                    Text(model.minimumInterest.settingsTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 2)
+            }
+            .disabled(model.notificationStatus == .loading)
 
             if model.notificationStatus == .denied {
                 Label("Bloquejades per iOS", systemImage: "exclamationmark.triangle.fill")
@@ -79,10 +86,13 @@ public struct SettingsRootView: View {
                     .foregroundStyle(.red)
             }
             if model.isNotificationSynchronizationPending {
-                Label("Canvi pendent de sincronitzar. Es tornarà a intentar en obrir l’app.",
-                      systemImage: "arrow.triangle.2.circlepath")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                NotificationSynchronizationStatusView()
+            }
+        } header: {
+            Text("Notificacions")
+        } footer: {
+            if model.notificationStatus == .notDetermined || model.notificationStatus == .disabled {
+                Text("Pots triar què rebràs abans d’activar els avisos.")
             }
         }
     }

@@ -270,6 +270,14 @@ de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` acc
 (`{"mode":"custom","keys":["castellers de vilafranca"]}` o `{"mode":"all","keys":[]}`).
 Les peticions antigues preserven els valors existents, amb Low i totes com a defaults.
 
+A iOS, Ajustos → «Quines notícies?» obre una pantalla amb tres opcions: **Totes**
+(`low`), **Rellevants** (`medium`) i **Destacades** (`high`). Es poden triar abans
+d'activar els avisos i els canvis es desen en tocar l'opció. Les noves activacions
+comencen amb Destacades; els usuaris que ja tenien avisos conserven Totes.
+L'enllaç «Tria les colles a l’Agenda» obre directament el selector de colles d'aquesta
+pestanya. Si un canvi no es pot sincronitzar, es mostra pendent tant als Ajustos
+com a la pantalla de selecció, i es reintenta en tornar a primer pla.
+
 L'outbox conserva l'estat de classificació i el resultat, amb model, criteris i probabilitats.
 Les preferències de l'audiència es capturen en detectar la novetat i es buiden en acabar.
 El cron revalida la preferència actual abans de reclamar les entregues. Les pujades de
