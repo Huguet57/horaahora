@@ -18,10 +18,6 @@ struct NotificationInterestSettingsView: View {
                     .foregroundStyle(.primary)
                     .textCase(nil)
                     .padding(.bottom, 8)
-            } footer: {
-                if model.isNotificationSynchronizationPending {
-                    NotificationSynchronizationStatusView()
-                }
             }
 
             Section {
@@ -79,16 +75,6 @@ struct NotificationInterestSettingsView: View {
         .disabled(model.notificationStatus == .loading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(model.minimumInterest == level ? .isSelected : [])
-    }
-}
-
-struct NotificationSynchronizationStatusView: View {
-    var body: some View {
-        Label("Canvi pendent de sincronitzar. Es tornarà a intentar en obrir l’app.",
-              systemImage: "arrow.triangle.2.circlepath")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

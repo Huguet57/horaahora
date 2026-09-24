@@ -85,9 +85,6 @@ public struct SettingsRootView: View {
                 Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.red)
             }
-            if model.isNotificationSynchronizationPending {
-                NotificationSynchronizationStatusView()
-            }
         } header: {
             Text("Notificacions")
         } footer: {

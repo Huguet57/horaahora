@@ -275,8 +275,8 @@ A iOS, Ajustos → «Quines notícies?» obre una pantalla amb tres opcions: **T
 d'activar els avisos i els canvis es desen en tocar l'opció. Les noves activacions
 comencen amb Destacades; els usuaris que ja tenien avisos conserven Totes.
 L'enllaç «Tria les colles a l’Agenda» obre directament el selector de colles d'aquesta
-pestanya. Si un canvi no es pot sincronitzar, es mostra pendent tant als Ajustos
-com a la pantalla de selecció, i es reintenta en tornar a primer pla.
+pestanya. Si un canvi no es pot sincronitzar, es reintenta en segon pla en tornar
+a primer pla, sense mostrar un avís de sincronització pendent.
 
 L'outbox conserva l'estat de classificació i el resultat, amb model, criteris i probabilitats.
 Les preferències de l'audiència es capturen en detectar la novetat i es buiden en acabar.
