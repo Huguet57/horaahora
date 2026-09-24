@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from backend.api.dependencies import get_container
 from backend.api.schemas.push import PushSubscriptionRequestSchema
 from backend.composition.container import ApplicationContainer
+from backend.domain.notifications.interest import GroupSelection
 from backend.domain.notifications.models import PushSubscriptionRegistration
 
 router = APIRouter()
@@ -27,6 +28,12 @@ def register_push_subscription(
             device_token=payload.device_token,
             app_version=payload.app_version,
             locale=payload.locale,
+            minimum_interest=payload.minimum_interest,
+            group_selection=(
+                GroupSelection.from_json(payload.group_selection.model_dump())
+                if payload.group_selection is not None
+                else None
+            ),
         ),
         environment=payload.environment or container.settings.apns_environment,
         topic=container.settings.apns_bundle_id,

@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Política de privacitat</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Darrera actualització: 26 d'agost de 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Darrera actualització: 24 de setembre de 2026</p>
 
   <p>Aquesta política explica com tracta les dades personals la versió actual de Castells en vena, una app gratuïta i sense compte d'usuari.</p>
 
@@ -45,7 +45,7 @@
   <ul>
     <li>Converses de la calculadora, inclosos els títols i missatges.</li>
     <li>Còpies locals de l'agenda i de l'Hora a Hora per millorar la disponibilitat i la lectura sense connexió.</li>
-    <li>Preferències de l'app i un identificador d'instal·lació aleatori. No és un identificador publicitari i no s'utilitza per seguir-te entre apps o webs.</li>
+    <li>Preferències locals de visualització. Quan s'activen notificacions, el llindar d'interès i les colles seguides també es sincronitzen amb el backend, tal com s'explica a continuació.</li>
   </ul>
   <p>Les converses es poden eliminar individualment. Les dades locals restants desapareixen quan es desinstal·la l'app o se n'eliminen les dades des del sistema.</p>
 
@@ -58,6 +58,9 @@
 
   <h3>Notificacions</h3>
   <p>Si actives voluntàriament les notificacions, iOS gestiona el permís i Apple assigna un token d'Apple Push Notification service (APNs) a aquesta instal·lació. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app i l'idioma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple invalida el token, el backend el substitueix immediatament per una marca de revocació.</p>
+
+  <p>Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'Agenda per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token APNs, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.</p>
+  <p>El llindar i la selecció de colles desats a la subscripció es buiden quan es revoca el token; la còpia local es conserva. Les còpies temporals utilitzades per preparar un avís s'eliminen en completar o ometre'n la classificació.</p>
 
   <h3>Comunicacions de suport</h3>
   <p>Quan selecciones «Contacta amb suport», l'app prepara un correu editable amb la versió, el número de build i l'identificador tècnic. Aquesta informació només es transmet si revises el correu i prems manualment el botó d'enviament; també el pots cancel·lar. Si l'envies, es tractaran l'adreça de correu, el contingut del missatge i els fitxers que decideixis adjuntar. L'app no exporta converses ni les adjunta automàticament.</p>
@@ -75,6 +78,7 @@
     <li><strong>Vercel:</strong> allotjament i execució del backend. La funció principal es configura a París (<code>cdg1</code>), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.</li>
     <li><strong>Supabase:</strong> base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.</li>
     <li><strong>OpenAI:</strong> interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (<code>store: false</code>).</li>
+    <li><strong>TypeSafe AI (Jev):</strong> classificació de contingut públic de les notícies per rellevància i colles implicades.</li>
     <li><strong>Apple:</strong> distribució de l'app, permisos del sistema i APNs quan actives notificacions.</li>
     <li><strong>Google/Gmail:</strong> recepció i gestió dels correus que enviïs voluntàriament al contacte de suport o privacitat.</li>
   </ul>
@@ -111,7 +115,7 @@
   <p>S'apliquen mesures proporcionades, com comunicacions HTTPS, accés restringit a la infraestructura i absència de persistència pròpia dels xats al backend. Cap sistema és completament infal·lible.</p>
   <p>Els canvis materials es publicaran en aquestes mateixes URLs i se n'actualitzarà la data. Si un canvi requereix consentiment, es demanarà abans d'aplicar-lo.</p>
 
-  <footer>Castells en vena · Política de privacitat · 26 d'agost de 2026</footer>
+  <footer>Castells en vena · Política de privacitat · 24 de setembre de 2026</footer>
 </main>
 </body>
 </html>

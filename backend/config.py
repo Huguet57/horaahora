@@ -11,6 +11,8 @@ class Settings:
     ai_model: str = ""
     ai_api_key: str = ""
     ai_base_url: str = ""
+    jev_api_key: str = ""
+    jev_model: str = "jev-1.13.0"
     hour_by_hour_source_enabled: bool = True
     hour_by_hour_refresh_seconds: int = 300
     revista_castells_url: str = "https://revistacastells.cat/castells-hora-a-hora/"
@@ -48,6 +50,8 @@ class Settings:
             ai_model=os.getenv("AI_MODEL", ""),
             ai_api_key=os.getenv("AI_API_KEY", ""),
             ai_base_url=os.getenv("AI_BASE_URL", ""),
+            jev_api_key=os.getenv("JEV_API_KEY", ""),
+            jev_model=os.getenv("JEV_MODEL", defaults.jev_model),
             hour_by_hour_source_enabled=_bool_env("HOUR_BY_HOUR_SOURCE_ENABLED", True),
             hour_by_hour_refresh_seconds=int(os.getenv("HOUR_BY_HOUR_REFRESH_SECONDS", "300")),
             revista_castells_url=os.getenv("REVISTA_CASTELLS_URL", defaults.revista_castells_url),

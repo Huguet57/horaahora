@@ -1,8 +1,24 @@
 import XCTest
+import CastellsDomain
 @testable import FeatureSettings
 
 @MainActor
 final class SettingsModelTests: XCTestCase {
+    func testThresholdCanChangeBeforeEnablingAndExposesPendingSync() async {
+        let manager = NotificationManagerStub(initialStatus: .notDetermined)
+        let model = SettingsModel(notificationManager: manager)
+        await model.refreshNotificationStatus()
+        XCTAssertEqual(model.minimumInterest, .high)
+        manager.pending = true
+        await model.setMinimumInterest(.medium)
+        XCTAssertEqual(manager.minimumInterest, .medium)
+        XCTAssertTrue(model.isNotificationSynchronizationPending)
+        XCTAssertEqual(manager.enableCallCount, 0)
+        manager.pending = false
+        await model.refreshNotificationStatus()
+        XCTAssertFalse(model.isNotificationSynchronizationPending)
+    }
+
     func testRefreshExposesPendingPermissionAndShowsOnboarding() async {
         let manager = NotificationManagerStub(initialStatus: .notDetermined)
         let model = SettingsModel(
@@ -127,6 +143,10 @@ final class SettingsModelTests: XCTestCase {
 
 @MainActor
 private final class NotificationManagerStub: HourByHourNotificationManaging {
+    var minimumInterest: NotificationInterestLevel = .high
+    var pending = false
+    func setMinimumInterest(_ value: NotificationInterestLevel) async { minimumInterest = value }
+    func synchronizationPending() async -> Bool { pending }
     var currentStatusValue: HourByHourNotificationStatus
     var currentStatusCallCount = 0
     var enableCallCount = 0

@@ -1,6 +1,6 @@
 # Política de privacitat — Castells en vena
 
-**Darrera actualització:** 26 d'agost de 2026
+**Darrera actualització:** 24 de setembre de 2026
 
 Aquesta política explica com tracta les dades personals la versió actual de **Castells en vena**, una app gratuïta i sense compte d'usuari.
 
@@ -17,7 +17,7 @@ No s'ha designat un delegat de protecció de dades perquè, atesa la naturalesa 
 
 - Converses de la calculadora, inclosos els títols i missatges.
 - Còpies locals de l'agenda i de l'Hora a Hora per millorar la disponibilitat i la lectura sense connexió.
-- Preferències de l'app i un identificador d'instal·lació aleatori. No és un identificador publicitari i no s'utilitza per seguir l'usuari entre apps o webs.
+- Preferències locals de visualització. Quan s'activen notificacions, el llindar d'interès i les colles seguides també es sincronitzen amb el backend, tal com s'explica a continuació.
 
 Les converses es poden eliminar individualment. Les dades locals restants desapareixen quan es desinstal·la l'app o se n'eliminen les dades des del sistema.
 
@@ -34,6 +34,10 @@ En connectar-se al servei es poden processar l'adreça IP, la data i l'hora, la 
 ### Notificacions
 
 Si s'activen voluntàriament les notificacions, iOS gestiona el permís i Apple assigna un token d'Apple Push Notification service (APNs) a aquesta instal·lació. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app i l'idioma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple invalida el token, el backend el substitueix immediatament per una marca de revocació.
+
+Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'Agenda per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token APNs, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.
+
+El llindar i la selecció de colles desats a la subscripció es buiden quan es revoca el token; la còpia local es conserva. Les còpies temporals utilitzades per preparar un avís s'eliminen en completar o ometre'n la classificació.
 
 ### Comunicacions de suport
 
@@ -54,6 +58,7 @@ Les dades necessàries per respondre una consulta i protegir el servei són impr
 - **Vercel:** allotjament i execució del backend. La funció principal es configura a París (`cdg1`), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.
 - **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.
 - **OpenAI:** interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (`store: false`).
+- **TypeSafe AI (Jev):** classificació de contingut públic de les notícies per rellevància i colles implicades.
 - **Apple:** distribució de l'app, permisos del sistema i APNs quan s'activen notificacions.
 - **Google/Gmail:** recepció i gestió dels correus enviats voluntàriament al contacte de suport o privacitat.
 

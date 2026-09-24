@@ -8,6 +8,7 @@ from backend.adapters.persistence.database import Database
 from backend.adapters.persistence.models import PushSubscriptionRecord
 from backend.adapters.persistence.notification_support import revoked_token
 from backend.adapters.persistence.repository_support import resolve_engine
+from backend.domain.notifications.interest import GroupSelection, InterestLevel
 from backend.domain.notifications.models import (
     ActivePushSubscription,
     PushSubscriptionRegistration,
@@ -55,6 +56,10 @@ class SQLAlchemyPushSubscriptionRepository:
                 )
                 session.add(record)
             record.device_token = registration.device_token
+            if registration.minimum_interest is not None:
+                record.minimum_interest = registration.minimum_interest.value
+            if registration.group_selection is not None:
+                record.group_selection = registration.group_selection.to_json()
             record.hour_by_hour_enabled = True
             record.app_version = registration.app_version
             record.locale = registration.locale
@@ -90,6 +95,8 @@ class SQLAlchemyPushSubscriptionRepository:
                     device_token=record.device_token,
                     environment=record.environment,
                     topic=record.topic,
+                    minimum_interest=InterestLevel(record.minimum_interest),
+                    group_selection=GroupSelection.from_json(record.group_selection),
                 )
                 for record in records
             ]
@@ -100,3 +107,5 @@ def _invalidate(record: PushSubscriptionRecord, now: datetime) -> None:
     record.invalidated_at = now
     record.updated_at = now
     record.device_token = revoked_token(record.id)
+    record.minimum_interest = "low"
+    record.group_selection = {"mode": "all", "keys": []}

@@ -23,6 +23,8 @@ final class AppDependencies {
     ) throws {
         let modelContainer = try DataStack.makeModelContainer()
         let client = APIClient(baseURL: configuration.apiBaseURL)
+        let agendaFilterStore = AgendaUserDefaultsStore(userDefaults: userDefaults)
+        let notificationPreferenceStore = NotificationPreferenceStore(userDefaults: userDefaults)
         let pushSubscriptionCoordinator = PushSubscriptionCoordinator(
             remoteService: HTTPPushSubscriptionRemoteService(client: client),
             installationID: configuration.technicalIdentifier,
@@ -32,8 +34,19 @@ final class AppDependencies {
         )
         let notificationManager = IOSHourByHourNotificationManager(
             userDefaults: userDefaults,
-            pushSubscriptionCoordinator: pushSubscriptionCoordinator
+            pushSubscriptionCoordinator: pushSubscriptionCoordinator,
+            preferenceStore: notificationPreferenceStore,
+            groupSelection: { [weak agendaFilterStore] in
+                switch agendaFilterStore?.load().selection ?? .all {
+                case .all: return NotificationGroupSelection()
+                case let .custom(keys):
+                    return NotificationGroupSelection(mode: .custom, keys: Array(keys))
+                }
+            }
         )
+        agendaFilterStore.onSelectionChange = { [weak notificationManager] _ in
+            Task { await notificationManager?.synchronizePreferences() }
+        }
 
         self.modelContainer = modelContainer
         hourByHourRepository = CachedHourByHourRepository(
@@ -47,7 +60,7 @@ final class AppDependencies {
         groupDirectoryRepository = RemoteGroupDirectoryRepository(
             remoteService: HTTPGroupDirectoryRemoteService(client: client)
         )
-        agendaFilterStore = AgendaUserDefaultsStore(userDefaults: userDefaults)
+        self.agendaFilterStore = agendaFilterStore
         chatRepository = SwiftDataChatRepository(
             container: modelContainer,
             remoteService: HTTPChatRemoteService(client: client),
@@ -67,5 +80,10 @@ final class AppDependencies {
         )
         settingsConfiguration = configuration.settingsConfiguration
         self.pushSubscriptionCoordinator = pushSubscriptionCoordinator
+        Task { [settingsModel] in
+            await pushSubscriptionCoordinator.observeSynchronization { [weak settingsModel] pending in
+                settingsModel?.setNotificationSynchronizationPending(pending)
+            }
+        }
     }
 }

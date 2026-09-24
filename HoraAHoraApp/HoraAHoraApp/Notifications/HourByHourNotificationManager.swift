@@ -1,6 +1,7 @@
 import UIKit
 import UserNotifications
 import CastellsData
+import CastellsDomain
 import FeatureSettings
 
 @MainActor
@@ -12,31 +13,42 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
     private let notificationCenter: UNUserNotificationCenter
     private let userDefaults: UserDefaults
     private let pushSubscriptionCoordinator: PushSubscriptionCoordinator
+    private let preferenceStore: NotificationPreferenceStore
+    private let groupSelection: @MainActor () -> NotificationGroupSelection
+
+    var minimumInterest: NotificationInterestLevel { preferenceStore.savedValue ?? .high }
 
     init(
         notificationCenter: UNUserNotificationCenter = .current(),
         userDefaults: UserDefaults = .standard,
-        pushSubscriptionCoordinator: PushSubscriptionCoordinator
+        pushSubscriptionCoordinator: PushSubscriptionCoordinator,
+        preferenceStore: NotificationPreferenceStore,
+        groupSelection: @escaping @MainActor () -> NotificationGroupSelection
     ) {
         self.notificationCenter = notificationCenter
         self.userDefaults = userDefaults
         self.pushSubscriptionCoordinator = pushSubscriptionCoordinator
+        self.preferenceStore = preferenceStore
+        self.groupSelection = groupSelection
     }
 
     func currentStatus() async -> HourByHourNotificationStatus {
         let authorizationStatus = await notificationCenter.notificationSettings().authorizationStatus
         let status = status(for: authorizationStatus)
+        preferenceStore.resolve(existingNotificationsEnabled: status == .enabled)
 
         if status == .enabled {
+            await synchronizePreferences()
             await pushSubscriptionCoordinator.setEnabled(true)
             UIApplication.shared.registerForRemoteNotifications()
-        } else if status == .disabled {
+        } else if status == .disabled || status == .denied {
             await pushSubscriptionCoordinator.setEnabled(false)
         }
         return status
     }
 
     func enable() async throws -> HourByHourNotificationStatus {
+        preferenceStore.resolve(existingNotificationsEnabled: false)
         var authorizationStatus = await notificationCenter.notificationSettings().authorizationStatus
 
         if authorizationStatus == .notDetermined {
@@ -54,6 +66,7 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
         guard authorizationStatus != .denied else { return .denied }
 
         userDefaults.set(true, forKey: Preference.enabledKey)
+        await synchronizePreferences()
         await pushSubscriptionCoordinator.setEnabled(true)
         UIApplication.shared.registerForRemoteNotifications()
         return .enabled
@@ -71,6 +84,21 @@ final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
     func openSystemSettings() async {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         await UIApplication.shared.open(url)
+    }
+
+    func setMinimumInterest(_ value: NotificationInterestLevel) async {
+        preferenceStore.save(value)
+        await synchronizePreferences()
+    }
+
+    func synchronizePreferences() async {
+        await pushSubscriptionCoordinator.setPreferences(
+            minimumInterest: minimumInterest, groupSelection: groupSelection()
+        )
+    }
+
+    func synchronizationPending() async -> Bool {
+        await pushSubscriptionCoordinator.isSynchronizationPending
     }
 
     private func status(for authorizationStatus: UNAuthorizationStatus) -> HourByHourNotificationStatus {

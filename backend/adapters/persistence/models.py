@@ -93,6 +93,12 @@ class PushSubscriptionRecord(Base):
     environment: Mapped[str] = mapped_column(String(20), index=True)
     topic: Mapped[str] = mapped_column(String(200))
     hour_by_hour_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    minimum_interest: Mapped[str] = mapped_column(String(10), default="low", server_default="low")
+    group_selection: Mapped[dict] = mapped_column(
+        JSON,
+        default=lambda: {"mode": "all", "keys": []},
+        server_default='{"mode":"all","keys":[]}',
+    )
     app_version: Mapped[str] = mapped_column(String(64), default="")
     locale: Mapped[str] = mapped_column(String(16), default="ca-ES")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -125,7 +131,14 @@ class NotificationOutboxRecord(Base):
     title: Mapped[str] = mapped_column(Text)
     body: Mapped[str] = mapped_column(Text)
     url: Mapped[str] = mapped_column(Text, default="")
+    article_url: Mapped[str] = mapped_column(Text, default="", server_default="")
     collapse_id: Mapped[str] = mapped_column(String(64))
+    classification_status: Mapped[str] = mapped_column(
+        String(20), default="legacy", server_default="legacy"
+    )
+    classification: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    classification_error: Mapped[str] = mapped_column(String(100), default="", server_default="")
+    audience: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 

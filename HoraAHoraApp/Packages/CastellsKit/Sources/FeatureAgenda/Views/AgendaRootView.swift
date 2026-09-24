@@ -4,12 +4,13 @@ public struct AgendaRootView: View {
     private let model: AgendaViewModel
     @State private var scrollOffset: CGFloat = 0
     @State private var scrollViewBaseHeight: CGFloat = 0
-    @State private var showsGroupFilter = false
+    @Binding private var showsGroupFilter: Bool
     @State private var groupFilterDetent: PresentationDetent = .medium
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    public init(model: AgendaViewModel) {
+    public init(model: AgendaViewModel, showsGroupFilter: Binding<Bool>) {
         self.model = model
+        _showsGroupFilter = showsGroupFilter
     }
 
     public var body: some View {

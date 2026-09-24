@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from backend.adapters.ai.jev import JevNewsInterestClassifier
+from backend.adapters.content.article_text import PublisherArticleTextSource
 from backend.adapters.content.cccc_agenda import (
     CCCCAgendaFixtureSource,
     CCCCAgendaHTMLSource,
@@ -7,6 +9,7 @@ from backend.adapters.content.cccc_agenda import (
 )
 from backend.adapters.content.combined_hour_by_hour import CombinedHourByHourSource
 from backend.adapters.content.el_mon_casteller import ElMonCastellerRSSSource
+from backend.adapters.content.group_directory import load_group_directory
 from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
 from backend.adapters.notifications.apns import APNsAuthorizationTokenProvider, APNsGateway
@@ -18,6 +21,7 @@ from backend.adapters.persistence.push_subscription_repository import (
     SQLAlchemyPushSubscriptionRepository,
 )
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
+from backend.application.notification_ingestion import NotificationIngestionService
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.content.ports import (
@@ -93,6 +97,15 @@ def build_push_repository(database: Database) -> SQLAlchemyPushSubscriptionRepos
 
 def build_notification_repository(database: Database) -> NotificationRepository:
     return SQLAlchemyNotificationRepository(database)
+
+
+def build_notification_ingestion(settings: Settings, repository: NotificationRepository):
+    return NotificationIngestionService(
+        repository,
+        JevNewsInterestClassifier(settings.jev_api_key, settings.jev_model),
+        load_group_directory().groups,
+        article_source=PublisherArticleTextSource(),
+    )
 
 
 def build_rate_limiter(settings: Settings, database: Database) -> RateLimiter:

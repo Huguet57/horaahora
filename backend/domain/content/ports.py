@@ -8,6 +8,10 @@ class HourByHourSource(Protocol):
     def fetch(self) -> list[HourByHourItem]: ...
 
 
+class ArticleTextSource(Protocol):
+    def fetch(self, url: str, *, timeout: float) -> str: ...
+
+
 class AgendaSource(Protocol):
     source_id: str
 

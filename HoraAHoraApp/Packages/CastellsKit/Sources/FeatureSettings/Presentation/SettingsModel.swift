@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import CastellsDomain
 
 public enum HourByHourNotificationStatus: Equatable, Sendable {
     case loading
@@ -11,6 +12,9 @@ public enum HourByHourNotificationStatus: Equatable, Sendable {
 
 @MainActor
 public protocol HourByHourNotificationManaging: AnyObject {
+    var minimumInterest: NotificationInterestLevel { get }
+    func setMinimumInterest(_ value: NotificationInterestLevel) async
+    func synchronizationPending() async -> Bool
     func currentStatus() async -> HourByHourNotificationStatus
     func enable() async throws -> HourByHourNotificationStatus
     func disable() async throws -> HourByHourNotificationStatus
@@ -29,6 +33,8 @@ public final class SettingsModel {
     public private(set) var isUpdatingNotifications = false
     public private(set) var notificationErrorMessage: String?
     public private(set) var isNotificationOnboardingDismissed: Bool
+    public private(set) var minimumInterest: NotificationInterestLevel = .high
+    public private(set) var isNotificationSynchronizationPending = false
 
     private let notificationManager: any HourByHourNotificationManaging
     private let persistNotificationOnboardingDismissal: @MainActor (Bool) -> Void
@@ -49,6 +55,22 @@ public final class SettingsModel {
 
     public func refreshNotificationStatus() async {
         notificationStatus = await notificationManager.currentStatus()
+        await refreshPreferences()
+    }
+
+    public func setMinimumInterest(_ value: NotificationInterestLevel) async {
+        minimumInterest = value
+        await notificationManager.setMinimumInterest(value)
+        await refreshPreferences()
+    }
+
+    public func setNotificationSynchronizationPending(_ pending: Bool) {
+        isNotificationSynchronizationPending = pending
+    }
+
+    private func refreshPreferences() async {
+        minimumInterest = notificationManager.minimumInterest
+        isNotificationSynchronizationPending = await notificationManager.synchronizationPending()
     }
 
     public func setHourByHourNotificationsEnabled(_ enabled: Bool) async {
@@ -61,6 +83,7 @@ public final class SettingsModel {
             notificationStatus = try await enabled
                 ? notificationManager.enable()
                 : notificationManager.disable()
+            await refreshPreferences()
         } catch {
             notificationErrorMessage = error.localizedDescription
         }

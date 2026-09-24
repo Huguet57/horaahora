@@ -12,6 +12,7 @@ public final class AgendaUserDefaultsStore: AgendaFilterStoring {
 
     private let userDefaults: UserDefaults
     private let key: String
+    public var onSelectionChange: (@MainActor (AgendaGroupSelection) -> Void)?
 
     public init(
         userDefaults: UserDefaults = .standard,
@@ -32,7 +33,9 @@ public final class AgendaUserDefaultsStore: AgendaFilterStoring {
     }
 
     public func save(_ state: AgendaFilterState) {
+        let previousSelection = load().selection
         guard let data = try? JSONEncoder().encode(state) else { return }
         userDefaults.set(data, forKey: key)
+        if previousSelection != state.selection { onSelectionChange?(state.selection) }
     }
 }

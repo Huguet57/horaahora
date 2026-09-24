@@ -1,16 +1,9 @@
 import Foundation
+import CastellsDomain
 
 enum AgendaGroupNameNormalizer {
     static func key(for name: String) -> String {
-        let apostropheNormalized = name
-            .replacingOccurrences(of: "’", with: "'")
-            .replacingOccurrences(of: "‘", with: "'")
-            .replacingOccurrences(of: "ʼ", with: "'")
-        let folded = apostropheNormalized.folding(
-            options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
-            locale: Locale(identifier: "ca_ES")
-        )
-        return folded.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        GroupNameKey.normalize(name)
     }
 
     static func merged(preferred: [String], fallback: [String]) -> [String] {

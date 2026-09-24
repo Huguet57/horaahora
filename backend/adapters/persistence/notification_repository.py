@@ -9,6 +9,10 @@ from backend.adapters.persistence.models import (
     NotificationOutboxRecord,
     PushSubscriptionRecord,
 )
+from backend.adapters.persistence.news_classification import (
+    NewsClassificationPersistence,
+    subscription_qualifies,
+)
 from backend.adapters.persistence.notification_ingestion import ingest_hour_by_hour
 from backend.adapters.persistence.notification_support import revoked_token
 from backend.adapters.persistence.repository_support import database_datetime, resolve_engine
@@ -22,9 +26,28 @@ from backend.domain.notifications.models import (
 class SQLAlchemyNotificationRepository:
     def __init__(self, database: Database) -> None:
         self.database, self.engine = resolve_engine(database)
+        self.classifications = NewsClassificationPersistence(self.engine)
 
     def ingest_hour_by_hour(self, items: list[HourByHourItem]) -> NotificationIngestionResult:
         return ingest_hour_by_hour(self.engine, items)
+
+    def recover_interrupted_classifications(self) -> int:
+        return self.classifications.recover_interrupted()
+
+    def pending_classifications(self):
+        return self.classifications.pending()
+
+    def begin_classification(self, outbox_id):
+        return self.classifications.begin(outbox_id)
+
+    def complete_classification(self, outbox_id, result):
+        self.classifications.complete(outbox_id, result)
+
+    def skip_classification(self, outbox_id, reason):
+        self.classifications.skip(outbox_id, reason)
+
+    def observed_groups(self):
+        return self.classifications.observed_groups()
 
     def claim_deliveries(
         self,
@@ -63,31 +86,43 @@ class SQLAlchemyNotificationRepository:
                     PushSubscriptionRecord.invalidated_at.is_(None),
                 )
                 .order_by(NotificationDeliveryRecord.created_at, NotificationDeliveryRecord.id)
-                .limit(limit)
             )
             if self.engine.dialect.name == "postgresql":
                 query = query.with_for_update(skip_locked=True, of=NotificationDeliveryRecord)
             result: list[PendingNotificationDelivery] = []
-            for delivery, outbox, subscription in session.execute(query).all():
-                delivery.status = "processing"
-                delivery.locked_until = lock_until
-                delivery.attempt_count += 1
-                delivery.updated_at = database_now
-                result.append(
-                    PendingNotificationDelivery(
-                        id=delivery.id,
-                        subscription_id=subscription.id,
-                        outbox_id=outbox.id,
-                        device_token=subscription.device_token,
-                        environment=subscription.environment,
-                        topic=subscription.topic,
-                        title=outbox.title,
-                        body=outbox.body,
-                        url=outbox.url,
-                        collapse_id=outbox.collapse_id,
-                        attempt_count=delivery.attempt_count,
+            while len(result) < limit:
+                rows = session.execute(query.limit(limit - len(result))).all()
+                if not rows:
+                    break
+                for delivery, outbox, subscription in rows:
+                    if not subscription_qualifies(outbox, subscription):
+                        delivery.status = "skipped"
+                        delivery.last_error = "PreferenceChanged"
+                        delivery.locked_until = None
+                        delivery.updated_at = database_now
+                        continue
+                    delivery.status = "processing"
+                    delivery.locked_until = lock_until
+                    delivery.attempt_count += 1
+                    delivery.updated_at = database_now
+                    result.append(
+                        PendingNotificationDelivery(
+                            id=delivery.id,
+                            subscription_id=subscription.id,
+                            outbox_id=outbox.id,
+                            device_token=subscription.device_token,
+                            environment=subscription.environment,
+                            topic=subscription.topic,
+                            title=outbox.title,
+                            body=outbox.body,
+                            url=outbox.url,
+                            collapse_id=outbox.collapse_id,
+                            attempt_count=delivery.attempt_count,
+                        )
                     )
-                )
+                # Skips do not consume the requested batch. Persist skips and claim
+                # locks before scanning again so neither can be selected twice.
+                session.flush()
             return result
 
     def mark_delivered(self, delivery_id: str) -> None:
@@ -129,6 +164,8 @@ class SQLAlchemyNotificationRepository:
                 subscription.invalidated_at = now
                 subscription.updated_at = now
                 subscription.device_token = revoked_token(subscription.id)
+                subscription.minimum_interest = "low"
+                subscription.group_selection = {"mode": "all", "keys": []}
             session.execute(
                 update(NotificationDeliveryRecord)
                 .where(
@@ -155,6 +192,8 @@ class SQLAlchemyNotificationRepository:
                 subscription.invalidated_at = database_now
                 subscription.updated_at = database_now
                 subscription.device_token = revoked_token(subscription.id)
+                subscription.minimum_interest = "low"
+                subscription.group_selection = {"mode": "all", "keys": []}
             deliveries = session.execute(
                 delete(NotificationDeliveryRecord).where(
                     NotificationDeliveryRecord.created_at < delivery_cutoff

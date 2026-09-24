@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var hourByHourModel: HourByHourViewModel
     @State private var agendaModel: AgendaViewModel
     @State private var selectedSection = AppSection.hourByHour
+    @State private var showsAgendaGroupFilter = false
     @State private var presentedLink: PresentedLink?
     @State private var settingsModel: SettingsModel
     @Environment(\.openURL) private var openURL
@@ -87,7 +88,7 @@ struct ContentView: View {
             .tabItem { Label("Hora a Hora", systemImage: "clock") }
             .tag(AppSection.hourByHour)
 
-            AgendaRootView(model: agendaModel)
+            AgendaRootView(model: agendaModel, showsGroupFilter: $showsAgendaGroupFilter)
                 .tabItem { Label("Agenda", systemImage: "calendar") }
                 .tag(AppSection.agenda)
 
@@ -98,6 +99,11 @@ struct ContentView: View {
             SettingsRootView(
                 model: settingsModel,
                 configuration: dependencies.settingsConfiguration,
+                hasFollowedGroups: agendaModel.isGroupFilterActive && agendaModel.selectedGroupCount > 0,
+                onChooseGroups: {
+                    selectedSection = .agenda
+                    showsAgendaGroupFilter = true
+                },
                 onOpenURL: { url in presentedLink = PresentedLink(url: url) },
                 onContactSupport: { url in openURL(url) },
                 onCopyIdentifier: { identifier in UIPasteboard.general.string = identifier }

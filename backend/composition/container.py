@@ -16,6 +16,7 @@ from backend.composition.providers import (
     build_hour_by_hour_repository,
     build_hour_by_hour_source,
     build_notification_gateway,
+    build_notification_ingestion,
     build_notification_repository,
     build_push_repository,
     build_rate_limiter,
@@ -92,6 +93,7 @@ def build_container(
             hour_source,
             build_notification_gateway(settings),
             enabled=settings.can_deliver_push,
+            ingestion_service=build_notification_ingestion(settings, notification_repository),
         )
 
     return ApplicationContainer(
