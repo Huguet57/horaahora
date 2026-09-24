@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Notícies &#8211; elMonCasteller</title>
+    <item>
+      <title>Una diada &amp; una estrena</title>
+      <link>https://www.elmoncasteller.cat/una-diada/</link>
+      <dc:creator>Redacció</dc:creator>
+      <pubDate>Thu, 24 Sep 2026 09:08:17 +0000</pubDate>
+      <category>Notícies</category>
+      <category>Cròniques</category>
+      <guid isPermaLink="false">https://www.elmoncasteller.cat/?p=123</guid>
+      <description><![CDATA[<p>Una <strong>estrena</strong> a plaça &#8230;</p>
+        <p><a href="https://www.elmoncasteller.cat/una-diada/" rel="nofollow">Font</a></p>
+      ]]></description>
+    </item>
+    <item>
+      <title><![CDATA[Una entrevista &#8216;castellera&#8217;]]></title>
+      <link>https://www.elmoncasteller.cat/una-entrevista/</link>
+      <pubDate>Wed, 23 Sep 2026 20:29:27 +0200</pubDate>
+      <guid isPermaLink="false">https://www.elmoncasteller.cat/?p=122</guid>
+      <description><![CDATA[<p>Parlem amb la colla.</p>]]></description>
+    </item>
+  </channel>
+</rss>

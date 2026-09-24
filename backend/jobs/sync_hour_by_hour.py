@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import json
 
-from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
-from backend.composition.providers import build_database, build_notification_repository
+from backend.composition.providers import (
+    build_database,
+    build_hour_by_hour_source,
+    build_notification_repository,
+)
 from backend.config import Settings
 
 
 def sync_once(settings: Settings) -> int:
-    if not settings.hour_by_hour_source_enabled:
+    source = build_hour_by_hour_source(settings)
+    if source is None:
         raise RuntimeError("HOUR_BY_HOUR_SOURCE_ENABLED ha d'estar activa")
     repository = build_notification_repository(build_database(settings))
-    source = RevistaCastellsHTMLSource(settings.revista_castells_url)
     result = repository.ingest_hour_by_hour(source.fetch())
     print(
         json.dumps(

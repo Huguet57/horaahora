@@ -80,7 +80,7 @@ struct HourByHourRow: View {
         .accessibilityHint(
             item.associatedURL == nil
                 ? "Mostra el text complet dins l'app"
-                : "Obre el contingut de Revista Castells"
+                : "Obre el contingut de \(item.attribution)"
         )
     }
 

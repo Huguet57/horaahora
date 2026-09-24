@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
@@ -123,6 +124,40 @@ def test_content_refresh_before_cron_does_not_consume_the_notification() -> None
     assert update.notifications_created == 1
     assert repeated.notifications_created == 0
     assert len(repo.claim_deliveries(limit=10)) == 1
+
+
+def test_new_publisher_has_its_own_baseline_and_only_notifies_subsequent_articles() -> None:
+    subscriptions, repo = repositories()
+    subscriptions.register(registration(), environment="production", topic="com.example.app")
+    revista = hour_item("revista-one")
+    elmon = replace(
+        hour_item("elmon-one"),
+        source_id="el-mon-casteller",
+        attribution="El Món Casteller",
+        action_url="https://www.elmoncasteller.cat/primera-noticia/",
+    )
+    repo.ingest_hour_by_hour([revista])
+
+    baseline = repo.ingest_hour_by_hour([revista, elmon])
+
+    assert baseline.baseline_created is True
+    assert baseline.notifications_created == 0
+    assert repo.claim_deliveries(limit=10) == []
+
+    new_item = replace(
+        elmon,
+        id="elmon-two",
+        external_id="elmon-two",
+        action_url="https://www.elmoncasteller.cat/segona-noticia/",
+    )
+    update = repo.ingest_hour_by_hour([revista, elmon, new_item])
+    repeated = repo.ingest_hour_by_hour([revista, elmon, new_item])
+
+    assert update.notifications_created == 1
+    assert repeated.notifications_created == 0
+    deliveries = repo.claim_deliveries(limit=10)
+    assert len(deliveries) == 1
+    assert deliveries[0].url == new_item.action_url
 
 
 def test_transient_delivery_is_retried_and_invalid_token_disables_subscription() -> None:

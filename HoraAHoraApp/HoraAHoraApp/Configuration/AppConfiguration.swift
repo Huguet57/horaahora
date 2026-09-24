@@ -13,6 +13,7 @@ struct AppConfiguration {
     let technicalIdentifier: String
     let apnsEnvironment: String
     let revistaCastellsURL: URL?
+    let elMonCastellerURL: URL?
     let ccccAgendaURL: URL?
     let concursCastellsURL: URL?
 
@@ -25,6 +26,7 @@ struct AppConfiguration {
             buildNumber: buildNumber,
             technicalIdentifier: technicalIdentifier,
             revistaCastellsURL: revistaCastellsURL,
+            elMonCastellerURL: elMonCastellerURL,
             ccccAgendaURL: ccccAgendaURL,
             concursCastellsURL: concursCastellsURL
         )
@@ -61,6 +63,7 @@ struct AppConfiguration {
             revistaCastellsURL: URL(
                 string: "https://revistacastells.cat/castells-hora-a-hora/"
             ),
+            elMonCastellerURL: URL(string: "https://www.elmoncasteller.cat/"),
             ccccAgendaURL: URL(string: "https://castellscat.cat/public/ca/agenda"),
             // No hi ha encara una URL oficial versionada i estable per a la taula del 2026.
             concursCastellsURL: nil

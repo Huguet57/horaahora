@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
 from backend.adapters.persistence.database import Database
 from backend.application.agenda import AgendaService
 from backend.application.chat import ChatService
@@ -15,6 +14,7 @@ from backend.composition.providers import (
     build_contest_repository,
     build_database,
     build_hour_by_hour_repository,
+    build_hour_by_hour_source,
     build_notification_gateway,
     build_notification_repository,
     build_push_repository,
@@ -79,8 +79,8 @@ def build_container(
     push_repository = overrides.push_repository or build_push_repository(database)
 
     hour_source = overrides.hour_by_hour_source
-    if hour_source is None and settings.hour_by_hour_source_enabled:
-        hour_source = RevistaCastellsHTMLSource(settings.revista_castells_url)
+    if hour_source is None:
+        hour_source = build_hour_by_hour_source(settings)
     agenda_source = overrides.agenda_source
     if agenda_source is None:
         agenda_source = build_agenda_source(settings)
