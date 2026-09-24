@@ -46,7 +46,8 @@ public struct HourByHourItem: Identifiable, Codable, Hashable, Sendable {
     }
 
     public var associatedURL: URL? {
-        guard let actionURL, actionURL != articleURL else { return nil }
+        // Older Revista Castells entries used the article URL as a fallback.
+        if sourceID == "revista-castells", actionURL == articleURL { return nil }
         return actionURL
     }
 }
