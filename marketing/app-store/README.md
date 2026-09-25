@@ -1,21 +1,25 @@
 # Captures de l'App Store
 
-Tres captures per a iPhone de 6,9" (1320 × 2868 px, PNG sense canal alfa), una per a
-cada part de l'app: calculadora, calendari i actualitat. App Store Connect només
-necessita aquesta mida; les pantalles més petites s'escalen automàticament.
+Tres captures per a iPhone, una per a cada part de l'app: calculadora, calendari i
+actualitat. Són PNG sense canal alfa en dues mides; App Store Connect només en
+necessita una, i les pantalles més petites s'escalen automàticament:
+
+- `output/6.9/`: 1320 × 2868, per a l'apartat «iPhone 6,9"».
+- `output/6.5/`: 1284 × 2778, per a l'apartat «iPhone 6,5"». És la mateixa composició
+  escalada, amb 12 px menys per baix.
 
 | Fitxer | Titular | Subtítol |
 | --- | --- | --- |
-| `output/01-calculadora.png` | Qui guanya? Pregunta-ho. | La calculadora castellera que funciona com un xat. |
-| `output/02-calendari.png` | Totes les diades, en un calendari | Qui actua, on i a quina hora. |
-| `output/03-actualitat.png` | Tota l’actualitat, hora a hora | Revista Castells i El Món Casteller, en un sol lloc. |
+| `01-calculadora.png` | Qui guanya? Pregunta-ho. | La calculadora castellera que funciona com un xat. |
+| `02-calendari.png` | Totes les diades, en un calendari | Qui actua, on i a quina hora. |
+| `03-actualitat.png` | Tota l’actualitat, hora a hora | Revista Castells i El Món Casteller, en un sol lloc. |
 
 ## Com es generen
 
 - `raw/`: captures reals del simulador, que es mostren dins del mòbil.
 - `screens.js`: titular, subtítol i captura de cada imatge.
 - `template.html`: composició (fons vermell de la icona, esclat, mòbil blanc).
-- `render.sh`: renderitza cada imatge amb Chrome sense interfície i la desa a `output/`.
+- `render.sh`: renderitza cada imatge amb Chrome sense interfície i en desa les dues mides a `output/`.
 
 ```bash
 marketing/app-store/render.sh
