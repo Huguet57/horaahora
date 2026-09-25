@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<title>Castells en vena · captura App Store</title>
+<style>
+  :root {
+    --red: #EA3323;
+    --ink: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    width: 1320px;
+    height: 2868px;
+    overflow: hidden;
+  }
+  body {
+    position: relative;
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1500px 1300px at 12% -8%, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 62%),
+      linear-gradient(180deg, #EC3526 0%, var(--red) 45%, #DC2C1E 100%);
+    -webkit-font-smoothing: antialiased;
+  }
+  .burst {
+    position: absolute;
+    top: -330px;
+    right: -360px;
+    width: 1120px;
+    opacity: 0.10;
+    transform: rotate(-8deg);
+  }
+  .copy {
+    position: absolute;
+    top: 176px;
+    left: 100px;
+    right: 100px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 116px;
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+  }
+  p {
+    margin: 36px 0 0;
+    max-width: 1000px;
+    font-size: 52px;
+    font-weight: 600;
+    line-height: 1.22;
+    letter-spacing: -0.005em;
+  }
+  /* Mòbil "clay": marc blanc, perquè el conjunt sigui blanc i vermell com la icona. */
+  .phone {
+    position: absolute;
+    background: linear-gradient(150deg, #FFFFFF 0%, #F4F4F6 55%, #E9E9ED 100%);
+    box-shadow:
+      inset 0 0 0 2px rgba(255, 255, 255, 0.9),
+      0 0 0 2px rgba(120, 20, 10, 0.18),
+      0 30px 60px rgba(90, 0, 0, 0.22),
+      0 80px 160px rgba(90, 0, 0, 0.30);
+  }
+  .screen {
+    position: absolute;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    background-color: #F2F2F7;
+    box-shadow: 0 0 0 2px #E2E2E7;
+  }
+</style>
+</head>
+<body>
+<img class="burst" src="assets/burst.png" alt="">
+<div class="copy">
+  <h1 id="title"></h1>
+  <p id="subtitle"></p>
+</div>
+<div class="phone" id="phone"><div class="screen" id="screen"></div></div>
+
+<script src="screens.js"></script>
+<script>
+(() => {
+  const CANVAS = { w: 1320, h: 2868 };
+  const RAW = { w: 1320, h: 2868 };
+  // El mòbil surt per baix: només es veuen els ~2.340 px de dalt de la captura,
+  // de manera que la barra de pestanyes queda fora del tall.
+  const PHONE = { width: 1220, bezel: 18, top: 751, screenRadius: 165 };
+
+  const id = new URLSearchParams(location.search).get("shot") || window.SCREENS[0].id;
+  const shot = window.SCREENS.find((s) => s.id === id);
+  document.getElementById("title").innerHTML = shot.title;
+  document.getElementById("subtitle").innerHTML = shot.subtitle;
+
+  const screenW = PHONE.width - 2 * PHONE.bezel;
+  const s = screenW / RAW.w;
+  const screenH = RAW.h * s;
+  const px = (v) => `${v}px`;
+
+  Object.assign(document.getElementById("phone").style, {
+    left: px((CANVAS.w - PHONE.width) / 2),
+    top: px(PHONE.top),
+    width: px(PHONE.width),
+    height: px(screenH + 2 * PHONE.bezel),
+    borderRadius: px(PHONE.screenRadius * s + PHONE.bezel),
+  });
+  Object.assign(document.getElementById("screen").style, {
+    left: px(PHONE.bezel),
+    top: px(PHONE.bezel),
+    width: px(screenW),
+    height: px(screenH),
+    borderRadius: px(PHONE.screenRadius * s),
+    backgroundImage: `url("${shot.raw}")`,
+    backgroundSize: `${px(screenW)} auto`,
+  });
+})();
+</script>
+</body>
+</html>
