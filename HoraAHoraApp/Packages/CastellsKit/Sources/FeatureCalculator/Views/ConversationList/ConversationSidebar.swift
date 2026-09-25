@@ -35,7 +35,7 @@ struct ConversationSidebar: View {
                         Button { onRename(conversation) } label: {
                             Label("Canvia el nom", systemImage: "pencil")
                         }
-                        .tint(.blue)
+                        .tint(.gray)
                     }
                 }
             }
