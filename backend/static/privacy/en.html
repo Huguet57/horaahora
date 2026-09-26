@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Privacy policy</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Last updated: 24 September 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Last updated: 27 September 2026</p>
   <p>This policy explains how the current version of Castells en vena, a free app with no user accounts, processes personal data.</p>
 
   <h2>1. Controller</h2>
@@ -76,7 +76,8 @@
   <ul>
     <li><strong>Vercel:</strong> backend hosting and execution. The primary function is configured in Paris (<code>cdg1</code>), although Vercel and its subprocessors may process data in other countries.</li>
     <li><strong>Supabase:</strong> managed PostgreSQL database in the Paris region storing synchronized content, technical security counters and active notification subscriptions.</li>
-    <li><strong>OpenAI:</strong> linguistic interpretation of calculator queries through the API. Requests are sent with response storage disabled (<code>store: false</code>).</li>
+    <li><strong>OpenRouter:</strong> routes calculator queries to the AI model. Requests are sent with <code>data_collection: "deny"</code> so they are not routed to providers that may use them to train models. OpenRouter keeps technical metadata for each request, such as token counts and latency, and may assign an anonymous topic category to a small sample of queries, but does not store their content.</li>
+    <li><strong>Google (Gemini):</strong> linguistic interpretation of calculator queries, received through OpenRouter.</li>
     <li><strong>TypeSafe AI (Jev):</strong> classifies public news content by relevance and the groups involved.</li>
     <li><strong>Apple:</strong> app distribution, system permissions and APNs when you enable notifications.</li>
     <li><strong>Google/Gmail:</strong> receiving and managing emails you voluntarily send to the support or privacy contact.</li>
@@ -92,7 +93,7 @@
     <li><strong>Rate limiter:</strong> technical keys are kept for a 10-minute window.</li>
     <li><strong>Notification subscription:</strong> the token is retained while alerts are enabled and is revoked immediately when they are disabled or APNs rejects it. Installations not renewed for 180 days are invalidated; delivery records are kept for no more than 30 days.</li>
     <li><strong>Vercel logs:</strong> approximately 1 day under the current plan.</li>
-    <li><strong>OpenAI:</strong> API data is not used to train models by default; OpenAI may retain abuse-monitoring logs for up to 30 days unless a legal obligation requires a different period.</li>
+    <li><strong>Google (Gemini):</strong> does not use queries to train models. Depending on the Google service that handles the request, it may retain them for up to 55 days for abuse monitoring, unless a legal obligation requires a different period.</li>
     <li><strong>Support or privacy emails:</strong> for up to 12 months after the query is resolved, unless longer retention is needed to meet a legal obligation or defend legal claims.</li>
   </ul>
 
@@ -114,7 +115,7 @@
   <p>Proportionate measures are applied, including HTTPS communications, restricted infrastructure access and no first-party chat persistence on the backend. No system is completely infallible.</p>
   <p>Material changes will be published at these same URLs and the date will be updated. If a change requires consent, it will be requested before the change applies.</p>
 
-  <footer>Castells en vena · Privacy policy · 24 September 2026</footer>
+  <footer>Castells en vena · Privacy policy · 27 September 2026</footer>
 </main>
 </body>
 </html>
