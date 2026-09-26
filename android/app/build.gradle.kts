@@ -78,4 +78,7 @@ dependencies {
     implementation(libs.sqldelight.android.driver)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    // Play services bring Fragment 1.1, whose permission results break the
+    // Activity Result API used for the notification permission.
+    implementation(libs.androidx.fragment)
 }
