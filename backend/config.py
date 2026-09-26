@@ -36,6 +36,10 @@ class Settings:
     apns_key_id: str = ""
     apns_team_id: str = ""
     apns_bundle_id: str = "com.ahuguet.castellsenvena"
+    # Firebase Cloud Messaging for the Android app: the JSON key of a service
+    # account allowed to send messages, and the app's package name.
+    fcm_service_account_json: str = ""
+    android_package_name: str = "com.ahuguet.castellsenvena"
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -79,6 +83,8 @@ class Settings:
             apns_key_id=os.getenv("APNS_KEY_ID", ""),
             apns_team_id=os.getenv("APNS_TEAM_ID", ""),
             apns_bundle_id=os.getenv("APNS_BUNDLE_ID", defaults.apns_bundle_id),
+            fcm_service_account_json=os.getenv("FCM_SERVICE_ACCOUNT_JSON", ""),
+            android_package_name=os.getenv("ANDROID_PACKAGE_NAME", defaults.android_package_name),
         )
 
     @property
@@ -88,6 +94,10 @@ class Settings:
     @property
     def apns_environment(self) -> str:
         return "production" if self.vercel_env == "production" else "development"
+
+    def push_topic(self, platform: str) -> str:
+        """The app a subscription belongs to: the iOS bundle or the Android package."""
+        return self.android_package_name if platform == "android" else self.apns_bundle_id
 
 
 def _bool_env(name: str, default: bool) -> bool:

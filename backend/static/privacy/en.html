@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Privacy policy</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Last updated: 24 September 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Last updated: 26 September 2026</p>
   <p>This policy explains how the current version of Castells en vena, a free app with no user accounts, processes personal data.</p>
 
   <h2>1. Controller</h2>
@@ -56,9 +56,9 @@
   <p>When you connect to the service, the IP address, date and time, requested path, response status and technical information strictly required to provide the service, limit abuse and diagnose incidents may be processed.</p>
 
   <h3>Notifications</h3>
-  <p>If you voluntarily enable notifications, iOS manages the permission and Apple assigns an Apple Push Notification service (APNs) token to this installation. The app sends the backend that token, the random installation identifier, app version and language so that requested alerts can be delivered. They are not used for analytics, advertising or tracking. When notifications are disabled or Apple invalidates the token, the backend immediately replaces it with a revocation marker.</p>
+  <p>If you voluntarily enable notifications, the operating system manages the permission and the platform's notification service assigns a token to this installation: Apple Push Notification service (APNs), from Apple, on iOS; Firebase Cloud Messaging (FCM), from Google, on Android. The app sends the backend that token, the random installation identifier, app version, language and platform so that requested alerts can be delivered. They are not used for analytics, advertising or tracking. When notifications are disabled or Apple or Google invalidates the token, the backend immediately replaces it with a revocation marker. On Android, the app only requests the token from FCM when you enable notifications and deletes it when you disable them.</p>
 
-  <p>While notifications are enabled, the minimum interest level (Low, Medium or High) and groups selected in the Agenda are also sent to personalize alerts. Changes synchronize when the app is opened; while offline, the server uses the last settings it received. Jev, from TypeSafe AI, classifies public news titles, summaries and, when available, article bodies and public text from accompanying links, distinguishing their origin. It does not receive APNs tokens, installation identifiers or personal preferences. Our backend combines the classification with followed groups.</p>
+  <p>While notifications are enabled, the minimum interest level (Low, Medium or High) and groups selected in the Agenda are also sent to personalize alerts. Changes synchronize when the app is opened; while offline, the server uses the last settings it received. Jev, from TypeSafe AI, classifies public news titles, summaries and, when available, article bodies and public text from accompanying links, distinguishing their origin. It does not receive notification tokens, installation identifiers or personal preferences. Our backend combines the classification with followed groups.</p>
   <p>The threshold and group selection stored in the subscription are cleared when the token is revoked; the local copy is retained. Temporary copies used to prepare an alert are cleared when its classification finishes or is skipped.</p>
 
   <h3>Support communications</h3>
@@ -78,7 +78,8 @@
     <li><strong>Supabase:</strong> managed PostgreSQL database in the Paris region storing synchronized content, technical security counters and active notification subscriptions.</li>
     <li><strong>OpenAI:</strong> linguistic interpretation of calculator queries through the API. Requests are sent with response storage disabled (<code>store: false</code>).</li>
     <li><strong>TypeSafe AI (Jev):</strong> classifies public news content by relevance and the groups involved.</li>
-    <li><strong>Apple:</strong> app distribution, system permissions and APNs when you enable notifications.</li>
+    <li><strong>Apple:</strong> iOS app distribution, system permissions and APNs when you enable notifications.</li>
+    <li><strong>Google (Firebase Cloud Messaging and Google Play):</strong> Android app distribution and delivery of notifications through FCM when you enable them.</li>
     <li><strong>Google/Gmail:</strong> receiving and managing emails you voluntarily send to the support or privacy contact.</li>
   </ul>
   <p>Revista Castells and the Coordinadora de Colles Castelleres de Catalunya (CCCC) do not receive queries, identifiers or user profiles. The app only displays attributed content and links to their official sources.</p>
@@ -90,14 +91,14 @@
   <ul>
     <li><strong>Local data:</strong> until you delete each conversation or uninstall the app.</li>
     <li><strong>Rate limiter:</strong> technical keys are kept for a 10-minute window.</li>
-    <li><strong>Notification subscription:</strong> the token is retained while alerts are enabled and is revoked immediately when they are disabled or APNs rejects it. Installations not renewed for 180 days are invalidated; delivery records are kept for no more than 30 days.</li>
+    <li><strong>Notification subscription:</strong> the token is retained while alerts are enabled and is revoked immediately when they are disabled or APNs or FCM rejects it. Installations not renewed for 180 days are invalidated; delivery records are kept for no more than 30 days.</li>
     <li><strong>Vercel logs:</strong> approximately 1 day under the current plan.</li>
     <li><strong>OpenAI:</strong> API data is not used to train models by default; OpenAI may retain abuse-monitoring logs for up to 30 days unless a legal obligation requires a different period.</li>
     <li><strong>Support or privacy emails:</strong> for up to 12 months after the query is resolved, unless longer retention is needed to meet a legal obligation or defend legal claims.</li>
   </ul>
 
   <h2>7. Advertising, analytics and automated decisions</h2>
-  <p>There is no advertising, cross-app or cross-site tracking, commercial profiling, or additional analytics or crash-reporting SDK. The calculator automates interpretation and scoring, but it does not make decisions that have legal or similarly significant effects on people.</p>
+  <p>There is no advertising, cross-app or cross-site tracking, commercial profiling, or additional analytics or crash-reporting SDK. On Android, the app includes the Firebase Cloud Messaging SDK only to deliver notifications, without Google Analytics for Firebase. The calculator automates interpretation and scoring, but it does not make decisions that have legal or similarly significant effects on people.</p>
 
   <h2>8. External links</h2>
   <p>When you open a link to Revista Castells, CCCC, Google Maps or another external service, the destination service processes the connection under its own privacy policy. Castells en vena does not control that processing.</p>
@@ -114,7 +115,7 @@
   <p>Proportionate measures are applied, including HTTPS communications, restricted infrastructure access and no first-party chat persistence on the backend. No system is completely infallible.</p>
   <p>Material changes will be published at these same URLs and the date will be updated. If a change requires consent, it will be requested before the change applies.</p>
 
-  <footer>Castells en vena · Privacy policy · 24 September 2026</footer>
+  <footer>Castells en vena · Privacy policy · 26 September 2026</footer>
 </main>
 </body>
 </html>

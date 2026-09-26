@@ -2,7 +2,7 @@ from backend.adapters.persistence.database import Database
 from backend.application.notifications import NotificationRunResult
 from backend.config import Settings
 from backend.domain.notifications.interest import GroupSelection, InterestLevel
-from backend.domain.notifications.models import PushSubscriptionRegistration
+from backend.domain.notifications.models import PushPlatform, PushSubscriptionRegistration
 from tests.support.application import make_test_client
 
 
@@ -111,3 +111,75 @@ def test_notification_preferences_are_normalized_and_invalid_levels_rejected():
     payload["minimum_interest"] = "low"
     payload["group_selection"]["mode"] = "unknown"
     assert client.put("/v1/push-subscriptions/install-1", json=payload).status_code == 422
+
+
+def test_android_registers_a_firebase_token_for_the_android_package() -> None:
+    repository = RecordingPushRepository()
+    client = make_test_client(
+        settings=Settings(
+            database_url="sqlite://",
+            hour_by_hour_source_enabled=False,
+            apns_bundle_id="com.example.ios",
+            android_package_name="com.example.android",
+        ),
+        push_repository=repository,
+    )
+    token = "fGh1_Jk-2:APA91bExampleFirebaseRegistrationToken_0123456789abcdef"
+
+    registered = client.put(
+        "/v1/push-subscriptions/install-2",
+        json={
+            "device_token": f"  {token} ",
+            "app_version": "1.3 (1)",
+            "locale": "ca-ES",
+            "environment": "production",
+            "platform": "android",
+        },
+    )
+    removed = client.delete(
+        "/v1/push-subscriptions/install-2?environment=production&platform=android"
+    )
+
+    assert registered.status_code == 204
+    assert removed.status_code == 204
+    registration, environment, topic = repository.registrations[0]
+    # Firebase tokens are case-sensitive: only surrounding spaces are removed.
+    assert registration.device_token == token
+    assert registration.platform is PushPlatform.ANDROID
+    assert (environment, topic) == ("production", "com.example.android")
+    assert repository.unregistrations == [("install-2", "production", "com.example.android")]
+
+
+def test_each_platform_validates_its_own_token_format():
+    repository = RecordingPushRepository()
+    client = make_test_client(push_repository=repository)
+    firebase_token = "fGh1_Jk-2:APA91bExampleFirebaseRegistrationToken_0123456789abcdef"
+
+    android_hex = client.put(
+        "/v1/push-subscriptions/install-3",
+        json={"device_token": "ab" * 32, "platform": "android"},
+    )
+    android_spaces = client.put(
+        "/v1/push-subscriptions/install-3",
+        json={"device_token": "not a firebase token at all, it has spaces", "platform": "android"},
+    )
+    ios_firebase = client.put(
+        "/v1/push-subscriptions/install-3",
+        json={"device_token": firebase_token, "platform": "ios"},
+    )
+    unknown = client.put(
+        "/v1/push-subscriptions/install-3",
+        json={"device_token": "ab" * 32, "platform": "windows"},
+    )
+    ios_default = client.put(
+        "/v1/push-subscriptions/install-3",
+        json={"device_token": "AB" * 32},
+    )
+
+    assert android_hex.status_code == 204
+    assert android_spaces.status_code == 422
+    assert ios_firebase.status_code == 422
+    assert unknown.status_code == 422
+    assert ios_default.status_code == 204
+    assert repository.registrations[-1][0].platform is PushPlatform.IOS
+    assert repository.registrations[-1][0].device_token == "ab" * 32

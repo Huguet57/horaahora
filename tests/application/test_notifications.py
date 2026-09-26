@@ -25,7 +25,7 @@ from backend.adapters.persistence.push_subscription_repository import (
 )
 from backend.application.notifications import HourByHourNotificationCoordinator
 from backend.domain.content.models import HourByHourItem
-from backend.domain.notifications.models import PushSubscriptionRegistration
+from backend.domain.notifications.models import PushPlatform, PushSubscriptionRegistration
 from tests.support.hour_by_hour import hour_item
 from tests.support.notifications import ingest, ingestion_service
 
@@ -68,6 +68,33 @@ def test_subscription_registration_is_idempotent_and_rotates_the_token() -> None
     with Session(subscriptions.engine) as session:
         stored_token = session.scalar(select(PushSubscriptionRecord.device_token))
     assert stored_token != "cd" * 32
+
+
+def test_android_subscriptions_keep_their_platform_through_to_the_delivery() -> None:
+    subscriptions, repo = repositories()
+    android = replace(
+        registration("fGh1_Jk-2:APA91bExampleFirebaseRegistrationToken"),
+        installation_id="installation-android",
+        platform=PushPlatform.ANDROID,
+    )
+    subscriptions.register(registration(), environment="production", topic="com.example.app")
+    subscriptions.register(android, environment="production", topic="com.example.app")
+
+    active = {
+        item.installation_id: item.platform for item in subscriptions.list_active_subscriptions()
+    }
+    ingest(repo, [hour_item("one")])
+    ingest(repo, [hour_item("two"), hour_item("one")])
+    deliveries = {item.device_token: item.platform for item in repo.claim_deliveries(limit=10)}
+
+    assert active == {
+        "installation-1": PushPlatform.IOS,
+        "installation-android": PushPlatform.ANDROID,
+    }
+    assert deliveries == {
+        "ab" * 32: PushPlatform.IOS,
+        "fGh1_Jk-2:APA91bExampleFirebaseRegistrationToken": PushPlatform.ANDROID,
+    }
 
 
 def test_first_ingestion_is_a_baseline_and_next_item_creates_one_delivery() -> None:

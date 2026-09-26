@@ -1,13 +1,14 @@
 # Super-app castellera
 
-Primera fase d'una app iOS modular amb quatre seccions natives: Hora a Hora, Agenda, una calculadora conversacional i Ajustos. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura concreta al domini o al contracte HTTP.
+Primera fase d'una app nativa per a iOS i Android, modular i amb quatre seccions: Hora a Hora, Agenda, una calculadora conversacional i Ajustos. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura concreta al domini o al contracte HTTP.
 
-El nom visible i definitiu de l'app és **Castells en vena** i el Bundle ID de distribució és `com.ahuguet.castellsenvena`.
+El nom visible i definitiu de l'app és **Castells en vena**. El Bundle ID d'iOS i l'`applicationId` d'Android són `com.ahuguet.castellsenvena`.
 
 ## Estructura
 
 - `HoraAHoraApp/HoraAHoraApp`: composició, navegació, notificacions i configuració iOS.
 - `HoraAHoraApp/Packages/CastellsKit`: paquet Swift local amb domini, dades i features independents.
+- `android`: app Android nativa (Kotlin i Jetpack Compose) amb mòduls `core` i `feature`; vegeu `android/README.md`.
 - `backend/domain`: models, ports i motor de puntuació determinista.
 - `backend/application`: casos d'ús.
 - `backend/adapters`: IA, Revista Castells, El Món Casteller, persistència i rate limiting.
@@ -212,8 +213,11 @@ Passos de preparació de producció:
    Desa també una connexió de sessió o directa com a `SUPABASE_MIGRATION_DATABASE_URL` al
    gestor de secrets des del qual s'executin les migracions.
 3. Configura `RATE_LIMIT_HASH_SECRET`, `CRON_SECRET`, `APNS_KEY_P8`, `APNS_KEY_ID`,
-   `APNS_TEAM_ID` i `APNS_BUNDLE_ID` com a secrets. Mantén `PUSH_DELIVERY_ENABLED=false`
-   al primer desplegament i sempre a Preview.
+   `APNS_TEAM_ID` i `APNS_BUNDLE_ID` com a secrets. Per als avisos d'Android, afegeix
+   `FCM_SERVICE_ACCOUNT_JSON` (la clau JSON d'un compte de servei del projecte Firebase amb
+   permís per enviar missatges) i, si cal, `ANDROID_PACKAGE_NAME`. Sense aquesta clau, les
+   entregues d'Android es marquen `PushServiceNotConfigured` i iOS continua funcionant.
+   Mantén `PUSH_DELIVERY_ENABLED=false` al primer desplegament i sempre a Preview.
 4. Executa les migracions abans de desplegar codi que depengui del nou esquema:
 
 ```bash
@@ -301,6 +305,9 @@ de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` acc
 `minimum_interest` (`low`, `medium`, `high`) i `group_selection`
 (`{"mode":"custom","keys":["castellers de vilafranca"]}` o `{"mode":"all","keys":[]}`).
 Les peticions antigues preserven els valors existents, amb Low i totes com a defaults.
+El camp `platform` indica el servei del token: `ios` (APNs, per defecte i hexadecimal) o
+`android` (Firebase Cloud Messaging, que conserva majúscules i minúscules). El `DELETE`
+rep la mateixa plataforma com a paràmetre `platform`.
 
 A iOS, Ajustos → «Quines notícies?» obre una pantalla amb tres opcions: **Totes**
 (`low`), **Rellevants** (`medium`) i **Destacades** (`high`). Es poden triar abans
@@ -314,7 +321,7 @@ L'outbox conserva l'estat de classificació i el resultat, amb model, criteris i
 Les preferències de l'audiència es capturen en detectar la novetat i es buiden en acabar.
 El cron revalida la preferència actual abans de reclamar les entregues. Les pujades de
 llindar poden suprimir avisos pendents; abaixar-lo o seguir colles no recupera avisos antics.
-Els errors de Jev són omissions definitives; els errors transitoris d'APNs es reintenten.
+Els errors de Jev són omissions definitives; els errors transitoris d'APNs i FCM es reintenten.
 Si s'esgota el pressupost, les classificacions no iniciades queden per al següent cron.
 Un intent interromput es marca omès en recuperar el bloqueig. Les crides Jev no mantenen
 cap transacció d'escriptura oberta i les dues rutes d'ingesta comparteixen l'advisory lock.

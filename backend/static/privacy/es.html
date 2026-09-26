@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Política de privacidad</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Última actualización: 24 de septiembre de 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Última actualización: 26 de septiembre de 2026</p>
   <p>Esta política explica cómo trata los datos personales la versión actual de Castells en vena, una app gratuita y sin cuenta de usuario.</p>
 
   <h2>1. Responsable</h2>
@@ -56,9 +56,9 @@
   <p>Al conectarte al servicio se pueden tratar la dirección IP, la fecha y hora, la ruta solicitada, el estado de la respuesta e información técnica imprescindible para prestar el servicio, limitar abusos y diagnosticar incidencias.</p>
 
   <h3>Notificaciones</h3>
-  <p>Si activas voluntariamente las notificaciones, iOS gestiona el permiso y Apple asigna un token de Apple Push Notification service (APNs) a esta instalación. La app envía al backend ese token, el identificador aleatorio de instalación, la versión de la app y el idioma para poder entregar los avisos solicitados. No se utilizan para analítica, publicidad ni seguimiento. Al desactivar las notificaciones o cuando Apple invalida el token, el backend lo sustituye inmediatamente por una marca de revocación.</p>
+  <p>Si activas voluntariamente las notificaciones, el sistema operativo gestiona el permiso y el servicio de notificaciones de la plataforma asigna un token a esta instalación: en iOS, Apple Push Notification service (APNs), de Apple; en Android, Firebase Cloud Messaging (FCM), de Google. La app envía al backend ese token, el identificador aleatorio de instalación, la versión de la app, el idioma y la plataforma para poder entregar los avisos solicitados. No se utilizan para analítica, publicidad ni seguimiento. Al desactivar las notificaciones o cuando Apple o Google invalidan el token, el backend lo sustituye inmediatamente por una marca de revocación. En Android, la app solo solicita el token a FCM cuando activas las notificaciones y lo borra cuando las desactivas.</p>
 
-  <p>Con las notificaciones activas, también se envían el nivel mínimo de interés (Low, Medium o High) y las colles seleccionadas en la Agenda para personalizar los avisos. Los cambios se sincronizan al abrir la app; sin conexión se aplica la última configuración recibida por el servidor. Jev, de TypeSafe AI, clasifica el título, el resumen y, cuando está disponible, el cuerpo público de las noticias y el texto público de los enlaces que las acompañan, distinguiendo su procedencia. No recibe el token APNs, el identificador de instalación ni las preferencias personales. La combinación con las colles seguidas se calcula en nuestro backend.</p>
+  <p>Con las notificaciones activas, también se envían el nivel mínimo de interés (Low, Medium o High) y las colles seleccionadas en la Agenda para personalizar los avisos. Los cambios se sincronizan al abrir la app; sin conexión se aplica la última configuración recibida por el servidor. Jev, de TypeSafe AI, clasifica el título, el resumen y, cuando está disponible, el cuerpo público de las noticias y el texto público de los enlaces que las acompañan, distinguiendo su procedencia. No recibe el token de notificación, el identificador de instalación ni las preferencias personales. La combinación con las colles seguidas se calcula en nuestro backend.</p>
   <p>El umbral y la selección de colles guardados en la suscripción se vacían al revocar el token; la copia local se conserva. Las copias temporales utilizadas para preparar un aviso se eliminan al completar u omitir su clasificación.</p>
 
   <h3>Comunicaciones de soporte</h3>
@@ -78,7 +78,8 @@
     <li><strong>Supabase:</strong> base de datos PostgreSQL gestionada en la región de París donde se conservan el contenido sincronizado, los contadores técnicos de seguridad y las suscripciones de notificaciones activas.</li>
     <li><strong>OpenAI:</strong> interpretación lingüística de las consultas mediante la API. Las peticiones se envían con la opción de no almacenamiento de la respuesta activada (<code>store: false</code>).</li>
     <li><strong>TypeSafe AI (Jev):</strong> clasificación del contenido público de las noticias por relevancia y colles implicadas.</li>
-    <li><strong>Apple:</strong> distribución de la app, permisos del sistema y APNs cuando activas las notificaciones.</li>
+    <li><strong>Apple:</strong> distribución de la app en iOS, permisos del sistema y APNs cuando activas las notificaciones.</li>
+    <li><strong>Google (Firebase Cloud Messaging y Google Play):</strong> distribución de la app en Android y entrega de notificaciones mediante FCM cuando las activas.</li>
     <li><strong>Google/Gmail:</strong> recepción y gestión de los correos que envíes voluntariamente al contacto de soporte o privacidad.</li>
   </ul>
   <p>Revista Castells y la Coordinadora de Colles Castelleres de Catalunya (CCCC) no reciben consultas, identificadores ni perfiles de usuario. La app únicamente muestra contenido atribuido y enlaces a sus fuentes oficiales.</p>
@@ -90,14 +91,14 @@
   <ul>
     <li><strong>Datos locales:</strong> hasta que elimines cada conversación o desinstales la app.</li>
     <li><strong>Limitador de peticiones:</strong> las claves técnicas se mantienen durante una ventana de 10 minutos.</li>
-    <li><strong>Suscripción de notificaciones:</strong> el token se conserva mientras los avisos están activos y se revoca inmediatamente al desactivarlos o cuando APNs lo rechaza. Las instalaciones que no se renuevan durante 180 días se invalidan; los registros de entrega se conservan como máximo 30 días.</li>
+    <li><strong>Suscripción de notificaciones:</strong> el token se conserva mientras los avisos están activos y se revoca inmediatamente al desactivarlos o cuando APNs o FCM lo rechazan. Las instalaciones que no se renuevan durante 180 días se invalidan; los registros de entrega se conservan como máximo 30 días.</li>
     <li><strong>Logs de Vercel:</strong> aproximadamente 1 día con el plan actual.</li>
     <li><strong>OpenAI:</strong> la API no se utiliza para entrenar modelos por defecto; OpenAI puede conservar logs de prevención de abuso hasta 30 días, salvo que una obligación legal exija otro plazo.</li>
     <li><strong>Correos de soporte o privacidad:</strong> hasta 12 meses después de resolver la consulta, salvo que sea necesario conservarlos más tiempo para cumplir una obligación legal o defender reclamaciones.</li>
   </ul>
 
   <h2>7. Publicidad, analítica y decisiones automatizadas</h2>
-  <p>No hay publicidad, seguimiento entre apps o webs, perfilado comercial ni SDK adicional de analítica o crash reporting. La calculadora automatiza la interpretación y el cálculo de puntuaciones, pero no adopta decisiones con efectos jurídicos o similares sobre las personas.</p>
+  <p>No hay publicidad, seguimiento entre apps o webs, perfilado comercial ni SDK adicional de analítica o crash reporting. En Android, la app incluye el SDK de Firebase Cloud Messaging solo para entregar las notificaciones, sin Google Analytics para Firebase. La calculadora automatiza la interpretación y el cálculo de puntuaciones, pero no adopta decisiones con efectos jurídicos o similares sobre las personas.</p>
 
   <h2>8. Enlaces externos</h2>
   <p>Cuando abres un enlace de Revista Castells, CCCC, Google Maps u otro servicio externo, el servicio de destino trata la conexión según su propia política de privacidad. Castells en vena no controla esos tratamientos.</p>
@@ -114,7 +115,7 @@
   <p>Se aplican medidas proporcionadas, como comunicaciones HTTPS, acceso restringido a la infraestructura y ausencia de persistencia propia de los chats en el backend. Ningún sistema es completamente infalible.</p>
   <p>Los cambios materiales se publicarán en estas mismas URLs y se actualizará la fecha. Si un cambio requiere consentimiento, se solicitará antes de aplicarlo.</p>
 
-  <footer>Castells en vena · Política de privacidad · 24 de septiembre de 2026</footer>
+  <footer>Castells en vena · Política de privacidad · 26 de septiembre de 2026</footer>
 </main>
 </body>
 </html>

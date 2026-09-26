@@ -1,6 +1,6 @@
 # Política de privacitat — Castells en vena
 
-**Darrera actualització:** 24 de setembre de 2026
+**Darrera actualització:** 26 de setembre de 2026
 
 Aquesta política explica com tracta les dades personals la versió actual de **Castells en vena**, una app gratuïta i sense compte d'usuari.
 
@@ -33,9 +33,9 @@ En connectar-se al servei es poden processar l'adreça IP, la data i l'hora, la 
 
 ### Notificacions
 
-Si s'activen voluntàriament les notificacions, iOS gestiona el permís i Apple assigna un token d'Apple Push Notification service (APNs) a aquesta instal·lació. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app i l'idioma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple invalida el token, el backend el substitueix immediatament per una marca de revocació.
+Si s'activen voluntàriament les notificacions, el sistema operatiu gestiona el permís i el servei de notificacions de la plataforma assigna un token a aquesta instal·lació: a iOS, Apple Push Notification service (APNs), d'Apple; a Android, Firebase Cloud Messaging (FCM), de Google. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app, l'idioma i la plataforma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple o Google invaliden el token, el backend el substitueix immediatament per una marca de revocació. A Android, l'app només demana el token a FCM quan s'activen les notificacions i l'esborra quan es desactiven.
 
-Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'Agenda per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token APNs, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.
+Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'Agenda per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token de notificació, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.
 
 El llindar i la selecció de colles desats a la subscripció es buiden quan es revoca el token; la còpia local es conserva. Les còpies temporals utilitzades per preparar un avís s'eliminen en completar o ometre'n la classificació.
 
@@ -59,7 +59,8 @@ Les dades necessàries per respondre una consulta i protegir el servei són impr
 - **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.
 - **OpenAI:** interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (`store: false`).
 - **TypeSafe AI (Jev):** classificació de contingut públic de les notícies per rellevància i colles implicades.
-- **Apple:** distribució de l'app, permisos del sistema i APNs quan s'activen notificacions.
+- **Apple:** distribució de l'app a iOS, permisos del sistema i APNs quan s'activen notificacions.
+- **Google (Firebase Cloud Messaging i Google Play):** distribució de l'app a Android i lliurament de notificacions amb FCM quan s'activen.
 - **Google/Gmail:** recepció i gestió dels correus enviats voluntàriament al contacte de suport o privacitat.
 
 Revista Castells i la Coordinadora de Colles Castelleres de Catalunya (CCCC) no reben consultes, identificadors ni perfils d'usuari. L'app només mostra contingut atribuït i enllaços a les seves fonts oficials.
@@ -72,14 +73,14 @@ Alguns proveïdors o subencarregats poden tractar dades fora de l'Espai Econòmi
 
 - **Dades locals:** fins que s'elimina cada conversa o es desinstal·la l'app.
 - **Limitador de peticions:** les claus tècniques es mantenen durant una finestra de 10 minuts.
-- **Subscripció de notificacions:** el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs el rebutja. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.
+- **Subscripció de notificacions:** el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs o FCM el rebutgen. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.
 - **Logs de Vercel:** aproximadament 1 dia amb el pla actual.
 - **OpenAI:** l'API no s'utilitza per entrenar models per defecte; OpenAI pot retenir logs de prevenció d'abús fins a 30 dies, llevat que una obligació legal exigeixi una altra conservació.
 - **Correus de suport o privacitat:** fins a 12 mesos després de resoldre la consulta, tret que sigui necessari conservar-los més temps per complir una obligació legal o defensar reclamacions.
 
 ## 7. Publicitat, analítica i decisions automatitzades
 
-No hi ha publicitat, tracking entre apps o webs, perfilat comercial ni SDK addicional d'analítica o crash reporting. La calculadora automatitza la interpretació i el càlcul de puntuacions, però no pren decisions amb efectes jurídics ni similars sobre les persones.
+No hi ha publicitat, tracking entre apps o webs, perfilat comercial ni SDK addicional d'analítica o crash reporting. A Android, l'app inclou el SDK de Firebase Cloud Messaging només per lliurar les notificacions, sense Google Analytics per a Firebase. La calculadora automatitza la interpretació i el càlcul de puntuacions, però no pren decisions amb efectes jurídics ni similars sobre les persones.
 
 ## 8. Enllaços externs
 

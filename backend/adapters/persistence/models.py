@@ -92,6 +92,8 @@ class PushSubscriptionRecord(Base):
     device_token: Mapped[str] = mapped_column(Text)
     environment: Mapped[str] = mapped_column(String(20), index=True)
     topic: Mapped[str] = mapped_column(String(200))
+    # "ios" tokens go to APNs and "android" tokens to Firebase Cloud Messaging.
+    platform: Mapped[str] = mapped_column(String(20), default="ios", server_default="ios")
     hour_by_hour_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     minimum_interest: Mapped[str] = mapped_column(String(10), default="low", server_default="low")
     group_selection: Mapped[dict] = mapped_column(
