@@ -1,0 +1,37 @@
+-- Offline copy of the agenda. participatingGroups is a JSON array of names.
+CREATE TABLE AgendaEventRecord (
+    id TEXT NOT NULL PRIMARY KEY,
+    sourceId TEXT NOT NULL,
+    externalId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    localDate TEXT NOT NULL,
+    startsAt INTEGER,
+    timeLabel TEXT NOT NULL,
+    timezone TEXT NOT NULL,
+    venue TEXT NOT NULL,
+    municipality TEXT NOT NULL,
+    participatingGroups TEXT NOT NULL,
+    notes TEXT NOT NULL,
+    sourceUrl TEXT NOT NULL,
+    sourceOrder INTEGER NOT NULL,
+    attribution TEXT NOT NULL,
+    revision TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE INDEX AgendaEventRecord_localDate ON AgendaEventRecord(localDate);
+
+upsert:
+INSERT OR REPLACE INTO AgendaEventRecord VALUES ?;
+
+inRange:
+SELECT *
+FROM AgendaEventRecord
+WHERE localDate BETWEEN :lower AND :upper
+ORDER BY localDate ASC, sourceOrder ASC;
+
+all:
+SELECT * FROM AgendaEventRecord;
+
+deleteById:
+DELETE FROM AgendaEventRecord WHERE id = :id;

@@ -1,0 +1,25 @@
+-- Calculator conversations. They never leave the device.
+CREATE TABLE ConversationRecord (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+insert:
+INSERT INTO ConversationRecord VALUES ?;
+
+all:
+SELECT * FROM ConversationRecord ORDER BY updatedAt DESC;
+
+byId:
+SELECT * FROM ConversationRecord WHERE id = :id;
+
+rename:
+UPDATE ConversationRecord SET title = :title, updatedAt = :updatedAt WHERE id = :id;
+
+touch:
+UPDATE ConversationRecord SET updatedAt = :updatedAt WHERE id = :id;
+
+delete:
+DELETE FROM ConversationRecord WHERE id = :id;
