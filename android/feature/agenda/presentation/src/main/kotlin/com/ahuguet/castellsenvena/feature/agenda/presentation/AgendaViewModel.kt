@@ -9,6 +9,7 @@ import com.ahuguet.castellsenvena.core.domain.agenda.AgendaSourceStatus
 import com.ahuguet.castellsenvena.core.domain.agenda.CastellEvent
 import com.ahuguet.castellsenvena.core.domain.groups.GroupDirectoryRepository
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarMath
+import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarPaging
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.DateRange
 import com.ahuguet.castellsenvena.feature.agenda.presentation.events.AgendaCacheWindowReader
 import com.ahuguet.castellsenvena.feature.agenda.presentation.events.AgendaEventWindow
@@ -17,6 +18,8 @@ import com.ahuguet.castellsenvena.feature.agenda.presentation.events.AgendaPageL
 import com.ahuguet.castellsenvena.feature.agenda.presentation.groupfilter.AgendaGroupFilter
 import com.ahuguet.castellsenvena.feature.agenda.presentation.groupfilter.AgendaGroupFilterState
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -111,6 +114,24 @@ class AgendaViewModel(
         val week = current.visibleWeek.plusWeeks(offset.toLong())
         mutableState.value = current.copy(visibleWeek = week)
         extendPrefetchWindowIfNeeded(containing = week)
+    }
+
+    /**
+     * Shows the month that contains [date]. Pagers settle on absolute months,
+     * so the offset is measured when the change runs, not when it is requested.
+     */
+    suspend fun showMonth(containing: LocalDate) {
+        val offset = ChronoUnit.MONTHS.between(YearMonth.from(current.visibleMonth), YearMonth.from(containing))
+        if (offset != 0L) changeMonth(offset.toInt())
+    }
+
+    /** Shows the week that contains [date], like [showMonth]. */
+    suspend fun showWeek(containing: LocalDate) {
+        val offset = ChronoUnit.WEEKS.between(
+            AgendaCalendarPaging.monday(current.visibleWeek),
+            AgendaCalendarPaging.monday(containing),
+        )
+        if (offset != 0L) changeWeek(offset.toInt())
     }
 
     /** Loads the prefetch window around the visible month; stored events show meanwhile. */

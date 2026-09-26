@@ -231,4 +231,33 @@ class AgendaViewModelTest {
         assertEquals("2027-07-01", repository.requests.last().from)
         assertEquals("2027-07-31", repository.requests.last().to)
     }
+
+    @Test
+    fun showingAMonthMeasuresTheOffsetFromTheMonthVisibleWhenItRuns() = runTest {
+        val repository = AgendaRepositoryStub()
+        val model = model(repository, "2026-01-31")
+        model.load()
+
+        model.showMonth(containing = agendaDate("2026-03-01"))
+        model.showMonth(containing = agendaDate("2026-03-15"))
+
+        assertEquals(LocalDate.parse("2026-03-31"), model.state.value.visibleMonth)
+        assertEquals(LocalDate.parse("2026-01-31"), model.state.value.selectedDate)
+        assertEquals(
+            listOf("2026-08-01|2026-08-31", "2026-09-01|2026-09-30"),
+            repository.requests.drop(2).map { "${it.from}|${it.to}" },
+        )
+    }
+
+    @Test
+    fun showingAWeekMovesByWholeWeeksFromAnyDayOfTheTarget() = runTest {
+        val model = model(AgendaRepositoryStub(), "2026-07-25")
+        model.load()
+
+        model.showWeek(containing = agendaDate("2026-08-03"))
+        assertEquals(LocalDate.parse("2026-08-08"), model.state.value.visibleWeek)
+
+        model.showWeek(containing = agendaDate("2026-08-09"))
+        assertEquals(LocalDate.parse("2026-08-08"), model.state.value.visibleWeek)
+    }
 }

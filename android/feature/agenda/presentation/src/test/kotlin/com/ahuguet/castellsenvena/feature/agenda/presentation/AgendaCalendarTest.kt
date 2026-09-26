@@ -2,6 +2,7 @@ package com.ahuguet.castellsenvena.feature.agenda.presentation
 
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarFold
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarMath
+import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarPaging
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.DateRange
 import java.time.LocalDate
 import kotlin.test.Test
@@ -158,5 +159,20 @@ class AgendaCalendarTest {
         assertEquals("www.google.com", url.host)
         assertEquals("/maps/search/", url.path)
         assertEquals("api=1&query=Plaça Vella, El Vendrell", url.query)
+    }
+
+    @Test
+    fun pagerPagesAreAbsoluteMonthsAndMondayBasedWeeks() {
+        val july = AgendaCalendarPaging.monthPage(agendaDate("2026-07-21"))
+        assertEquals(july, AgendaCalendarPaging.monthPage(agendaDate("2026-07-01")))
+        assertEquals(july + 1, AgendaCalendarPaging.monthPage(agendaDate("2026-08-31")))
+        assertEquals("2026-07-01", AgendaCalendarPaging.month(july).toString())
+        assertEquals(0, AgendaCalendarPaging.monthPage(agendaDate("1999-12-31")))
+
+        val week = AgendaCalendarPaging.weekPage(agendaDate("2026-07-21"))
+        assertEquals(week, AgendaCalendarPaging.weekPage(agendaDate("2026-07-26")))
+        assertEquals(week + 1, AgendaCalendarPaging.weekPage(agendaDate("2026-07-27")))
+        assertEquals("2026-07-20", AgendaCalendarPaging.week(week).toString())
+        assertTrue(AgendaCalendarPaging.week(AgendaCalendarPaging.WEEK_PAGE_COUNT - 1).year == 2099)
     }
 }
