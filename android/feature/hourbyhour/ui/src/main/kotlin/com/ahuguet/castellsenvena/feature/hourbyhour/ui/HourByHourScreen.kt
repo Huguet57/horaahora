@@ -81,7 +81,7 @@ fun HourByHourScreen(
     LaunchedEffect(model) { model.loadIfNeeded() }
 
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier,
         topBar = {
             LargeTopAppBar(
                 title = { Text("Hora a Hora") },
@@ -127,6 +127,9 @@ fun HourByHourScreen(
                             if (link != null) onOpenLink(link) else detailItemId = item.id
                         },
                         onLastItemShown = { item -> model.loadNextIfNeeded(after = item) },
+                        // Inside the pull to refresh, so scrolling back up expands the
+                        // large title before it starts a refresh.
+                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     )
                 }
             }
@@ -148,12 +151,13 @@ private fun HourByHourList(
     onDismissNotificationOnboarding: () -> Unit,
     onOpen: (HourByHourItem) -> Unit,
     onLastItemShown: suspend (HourByHourItem) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val reduceMotion = LocalReduceMotion.current
     val lastItemId = state.items.lastOrNull()?.id
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp),
     ) {
         if (showsNotificationOnboarding) {
