@@ -175,7 +175,7 @@ class AgendaViewModel(
         }
     }
 
-    /** Pull to refresh: reloads the visible month and keeps its events on screen meanwhile. */
+    /** Retry after an error: reloads the visible month and keeps its events on screen meanwhile. */
     suspend fun refresh() {
         if (isLoadInFlight) return
         isLoadInFlight = true
