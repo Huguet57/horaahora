@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Política de privacidad</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Última actualización: 24 de septiembre de 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Última actualización: 27 de septiembre de 2026</p>
   <p>Esta política explica cómo trata los datos personales la versión actual de Castells en vena, una app gratuita y sin cuenta de usuario.</p>
 
   <h2>1. Responsable</h2>
@@ -76,7 +76,8 @@
   <ul>
     <li><strong>Vercel:</strong> alojamiento y ejecución del backend. La función principal está configurada en París (<code>cdg1</code>), aunque Vercel y sus subencargados pueden tratar datos en otros países.</li>
     <li><strong>Supabase:</strong> base de datos PostgreSQL gestionada en la región de París donde se conservan el contenido sincronizado, los contadores técnicos de seguridad y las suscripciones de notificaciones activas.</li>
-    <li><strong>OpenAI:</strong> interpretación lingüística de las consultas mediante la API. Las peticiones se envían con la opción de no almacenamiento de la respuesta activada (<code>store: false</code>).</li>
+    <li><strong>OpenRouter:</strong> encamina las consultas de la calculadora hacia el modelo de inteligencia artificial. Las peticiones se envían con <code>data_collection: "deny"</code> para que no se encaminen a proveedores que puedan utilizarlas para entrenar modelos. OpenRouter conserva metadatos técnicos de cada petición, como el número de tokens y la latencia, y puede asignar una categoría temática anónima a una pequeña muestra de consultas, pero no guarda su contenido.</li>
+    <li><strong>Google (Gemini):</strong> interpretación lingüística de las consultas de la calculadora, recibidas a través de OpenRouter.</li>
     <li><strong>TypeSafe AI (Jev):</strong> clasificación del contenido público de las noticias por relevancia y colles implicadas.</li>
     <li><strong>Apple:</strong> distribución de la app, permisos del sistema y APNs cuando activas las notificaciones.</li>
     <li><strong>Google/Gmail:</strong> recepción y gestión de los correos que envíes voluntariamente al contacto de soporte o privacidad.</li>
@@ -92,7 +93,7 @@
     <li><strong>Limitador de peticiones:</strong> las claves técnicas se mantienen durante una ventana de 10 minutos.</li>
     <li><strong>Suscripción de notificaciones:</strong> el token se conserva mientras los avisos están activos y se revoca inmediatamente al desactivarlos o cuando APNs lo rechaza. Las instalaciones que no se renuevan durante 180 días se invalidan; los registros de entrega se conservan como máximo 30 días.</li>
     <li><strong>Logs de Vercel:</strong> aproximadamente 1 día con el plan actual.</li>
-    <li><strong>OpenAI:</strong> la API no se utiliza para entrenar modelos por defecto; OpenAI puede conservar logs de prevención de abuso hasta 30 días, salvo que una obligación legal exija otro plazo.</li>
+    <li><strong>Google (Gemini):</strong> no utiliza las consultas para entrenar modelos. Según el servicio de Google que atienda la petición, puede conservarlas hasta 55 días para prevenir abusos, salvo que una obligación legal exija otro plazo.</li>
     <li><strong>Correos de soporte o privacidad:</strong> hasta 12 meses después de resolver la consulta, salvo que sea necesario conservarlos más tiempo para cumplir una obligación legal o defender reclamaciones.</li>
   </ul>
 
@@ -114,7 +115,7 @@
   <p>Se aplican medidas proporcionadas, como comunicaciones HTTPS, acceso restringido a la infraestructura y ausencia de persistencia propia de los chats en el backend. Ningún sistema es completamente infalible.</p>
   <p>Los cambios materiales se publicarán en estas mismas URLs y se actualizará la fecha. Si un cambio requiere consentimiento, se solicitará antes de aplicarlo.</p>
 
-  <footer>Castells en vena · Política de privacidad · 24 de septiembre de 2026</footer>
+  <footer>Castells en vena · Política de privacidad · 27 de septiembre de 2026</footer>
 </main>
 </body>
 </html>

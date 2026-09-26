@@ -1,6 +1,6 @@
 # Política de privacitat — Castells en vena
 
-**Darrera actualització:** 24 de setembre de 2026
+**Darrera actualització:** 27 de setembre de 2026
 
 Aquesta política explica com tracta les dades personals la versió actual de **Castells en vena**, una app gratuïta i sense compte d'usuari.
 
@@ -57,7 +57,8 @@ Les dades necessàries per respondre una consulta i protegir el servei són impr
 
 - **Vercel:** allotjament i execució del backend. La funció principal es configura a París (`cdg1`), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.
 - **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.
-- **OpenAI:** interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (`store: false`).
+- **OpenRouter:** encamina les consultes de la calculadora cap al model d'intel·ligència artificial. Les peticions s'envien amb `data_collection: "deny"`, perquè no s'encaminin a proveïdors que les puguin utilitzar per entrenar models. OpenRouter conserva metadades tècniques de cada petició, com el nombre de tokens i la latència, i pot assignar una categoria temàtica anònima a una petita mostra de consultes, però no en desa el contingut.
+- **Google (Gemini):** interpretació lingüística de les consultes de la calculadora, rebudes a través d'OpenRouter.
 - **TypeSafe AI (Jev):** classificació de contingut públic de les notícies per rellevància i colles implicades.
 - **Apple:** distribució de l'app, permisos del sistema i APNs quan s'activen notificacions.
 - **Google/Gmail:** recepció i gestió dels correus enviats voluntàriament al contacte de suport o privacitat.
@@ -74,7 +75,7 @@ Alguns proveïdors o subencarregats poden tractar dades fora de l'Espai Econòmi
 - **Limitador de peticions:** les claus tècniques es mantenen durant una finestra de 10 minuts.
 - **Subscripció de notificacions:** el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs el rebutja. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.
 - **Logs de Vercel:** aproximadament 1 dia amb el pla actual.
-- **OpenAI:** l'API no s'utilitza per entrenar models per defecte; OpenAI pot retenir logs de prevenció d'abús fins a 30 dies, llevat que una obligació legal exigeixi una altra conservació.
+- **Google (Gemini):** no utilitza les consultes per entrenar models. Segons el servei de Google que atengui la petició, les pot conservar fins a 55 dies per prevenir abusos, llevat que una obligació legal exigeixi una altra conservació.
 - **Correus de suport o privacitat:** fins a 12 mesos després de resoldre la consulta, tret que sigui necessari conservar-los més temps per complir una obligació legal o defensar reclamacions.
 
 ## 7. Publicitat, analítica i decisions automatitzades
