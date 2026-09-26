@@ -52,9 +52,10 @@ fun agendaPage(
     items: List<CastellEvent>,
     status: AgendaSourceStatus = AgendaSourceStatus.ACTIVE,
     fromCache: Boolean = false,
+    nextCursor: String? = null,
 ) = AgendaPage(
     items = items,
-    nextCursor = null,
+    nextCursor = nextCursor,
     officialUrl = OFFICIAL_URL,
     fromCache = fromCache,
     sourceStatus = status,

@@ -46,7 +46,9 @@ class FCMGateway:
             return NotificationSendResult(NotificationDisposition.DELIVERED)
 
         reason = _error_code(response)
-        if reason in _INVALID_TOKEN_CODES or response.status_code == 404:
+        # Only FCM's explicit token errors disable a subscription: a bare 404,
+        # such as a wrong project, must not invalidate every Android device.
+        if reason in _INVALID_TOKEN_CODES:
             return NotificationSendResult(NotificationDisposition.INVALID_TOKEN, reason)
         if response.status_code in _TRANSIENT_STATUSES:
             return NotificationSendResult(NotificationDisposition.RETRY, reason)

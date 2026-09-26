@@ -107,6 +107,22 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun messagesOverTheBackendLimitAreNeitherSentNorStored() = runTest {
+        val repository = SuspendedChatRepository()
+        val model = ChatViewModel(repository, conversationId = null)
+        val longest = "a".repeat(ChatViewModel.MAX_MESSAGE_LENGTH)
+
+        assertTrue(model.canSend(longest))
+        assertFalse(model.canSend(longest + "a"))
+
+        model.send(longest + "a")
+
+        assertFalse(repository.didStartSending)
+        assertTrue(model.state.value.displayedMessages.isEmpty())
+        assertEquals("El missatge pot tenir fins a 2.000 caràcters.", model.state.value.errorMessage)
+    }
+
+    @Test
     fun conversationListReloadsAfterRenamingAndDeleting() = runTest {
         val repository = ReopenedChatRepository()
         val model = ConversationListViewModel(repository)

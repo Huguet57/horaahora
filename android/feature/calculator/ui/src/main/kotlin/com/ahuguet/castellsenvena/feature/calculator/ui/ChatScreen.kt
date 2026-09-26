@@ -69,6 +69,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.ahuguet.castellsenvena.core.common.CatalanNumbers
 import com.ahuguet.castellsenvena.core.designsystem.component.SkeletonBlock
 import com.ahuguet.castellsenvena.core.designsystem.component.rememberPulseAlpha
 import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
@@ -219,11 +220,20 @@ private fun Composer(draft: String, onDraftChange: (String) -> Unit, canSend: Bo
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            val length = draft.trim().length
+            val limit = ChatViewModel.MAX_MESSAGE_LENGTH
             OutlinedTextField(
                 value = draft,
                 onValueChange = onDraftChange,
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Pregunta o escriu dues actuacions…") },
+                // The count appears near the limit the backend accepts.
+                isError = length > limit,
+                supportingText = if (length > limit - 200) {
+                    { Text("${CatalanNumbers.grouped(length)}/${CatalanNumbers.grouped(limit)}") }
+                } else {
+                    null
+                },
                 maxLines = 5,
                 shape = RoundedCornerShape(22.dp),
                 keyboardOptions = KeyboardOptions(

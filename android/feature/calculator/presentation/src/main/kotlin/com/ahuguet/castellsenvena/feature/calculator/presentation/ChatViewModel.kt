@@ -1,9 +1,11 @@
 package com.ahuguet.castellsenvena.feature.calculator.presentation
 
+import com.ahuguet.castellsenvena.core.common.CatalanNumbers
 import com.ahuguet.castellsenvena.core.common.userMessage
 import com.ahuguet.castellsenvena.core.domain.chat.ChatConversation
 import com.ahuguet.castellsenvena.core.domain.chat.ChatMessage
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRepository
+import com.ahuguet.castellsenvena.core.domain.chat.ChatRequest
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRole
 import com.ahuguet.castellsenvena.core.domain.chat.MessageDeliveryState
 import java.time.Clock
@@ -53,7 +55,10 @@ class ChatViewModel(
     private val mutableState = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = mutableState.asStateFlow()
 
-    fun canSend(text: String): Boolean = text.isNotBlank() && !mutableState.value.isSending
+    fun canSend(text: String): Boolean {
+        val message = text.trim()
+        return message.isNotEmpty() && message.length <= MAX_MESSAGE_LENGTH && !mutableState.value.isSending
+    }
 
     suspend fun load() {
         val id = conversationId ?: return
@@ -92,6 +97,11 @@ class ChatViewModel(
     suspend fun send(text: String) {
         val message = text.trim()
         if (message.isEmpty() || mutableState.value.isSending) return
+        if (message.length > MAX_MESSAGE_LENGTH) {
+            // Stored, it would be part of every later request and the backend would reject them all.
+            mutableState.update { it.copy(errorMessage = MESSAGE_TOO_LONG) }
+            return
+        }
         mutableState.update {
             it.copy(
                 pendingUserMessage = ChatMessage(
@@ -141,7 +151,12 @@ class ChatViewModel(
         }
     }
 
-    private companion object {
-        val PENDING_RESPONSE_POLL_INTERVAL = 250.milliseconds
+    companion object {
+        /** The longest question the backend accepts. */
+        const val MAX_MESSAGE_LENGTH = ChatRequest.MAX_MESSAGE_LENGTH
+
+        private val PENDING_RESPONSE_POLL_INTERVAL = 250.milliseconds
+        private val MESSAGE_TOO_LONG =
+            "El missatge pot tenir fins a ${CatalanNumbers.grouped(MAX_MESSAGE_LENGTH)} caràcters."
     }
 }

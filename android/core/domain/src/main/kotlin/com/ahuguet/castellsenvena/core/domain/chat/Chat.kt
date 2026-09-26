@@ -55,7 +55,10 @@ data class ChatRequestMessage(
     val content: String,
 )
 
-/** The backend only reads the latest [MAX_MESSAGES] messages of a conversation. */
+/**
+ * The backend only reads the latest [MAX_MESSAGES] messages of a conversation
+ * and rejects messages longer than [MAX_MESSAGE_LENGTH] characters.
+ */
 data class ChatRequest(
     val conversationId: String,
     val installationId: String,
@@ -65,6 +68,7 @@ data class ChatRequest(
 ) {
     companion object {
         const val MAX_MESSAGES = 12
+        const val MAX_MESSAGE_LENGTH = 2_000
     }
 }
 

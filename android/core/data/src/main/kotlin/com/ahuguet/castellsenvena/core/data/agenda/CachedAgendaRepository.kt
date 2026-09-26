@@ -31,6 +31,16 @@ class CachedAgendaRepository(
 
     private val queries get() = database.agendaEventRecordQueries
 
+    /**
+     * Unfiltered ranges being fetched page by page, keyed by the cursor of
+     * their next page, with the ids received so far. Only the last page knows
+     * the whole range, so only then can the stored copy be replaced.
+     */
+    private val pagedRanges = object : LinkedHashMap<String, PagedRange>() {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, PagedRange>?): Boolean =
+            size > MAX_PAGED_RANGES
+    }
+
     override suspend fun cachedEvents(
         from: LocalDate,
         to: LocalDate,
@@ -54,11 +64,7 @@ class CachedAgendaRepository(
                 items = page.items,
                 from = from,
                 to = to,
-                replacingCompleteRange = cursor == null &&
-                    page.nextCursor == null &&
-                    group == null &&
-                    municipality == null &&
-                    page.sourceStatus == AgendaSourceStatus.ACTIVE,
+                completeRangeIds = completeRangeIds(from, to, group, municipality, cursor, page),
             )
             val cached = if (page.items.isEmpty() &&
                 page.sourceStatus == AgendaSourceStatus.UNAVAILABLE &&
@@ -95,6 +101,33 @@ class CachedAgendaRepository(
         }
 
     /**
+     * The ids of the whole range once a complete, unfiltered answer has
+     * arrived, over one page or several; null while it is still incomplete.
+     */
+    private fun completeRangeIds(
+        from: LocalDate,
+        to: LocalDate,
+        group: String?,
+        municipality: String?,
+        cursor: String?,
+        page: AgendaPage,
+    ): Set<String>? {
+        if (group != null || municipality != null || page.sourceStatus != AgendaSourceStatus.ACTIVE) return null
+        synchronized(pagedRanges) {
+            val previousIds = if (cursor == null) {
+                emptySet()
+            } else {
+                // A page whose earlier pages were not seen cannot vouch for the range.
+                pagedRanges.remove(cursor)?.takeIf { it.from == from && it.to == to }?.ids ?: return null
+            }
+            val ids = previousIds + page.items.map { it.id }
+            val nextCursor = page.nextCursor ?: return ids
+            pagedRanges[nextCursor] = PagedRange(from, to, ids)
+            return null
+        }
+    }
+
+    /**
      * A complete, unfiltered answer replaces the stored range, so cancelled
      * events disappear from the offline copy too.
      */
@@ -102,16 +135,12 @@ class CachedAgendaRepository(
         items: List<CastellEvent>,
         from: LocalDate,
         to: LocalDate,
-        replacingCompleteRange: Boolean,
+        completeRangeIds: Set<String>?,
     ) = withContext(ioDispatcher) {
         database.transaction {
-            val stale = if (replacingCompleteRange) {
-                val incomingIds = items.mapTo(HashSet()) { it.id }
-                queries.inRange(from.toString(), to.toString()).executeAsList()
-                    .filter { it.id !in incomingIds }
-            } else {
-                emptyList()
-            }
+            val stale = completeRangeIds?.let { ids ->
+                queries.inRange(from.toString(), to.toString()).executeAsList().filter { it.id !in ids }
+            }.orEmpty()
             for (item in items) queries.upsert(item.toRecord())
             for (record in stale) queries.deleteById(record.id)
         }
@@ -146,7 +175,12 @@ class CachedAgendaRepository(
         }
     }
 
+    private data class PagedRange(val from: LocalDate, val to: LocalDate, val ids: Set<String>)
+
     private companion object {
+        /** Abandoned paged loads are forgotten after this many newer ones. */
+        const val MAX_PAGED_RANGES = 16
+
         val groupsSerializer = ListSerializer(String.serializer())
 
         /** Simulated local data must never be shown as the official agenda. */

@@ -128,6 +128,7 @@ def test_fcm_gateway_omits_an_empty_link() -> None:
             NotificationDisposition.RETRY,
             "QUOTA_EXCEEDED",
         ),
+        (fcm_error(404, "NOT_FOUND"), NotificationDisposition.FAILED, "NOT_FOUND"),
         (fcm_error(503, "UNAVAILABLE"), NotificationDisposition.RETRY, "UNAVAILABLE"),
         (Response(500, text_only=True), NotificationDisposition.RETRY, "HTTP 500"),
         (

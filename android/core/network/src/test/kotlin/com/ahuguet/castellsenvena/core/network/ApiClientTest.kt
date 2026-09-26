@@ -159,6 +159,25 @@ class ApiClientTest {
     }
 
     @Test
+    fun chatShortensStoredMessagesToTheLengthTheBackendAccepts() = runTest {
+        server.enqueue(
+            MockResponse(
+                body = """{"reply":"R","intent":"total","performances":[],"winner_label":null,
+                    "warnings":[],"ruleset_version":"concurs-2026","needs_clarification":false}""",
+            ),
+        )
+        val oversized = ChatRequestMessage(ChatRole.USER, "a".repeat(ChatRequest.MAX_MESSAGE_LENGTH + 50))
+
+        HttpChatRemoteService(client).send(
+            ChatRequest(conversationId = "conversation", installationId = "installation", messages = listOf(oversized)),
+        )
+
+        val body = Json.parseToJsonElement(server.takeRequest().body!!.utf8()).jsonObject
+        val content = body.getValue("messages").jsonArray.single().jsonObject.getValue("content").jsonPrimitive.content
+        assertEquals(ChatRequest.MAX_MESSAGE_LENGTH, content.length)
+    }
+
+    @Test
     fun pushRegistrationSendsTheAndroidTokenAndPreferences() = runTest {
         server.enqueue(MockResponse(code = 204))
         server.enqueue(MockResponse(code = 204))

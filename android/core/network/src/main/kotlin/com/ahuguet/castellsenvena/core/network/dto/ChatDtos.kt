@@ -22,9 +22,15 @@ internal data class ChatRequestDto(
         installationId = request.installationId,
         locale = request.locale,
         ruleset = request.ruleset,
+        // A stored message over the limit must not make every later request fail.
         messages = request.messages
             .takeLast(ChatRequest.MAX_MESSAGES)
-            .map { ChatMessageDto(role = it.role.wireValue, content = it.content) },
+            .map { message ->
+                ChatMessageDto(
+                    role = message.role.wireValue,
+                    content = message.content.take(ChatRequest.MAX_MESSAGE_LENGTH),
+                )
+            },
     )
 }
 

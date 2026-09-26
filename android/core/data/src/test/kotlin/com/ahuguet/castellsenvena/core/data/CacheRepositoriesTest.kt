@@ -131,6 +131,46 @@ class CacheRepositoriesTest {
     }
 
     @Test
+    fun aPagedAnswerReplacesTheStoredRangeOnceItsLastPageArrives() = runTest {
+        val remote = ScriptedAgendaRemote(
+            agendaPage(listOf(castellEvent("first", "Primera"), castellEvent("cancelled", "Anul·lada"))),
+            agendaPage(listOf(castellEvent("first", "Primera")), nextCursor = "page-2"),
+            agendaPage(listOf(castellEvent("second", "Segona"))),
+        )
+        val repository = CachedAgendaRepository(remote, inMemoryDatabase(), StandardTestDispatcher(testScheduler))
+        repository.events(day, day, null, null, cursor = null, limit = 1, forceRefresh = false)
+
+        repository.events(day, day, null, null, cursor = null, limit = 1, forceRefresh = false)
+        assertEquals(
+            listOf("cancelled", "first"),
+            repository.cachedEvents(day, day, null, null).map { it.id }.sorted(),
+        )
+
+        repository.events(day, day, null, null, cursor = "page-2", limit = 1, forceRefresh = false)
+        assertEquals(
+            listOf("first", "second"),
+            repository.cachedEvents(day, day, null, null).map { it.id }.sorted(),
+        )
+    }
+
+    @Test
+    fun aPageWhoseEarlierPagesWereNotSeenKeepsTheStoredRange() = runTest {
+        val remote = ScriptedAgendaRemote(
+            agendaPage(listOf(castellEvent("first", "Primera"), castellEvent("other", "Una altra"))),
+            agendaPage(listOf(castellEvent("second", "Segona"))),
+        )
+        val repository = CachedAgendaRepository(remote, inMemoryDatabase(), StandardTestDispatcher(testScheduler))
+        repository.events(day, day, null, null, cursor = null, limit = 50, forceRefresh = false)
+
+        repository.events(day, day, null, null, cursor = "unknown", limit = 50, forceRefresh = false)
+
+        assertEquals(
+            listOf("first", "other", "second"),
+            repository.cachedEvents(day, day, null, null).map { it.id }.sorted(),
+        )
+    }
+
+    @Test
     fun cachedEventsFilterByGroupAndMunicipalityIgnoringCaseAndAccents() = runTest {
         val remote = ScriptedAgendaRemote(
             agendaPage(
