@@ -49,8 +49,10 @@ També es pot obrir la carpeta `android` amb Android Studio.
 - **Backend:** `castells.apiBaseUrl` a `gradle.properties`, o la variable d'entorn
   `CASTELLS_API_BASE_URL`. Les builds de depuració accepten HTTP, per exemple
   `http://10.0.2.2:8000` per al backend local des de l'emulador.
-- **Avisos (Firebase Cloud Messaging):** copia el `google-services.json` del projecte
-  Firebase a `android/app/`. El fitxer no es versiona. Sense aquest fitxer l'app compila i
+- **Avisos (Firebase Cloud Messaging):** el `google-services.json` del projecte Firebase
+  `castells-en-vena` no es versiona perquè el repositori és públic. Per compilar en local,
+  copia'l a `android/app/`. El workflow d'Android el crea a partir del secret de GitHub
+  `GOOGLE_SERVICES_JSON`, que conté el fitxer sencer. Sense aquest fitxer l'app compila i
   funciona, i Ajustos indica que els avisos no estan disponibles en aquesta versió.
   El backend necessita `FCM_SERVICE_ACCOUNT_JSON` per enviar-los (vegeu el README principal).
 - **Entorn dels avisos:** les builds de depuració es registren com a `development` i les de
