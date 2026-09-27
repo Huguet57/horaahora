@@ -4,6 +4,13 @@ from enum import Enum
 from backend.domain.notifications.interest import GroupSelection, InterestLevel
 
 
+class PushPlatform(str, Enum):
+    """The push service a device token belongs to."""
+
+    IOS = "ios"  # Apple Push Notification service
+    ANDROID = "android"  # Firebase Cloud Messaging
+
+
 @dataclass(frozen=True, slots=True)
 class PushSubscriptionRegistration:
     installation_id: str
@@ -12,6 +19,7 @@ class PushSubscriptionRegistration:
     locale: str
     minimum_interest: InterestLevel | None = None
     group_selection: GroupSelection | None = None
+    platform: PushPlatform = PushPlatform.IOS
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,6 +31,7 @@ class ActivePushSubscription:
     topic: str
     minimum_interest: InterestLevel = InterestLevel.LOW
     group_selection: GroupSelection = GroupSelection()
+    platform: PushPlatform = PushPlatform.IOS
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +55,7 @@ class PendingNotificationDelivery:
     url: str
     collapse_id: str
     attempt_count: int
+    platform: PushPlatform = PushPlatform.IOS
 
 
 class NotificationDisposition(str, Enum):

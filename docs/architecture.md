@@ -1,6 +1,6 @@
 # Arquitectura del repositori
 
-Aquest document defineix els límits que han de continuar sent estables quan el projecte creixi. La modularització no altera l'API HTTP, l'esquema PostgreSQL, els models SwiftData ni els productes públics de `CastellsKit`.
+Aquest document defineix els límits que han de continuar sent estables quan el projecte creixi. La modularització no altera l'API HTTP, l'esquema PostgreSQL, els models SwiftData ni els productes públics de `CastellsKit`, i l'app Android segueix els mateixos contractes.
 
 ## Backend
 
@@ -51,6 +51,29 @@ Les dependències permeses són:
 
 Els noms dels targets, productes públics i models SwiftData són part de la compatibilitat del projecte. Moure implementació entre carpetes no ha de canviar aquests contractes.
 
+## Android
+
+L'app Android (`android/`) reprodueix les mateixes funcionalitats i contractes que l'app iOS amb mòduls Gradle:
+
+```text
+:app ──> :feature:*:ui ──> :feature:*:presentation ──> :core:domain ──> :core:common
+  │            │
+  │            └──> :core:designsystem
+  └──> :core:data ──> :core:network, :core:database ──> :core:domain
+```
+
+Les dependències permeses són:
+
+- `:core:common` conté utilitats sense estat (dates i números en català, text sense accents, errors per a l'usuari). No depèn de cap altre mòdul.
+- `:core:domain` defineix models i interfícies de repositori d'Agenda, Hora a Hora, colles, notificacions i xat. És Kotlin pur.
+- `:core:network` implementa el contracte HTTP del backend (OkHttp i kotlinx.serialization) i `:core:database` l'esquema SQLDelight local. Cap dels dos coneix Android.
+- `:core:data` implementa els repositoris del domini amb xarxa i base local, i la sincronització de la subscripció push.
+- Cada `:feature:*:presentation` conté l'estat i la lògica de la pantalla (`StateFlow` i funcions `suspend`) en Kotlin pur, amb proves unitàries. Pot dependre del domini, però no de dades, d'Android ni d'altres features.
+- Cada `:feature:*:ui` conté només Compose. Depèn de la seva presentació i de `:core:designsystem`, no de dades.
+- `:app` és l'arrel de composició: `AppContainer` crea implementacions concretes, i el mòdul concentra Firebase, permisos, enllaços, arrencada i navegació.
+
+Els mòduls que no depenen d'Android es compilen i es proven en qualsevol JVM amb `-Pcastells.jvmOnly=true`. Les convencions de compilació viuen a `android/build-logic`.
+
 ## Criteris per a fitxers nous
 
 - Agrupar codi que canvia pel mateix motiu i separar responsabilitats independents.
@@ -76,3 +99,9 @@ xcodebuild \
 ```
 
 Amb `TEST_DATABASE_URL`, Pytest també valida migracions i comportament específic de PostgreSQL.
+
+```bash
+cd android
+./gradlew -Pcastells.jvmOnly=true test   # domini, dades i presentació, sense l'SDK d'Android
+./gradlew testDebugUnitTest assembleDebug   # tot el projecte, amb l'SDK d'Android
+```

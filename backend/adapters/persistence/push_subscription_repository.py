@@ -11,6 +11,7 @@ from backend.adapters.persistence.repository_support import resolve_engine
 from backend.domain.notifications.interest import GroupSelection, InterestLevel
 from backend.domain.notifications.models import (
     ActivePushSubscription,
+    PushPlatform,
     PushSubscriptionRegistration,
 )
 
@@ -56,6 +57,7 @@ class SQLAlchemyPushSubscriptionRepository:
                 )
                 session.add(record)
             record.device_token = registration.device_token
+            record.platform = registration.platform.value
             if registration.minimum_interest is not None:
                 record.minimum_interest = registration.minimum_interest.value
             if registration.group_selection is not None:
@@ -97,6 +99,7 @@ class SQLAlchemyPushSubscriptionRepository:
                     topic=record.topic,
                     minimum_interest=InterestLevel(record.minimum_interest),
                     group_selection=GroupSelection.from_json(record.group_selection),
+                    platform=PushPlatform(record.platform),
                 )
                 for record in records
             ]

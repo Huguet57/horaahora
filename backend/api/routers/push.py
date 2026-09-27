@@ -6,7 +6,7 @@ from backend.api.dependencies import get_container
 from backend.api.schemas.push import PushSubscriptionRequestSchema
 from backend.composition.container import ApplicationContainer
 from backend.domain.notifications.interest import GroupSelection
-from backend.domain.notifications.models import PushSubscriptionRegistration
+from backend.domain.notifications.models import PushPlatform, PushSubscriptionRegistration
 
 router = APIRouter()
 
@@ -34,9 +34,10 @@ def register_push_subscription(
                 if payload.group_selection is not None
                 else None
             ),
+            platform=payload.platform,
         ),
         environment=payload.environment or container.settings.apns_environment,
-        topic=container.settings.apns_bundle_id,
+        topic=container.settings.push_topic(payload.platform),
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -49,12 +50,13 @@ def unregister_push_subscription(
     installation_id: str,
     container: Annotated[ApplicationContainer, Depends(get_container)],
     environment: Literal["development", "production"] | None = None,
+    platform: PushPlatform = PushPlatform.IOS,
 ) -> Response:
     if not 1 <= len(installation_id) <= 128:
         raise HTTPException(status_code=422, detail="Identificador d'instal·lació no vàlid")
     container.push_repository.unregister(
         installation_id,
         environment=environment or container.settings.apns_environment,
-        topic=container.settings.apns_bundle_id,
+        topic=container.settings.push_topic(platform),
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)

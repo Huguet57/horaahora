@@ -13,6 +13,8 @@ from backend.adapters.content.group_directory import load_group_directory
 from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
 from backend.adapters.notifications.apns import APNsAuthorizationTokenProvider, APNsGateway
+from backend.adapters.notifications.fcm import FCMGateway, GoogleServiceAccountTokenProvider
+from backend.adapters.notifications.routing import PlatformRoutingGateway
 from backend.adapters.persistence.agenda_repository import SQLAlchemyAgendaRepository
 from backend.adapters.persistence.database import Database
 from backend.adapters.persistence.hour_by_hour_repository import SQLAlchemyHourByHourRepository
@@ -35,7 +37,11 @@ from backend.domain.content.ports import (
     HourByHourSource,
 )
 from backend.domain.contest.ports import ContestKnowledgeRepository
-from backend.domain.notifications.models import NotificationDisposition, NotificationSendResult
+from backend.domain.notifications.models import (
+    NotificationDisposition,
+    NotificationSendResult,
+    PushPlatform,
+)
 from backend.domain.notifications.ports import NotificationGateway, NotificationRepository
 from backend.domain.rate_limit import RateLimiter
 
@@ -139,13 +145,30 @@ def build_notification_gateway(settings: Settings) -> NotificationGateway:
     ]
     if missing:
         raise RuntimeError(f"Falten secrets APNs: {', '.join(missing)}")
-    return APNsGateway(
-        authorization_token=APNsAuthorizationTokenProvider(
-            key_p8=settings.apns_key_p8,
-            key_id=settings.apns_key_id,
-            team_id=settings.apns_team_id,
+    gateways: dict[PushPlatform, NotificationGateway] = {
+        PushPlatform.IOS: APNsGateway(
+            authorization_token=APNsAuthorizationTokenProvider(
+                key_p8=settings.apns_key_p8,
+                key_id=settings.apns_key_id,
+                team_id=settings.apns_team_id,
+            )
         )
-    )
+    }
+    # Android is optional: until Firebase is configured, its deliveries fail
+    # with PushServiceNotConfigured and iOS keeps working.
+    if settings.fcm_service_account_json:
+        gateways[PushPlatform.ANDROID] = build_fcm_gateway(settings.fcm_service_account_json)
+    return PlatformRoutingGateway(gateways)
+
+
+def build_fcm_gateway(service_account_json: str) -> FCMGateway:
+    try:
+        access_token = GoogleServiceAccountTokenProvider(service_account_json)
+    except (ValueError, KeyError, TypeError) as error:
+        raise RuntimeError(
+            "FCM_SERVICE_ACCOUNT_JSON ha de ser la clau JSON d'un compte de servei de Firebase"
+        ) from error
+    return FCMGateway(project_id=access_token.project_id, access_token=access_token)
 
 
 class _PushDisabledGateway:

@@ -20,6 +20,7 @@ from backend.domain.content.models import HourByHourItem
 from backend.domain.notifications.models import (
     NotificationIngestionResult,
     PendingNotificationDelivery,
+    PushPlatform,
 )
 
 
@@ -118,6 +119,7 @@ class SQLAlchemyNotificationRepository:
                             url=outbox.url,
                             collapse_id=outbox.collapse_id,
                             attempt_count=delivery.attempt_count,
+                            platform=PushPlatform(subscription.platform),
                         )
                     )
                 # Skips do not consume the requested batch. Persist skips and claim

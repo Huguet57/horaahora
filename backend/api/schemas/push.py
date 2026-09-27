@@ -1,8 +1,13 @@
-from typing import Literal
+import re
+from typing import Literal, Self
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from backend.domain.notifications.interest import InterestLevel, group_key
+from backend.domain.notifications.models import PushPlatform
+
+# Firebase registration tokens: URL-safe base64 plus separators, case-sensitive.
+_FCM_TOKEN = re.compile(r"[A-Za-z0-9_:.\-]+")
 
 
 class GroupSelectionSchema(BaseModel):
@@ -25,13 +30,21 @@ class PushSubscriptionRequestSchema(BaseModel):
     environment: Literal["development", "production"] | None = None
     minimum_interest: InterestLevel | None = None
     group_selection: GroupSelectionSchema | None = None
+    # iOS builds that predate Android support do not send it.
+    platform: PushPlatform = PushPlatform.IOS
 
-    @field_validator("device_token")
-    @classmethod
-    def validate_device_token(cls, value: str) -> str:
-        normalized = value.strip().lower()
+    @model_validator(mode="after")
+    def validate_device_token(self) -> Self:
+        token = self.device_token.strip()
+        if self.platform is PushPlatform.ANDROID:
+            if not _FCM_TOKEN.fullmatch(token):
+                raise ValueError("El token FCM no és vàlid")
+            self.device_token = token
+            return self
+        normalized = token.lower()
         if len(normalized) % 2 or any(
             character not in "0123456789abcdef" for character in normalized
         ):
             raise ValueError("El token APNs ha de ser hexadecimal")
-        return normalized
+        self.device_token = normalized
+        return self

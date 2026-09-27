@@ -1,0 +1,30 @@
+-- calculationJson keeps the assistant answer in the backend's wire format.
+CREATE TABLE MessageRecord (
+    id TEXT NOT NULL PRIMARY KEY,
+    conversationId TEXT NOT NULL,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    deliveryState TEXT NOT NULL,
+    calculationJson TEXT
+);
+
+CREATE INDEX MessageRecord_conversation ON MessageRecord(conversationId, createdAt);
+
+insert:
+INSERT INTO MessageRecord VALUES ?;
+
+forConversation:
+SELECT *
+FROM MessageRecord
+WHERE conversationId = :conversationId
+ORDER BY createdAt ASC, rowid ASC;
+
+byId:
+SELECT * FROM MessageRecord WHERE id = :id AND conversationId = :conversationId;
+
+updateDeliveryState:
+UPDATE MessageRecord SET deliveryState = :deliveryState WHERE id = :id;
+
+deleteForConversation:
+DELETE FROM MessageRecord WHERE conversationId = :conversationId;
