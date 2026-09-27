@@ -165,6 +165,31 @@ class NotificationDeliveryRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
+class SocialPostRecord(Base):
+    __tablename__ = "social_posts"
+    __table_args__ = (UniqueConstraint("network", "post_id", name="uq_social_posts_network_post"),)
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    network: Mapped[str] = mapped_column(String(20))
+    post_id: Mapped[str] = mapped_column(String(64))
+    author_id: Mapped[str] = mapped_column(String(64))
+    author_username: Mapped[str] = mapped_column(String(64))
+    author_name: Mapped[str] = mapped_column(String(200))
+    text: Mapped[str] = mapped_column(Text)
+    context: Mapped[list] = mapped_column(JSON)
+    url: Mapped[str] = mapped_column(Text)
+    like_count: Mapped[int] = mapped_column(Integer)
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    attempts: Mapped[int] = mapped_column(Integer)
+    headline: Mapped[str] = mapped_column(Text)
+    model: Mapped[str] = mapped_column(String(100))
+    error: Mapped[str] = mapped_column(String(100))
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class RateLimitBucketRecord(Base):
     __tablename__ = "rate_limit_buckets"
 

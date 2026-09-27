@@ -26,7 +26,24 @@ def test_migrations_create_all_backend_state_tables(tmp_path, monkeypatch) -> No
         "notification_deliveries",
         "rate_limit_buckets",
         "shared_conversations",
+        "social_posts",
     } <= tables
+
+
+def test_social_posts_migration_is_reversible_and_matches_the_models(tmp_path, monkeypatch):
+    url = f"sqlite+pysqlite:///{tmp_path / 'social.db'}"
+    monkeypatch.setenv("DATABASE_URL", url)
+    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+
+    command.upgrade(config, "head")
+    command.check(config)
+    engine = create_engine(url)
+    assert {"ix_social_posts_published_at", "ix_social_posts_status"} <= {
+        index["name"] for index in inspect(engine).get_indexes("social_posts")
+    }
+
+    command.downgrade(config, "20260927_08")
+    assert "social_posts" not in inspect(engine).get_table_names()
 
 
 def test_interest_migration_preserves_existing_subscriptions(tmp_path, monkeypatch):
