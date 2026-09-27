@@ -96,6 +96,35 @@ class CacheRepositoriesTest {
     }
 
     @Test
+    fun offlineTheWholeStoredRangeIsServedWhateverThePageSize() = runTest {
+        val remote = ScriptedAgendaRemote(agendaPage(threeEvents()))
+        val repository = CachedAgendaRepository(remote, inMemoryDatabase(), StandardTestDispatcher(testScheduler))
+        repository.events(day, day, null, null, cursor = null, limit = 50, forceRefresh = false)
+
+        val cached = repository.events(day, day, null, null, cursor = null, limit = 2, forceRefresh = false)
+
+        assertEquals(listOf("first", "second", "third"), cached.items.map { it.id }.sorted())
+        assertNull(cached.nextCursor)
+        assertTrue(cached.fromCache)
+    }
+
+    @Test
+    fun anUnavailableSourceServesTheWholeStoredRangeWhateverThePageSize() = runTest {
+        val remote = ScriptedAgendaRemote(
+            agendaPage(threeEvents()),
+            agendaPage(emptyList(), status = AgendaSourceStatus.UNAVAILABLE, fromCache = true),
+        )
+        val repository = CachedAgendaRepository(remote, inMemoryDatabase(), StandardTestDispatcher(testScheduler))
+        repository.events(day, day, null, null, cursor = null, limit = 50, forceRefresh = false)
+
+        val cached = repository.events(day, day, null, null, cursor = null, limit = 2, forceRefresh = false)
+
+        assertEquals(listOf("first", "second", "third"), cached.items.map { it.id }.sorted())
+        assertNull(cached.nextCursor)
+        assertEquals(AgendaSourceStatus.UNAVAILABLE, cached.sourceStatus)
+    }
+
+    @Test
     fun unavailableSourceRemovesPreviouslyCachedDemoEvents() = runTest {
         val demo = castellEvent(
             id = "demo",
@@ -190,6 +219,12 @@ class CacheRepositoriesTest {
         )
         assertEquals(listOf("tarragona"), repository.cachedEvents(day, day, null, municipality = " tarragona ").map { it.id })
     }
+
+    private fun threeEvents() = listOf(
+        castellEvent("first", "Primera"),
+        castellEvent("second", "Segona"),
+        castellEvent("third", "Tercera"),
+    )
 
     private class SequencedHourByHourRemote : HourByHourRemoteService {
         private var calls = 0

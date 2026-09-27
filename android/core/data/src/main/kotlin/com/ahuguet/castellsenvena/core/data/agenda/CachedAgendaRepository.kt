@@ -21,6 +21,8 @@ import kotlinx.serialization.json.Json
 /**
  * Serves the agenda from the network and keeps the loaded days on the device,
  * so they can be read offline or while the official source is unavailable.
+ * The stored copy is then served whole, in one page: the backend's cursors
+ * cannot page through it, and a truncated page would stand for the whole range.
  */
 class CachedAgendaRepository(
     private val remoteService: AgendaRemoteService,
@@ -46,7 +48,7 @@ class CachedAgendaRepository(
         to: LocalDate,
         group: String?,
         municipality: String?,
-    ): List<CastellEvent> = cachedItems(from, to, group, municipality, limit = Int.MAX_VALUE)
+    ): List<CastellEvent> = cachedItems(from, to, group, municipality)
 
     override suspend fun events(
         from: LocalDate,
@@ -70,7 +72,7 @@ class CachedAgendaRepository(
                 page.sourceStatus == AgendaSourceStatus.UNAVAILABLE &&
                 cursor == null
             ) {
-                cachedItems(from, to, group, municipality, limit)
+                cachedItems(from, to, group, municipality)
             } else {
                 emptyList()
             }
@@ -89,7 +91,7 @@ class CachedAgendaRepository(
             throw cancellation
         } catch (failure: Exception) {
             if (cursor != null) throw failure
-            val cached = cachedItems(from, to, group, municipality, limit)
+            val cached = cachedItems(from, to, group, municipality)
             if (cached.isEmpty()) throw failure
             AgendaPage(
                 items = cached,
@@ -151,7 +153,6 @@ class CachedAgendaRepository(
         to: LocalDate,
         group: String?,
         municipality: String?,
-        limit: Int,
     ): List<CastellEvent> = withContext(ioDispatcher) {
         val groupKey = group?.let(::searchKey)
         val municipalityKey = municipality?.let(::searchKey)
@@ -163,7 +164,6 @@ class CachedAgendaRepository(
                 (groupKey == null || event.participatingGroups.any { searchKey(it) == groupKey }) &&
                     (municipalityKey == null || searchKey(event.municipality) == municipalityKey)
             }
-            .take(limit)
             .toList()
     }
 
