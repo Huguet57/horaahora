@@ -67,7 +67,7 @@ CASES = (
         "contest_info",
         ("2de10fmp", "3de9sf"),
         expected_presentation_type="score_ranking",
-        expected_rows=("2de10fmp", "Pde7sf", "3de9sf"),
+        expected_rows=("4de10sm", "2de10fmp", "Pde7sf", "3de9sf", "Pde9fmp"),
         expected_outcome="both",
     ),
     SmokeCase(

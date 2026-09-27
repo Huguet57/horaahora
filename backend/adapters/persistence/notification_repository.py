@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, or_, select, update
@@ -13,7 +14,10 @@ from backend.adapters.persistence.news_classification import (
     NewsClassificationPersistence,
     subscription_qualifies,
 )
-from backend.adapters.persistence.notification_ingestion import ingest_hour_by_hour
+from backend.adapters.persistence.notification_ingestion import (
+    forget_baselines,
+    ingest_hour_by_hour,
+)
 from backend.adapters.persistence.notification_support import revoked_token
 from backend.adapters.persistence.repository_support import database_datetime, resolve_engine
 from backend.domain.content.models import HourByHourItem
@@ -31,6 +35,9 @@ class SQLAlchemyNotificationRepository:
 
     def ingest_hour_by_hour(self, items: list[HourByHourItem]) -> NotificationIngestionResult:
         return ingest_hour_by_hour(self.engine, items)
+
+    def forget_baselines(self, source_ids: Collection[str]) -> None:
+        forget_baselines(self.engine, source_ids)
 
     def recover_interrupted_classifications(self) -> int:
         return self.classifications.recover_interrupted()

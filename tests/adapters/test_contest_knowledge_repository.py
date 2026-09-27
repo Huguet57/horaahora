@@ -1,3 +1,5 @@
+import pytest
+
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
 from backend.domain.contest.models import ContestKnowledgeQuery
 
@@ -184,10 +186,59 @@ def test_builds_a_focused_ranking_with_neighbors() -> None:
     assert presentation.kind == "score_ranking"
     assert presentation.focus_notation == "Pde7sf"
     assert [(row.position, row.notation) for row in presentation.rows] == [
+        (2, "4de10sm"),
         (3, "2de10fmp"),
         (4, "Pde7sf"),
         (5, "3de9sf"),
+        (6, "Pde9fmp"),
     ]
+
+
+def test_neighbors_accept_abbreviated_notation() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+
+    presentation = repository.score_presentation(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="both",
+            ranking_selection="neighbors",
+            ranking_notation="3d9f",
+        )
+    )
+
+    assert presentation is not None
+    assert presentation.focus_notation == "3de9f"
+    assert [row.position for row in presentation.rows] == [19, 20, 21, 22, 23]
+
+
+@pytest.mark.parametrize(
+    ("notation", "positions"),
+    [
+        ("3de10sm", [1, 2, 3, 4, 5]),
+        ("4de10sm", [1, 2, 3, 4, 5]),
+        ("Pde5", [43, 44, 45, 46, 47]),
+        ("2de6", [43, 44, 45, 46, 47]),
+    ],
+)
+def test_neighbors_keep_five_rows_at_the_ends_of_the_ranking(
+    notation: str, positions: list[int]
+) -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+
+    presentation = repository.score_presentation(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="both",
+            ranking_selection="neighbors",
+            ranking_notation=notation,
+        )
+    )
+
+    assert presentation is not None
+    assert presentation.focus_notation == notation
+    assert [row.position for row in presentation.rows] == positions
 
 
 def test_unknown_result_filter_returns_an_explicit_empty_context() -> None:

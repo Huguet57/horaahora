@@ -16,8 +16,8 @@ class RoutineNewsClassifier:
         return InterestClassification(InterestLevel.LOW, frozenset(), "fake", "test", {}, 1.0)
 
 
-def ingestion_service(repository):
-    return NotificationIngestionService(repository, RoutineNewsClassifier(), [])
+def ingestion_service(repository, **options):
+    return NotificationIngestionService(repository, RoutineNewsClassifier(), [], **options)
 
 
 def ingest(repository, items):

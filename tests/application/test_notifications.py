@@ -170,6 +170,26 @@ def test_new_publisher_has_its_own_baseline_and_only_notifies_subsequent_article
     assert deliveries[0].url == new_item.action_url
 
 
+def test_publisher_switched_back_on_starts_a_new_baseline() -> None:
+    subscriptions, repo = repositories()
+    subscriptions.register(registration(), environment="production", topic="com.example.app")
+    elmon = hour_item("elmon-one", source_id="el-mon-casteller")
+    ingest(repo, [hour_item("revista-one"), elmon])
+
+    without_revista = ingestion_service(repo, disabled_source_ids={"revista-castells"})
+    elmon_news = hour_item("elmon-two", source_id="el-mon-casteller")
+    assert without_revista.ingest([elmon_news, elmon]).notifications_created == 1
+
+    # What it published while switched off must not arrive as a burst of notifications.
+    backlog = [hour_item("revista-three"), hour_item("revista-two"), hour_item("revista-one")]
+    resumed = ingest(repo, [*backlog, elmon_news, elmon])
+    latest = ingest(repo, [hour_item("revista-four"), *backlog, elmon_news, elmon])
+
+    assert resumed.baseline_created is True
+    assert resumed.notifications_created == 0
+    assert latest.notifications_created == 1
+
+
 def test_transient_delivery_is_retried_and_invalid_token_disables_subscription() -> None:
     subscriptions, repo = repositories()
     subscriptions.register(registration(), environment="production", topic="com.example.app")

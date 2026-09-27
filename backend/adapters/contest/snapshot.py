@@ -17,6 +17,9 @@ from backend.domain.contest.models import (
 
 DATA_DIRECTORY = Path(__file__).resolve().parents[2] / "data" / "contest"
 
+# Neighbor queries show the castell centred in this many rows, shifted inwards at the ends.
+NEIGHBOR_WINDOW = 5
+
 RESULT_LABELS = {
     "descarregat": "descarregat",
     "carregat": "carregat",
@@ -240,7 +243,8 @@ class SnapshotContestKnowledgeRepository:
                 return []
             if selection == "position":
                 return [rows[index]]
-            return rows[max(0, index - 1) : min(len(rows), index + 2)]
+            start = max(0, min(index - NEIGHBOR_WINDOW // 2, len(rows) - NEIGHBOR_WINDOW))
+            return rows[start : start + NEIGHBOR_WINDOW]
         return rows
 
     @staticmethod

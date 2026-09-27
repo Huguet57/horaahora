@@ -28,6 +28,6 @@ class CombinedHourByHourSource:
                         type(source).__name__,
                         exc_info=True,
                     )
-        if not successful_sources:
+        if self.sources and not successful_sources:
             raise RuntimeError("No s'ha pogut actualitzar cap font de l'Hora a Hora")
         return items
