@@ -2,11 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
         No backup: the installation identifier and the stored conversations
         belong to this device, like on iOS.
+
+        The public app ends here. The internal app adds its news notifications in
+        src/internal/AndroidManifest.xml.
     -->
     <application
         android:name=".CastellsApplication"
@@ -28,32 +30,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".notifications.CastellsMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-        <!-- Notifications the system shows while the app is in the background. -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="@string/hour_by_hour_channel_id" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_notification" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/brand_red" />
-
-        <!-- No token is created until the user turns the news notifications on. -->
-        <meta-data
-            android:name="firebase_messaging_auto_init_enabled"
-            android:value="false" />
-        <meta-data
-            android:name="firebase_analytics_collection_enabled"
-            android:value="false" />
     </application>
 </manifest>

@@ -21,7 +21,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
-/** The HTTP client of the Castells backend. The remote services build on it. */
+/**
+ * The HTTP client of the Castells backend. The remote services build on it: those both apps
+ * use are in this module, and those of the internal app's sections, which only read, in
+ * :core:internaldata.
+ */
 class ApiClient(
     baseUrl: String,
     private val httpClient: OkHttpClient = defaultHttpClient(),
@@ -29,7 +33,7 @@ class ApiClient(
     private val baseUrl: HttpUrl = baseUrl.toHttpUrl()
     private val json: Json = CastellsJson
 
-    internal suspend fun <T> get(
+    suspend fun <T> get(
         path: String,
         query: List<Pair<String, String>> = emptyList(),
         deserializer: DeserializationStrategy<T>,

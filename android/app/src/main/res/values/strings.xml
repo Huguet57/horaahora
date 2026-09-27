@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">La calculadora de l\'Aleta</string>
+    <!-- The channel of the news notifications. The internal app creates it; the public app
+         deletes the one an earlier version created. -->
     <string name="hour_by_hour_channel_id" translatable="false">hour_by_hour</string>
-    <string name="hour_by_hour_channel_name">Avisos de notícies</string>
-    <string name="hour_by_hour_channel_description">Les notícies castelleres que has triat rebre</string>
 </resources>

@@ -39,11 +39,13 @@ include(
     ":core:network",
     ":core:database",
     ":core:data",
+    ":core:internaldata",
     ":feature:hourbyhour:presentation",
     ":feature:agenda:presentation",
     ":feature:calculator:presentation",
     ":feature:scoretable:presentation",
     ":feature:settings:presentation",
+    ":feature:internalsettings:presentation",
 )
 
 // Android modules need the Android SDK and Google's Maven repository. Pass
@@ -57,5 +59,6 @@ if (providers.gradleProperty("castells.jvmOnly").orNull != "true") {
         ":feature:calculator:ui",
         ":feature:scoretable:ui",
         ":feature:settings:ui",
+        ":feature:internalsettings:ui",
     )
 }

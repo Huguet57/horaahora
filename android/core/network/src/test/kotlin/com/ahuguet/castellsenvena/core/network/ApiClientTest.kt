@@ -5,13 +5,9 @@ import com.ahuguet.castellsenvena.core.domain.chat.ChatRequestMessage
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRole
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationGroupSelection
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
-import com.ahuguet.castellsenvena.core.network.service.HttpAgendaRemoteService
 import com.ahuguet.castellsenvena.core.network.service.HttpChatRemoteService
-import com.ahuguet.castellsenvena.core.network.service.HttpGroupDirectoryRemoteService
-import com.ahuguet.castellsenvena.core.network.service.HttpHourByHourRemoteService
 import com.ahuguet.castellsenvena.core.network.service.HttpPushSubscriptionRemoteService
 import com.ahuguet.castellsenvena.core.network.service.PushSubscriptionRequest
-import java.time.LocalDate
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -19,6 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
@@ -43,52 +40,11 @@ class ApiClientTest {
     }
 
     @Test
-    fun agendaRequestSendsTheMadridDatesAndOptionalFilters() = runTest {
-        server.enqueue(MockResponse(body = EMPTY_AGENDA))
-
-        HttpAgendaRemoteService(client).events(
-            from = LocalDate.of(2026, 1, 1),
-            to = LocalDate.of(2026, 7, 31),
-            group = "Colla Vella",
-            municipality = "",
-            cursor = "next page",
-            limit = 100,
-            forceRefresh = true,
-        )
-
-        val url = server.takeRequest().url
-        assertEquals("/service/v1/events", url.encodedPath)
-        assertEquals("2026-01-01", url.queryParameter("from"))
-        assertEquals("2026-07-31", url.queryParameter("to"))
-        assertEquals("100", url.queryParameter("limit"))
-        assertEquals("Colla Vella", url.queryParameter("group"))
-        assertEquals(null, url.queryParameter("municipality"))
-        assertEquals("next page", url.queryParameter("cursor"))
-        assertEquals("true", url.queryParameter("refresh"))
-    }
-
-    @Test
-    fun hourByHourAndGroupsOnlyForceTheSourceWhenAsked() = runTest {
-        server.enqueue(MockResponse(body = """{"items":[],"next_cursor":null,"from_cache":false}"""))
-        server.enqueue(MockResponse(body = """{"groups":["A"],"revision":"r","official_url":"https://x"}"""))
-
-        HttpHourByHourRemoteService(client).page(cursor = null, limit = 30, forceRefresh = false)
-        val directory = HttpGroupDirectoryRemoteService(client).groupDirectory(forceRefresh = true)
-
-        val hourByHour = server.takeRequest().url
-        assertEquals("/service/v1/hour-by-hour", hourByHour.encodedPath)
-        assertEquals("30", hourByHour.queryParameter("limit"))
-        assertEquals(null, hourByHour.queryParameter("refresh"))
-        assertEquals("true", server.takeRequest().url.queryParameter("refresh"))
-        assertEquals(listOf("A"), directory.groups)
-    }
-
-    @Test
     fun httpErrorsExposeTheServerDetail() = runTest {
         server.enqueue(MockResponse(code = 429, body = """{"detail":"Massa consultes. Torna-ho a provar."}"""))
 
         val failure = assertFailsWith<ApiException.Http> {
-            HttpHourByHourRemoteService(client).page(cursor = null, limit = 30, forceRefresh = false)
+            client.get(path = "/v1/probe", deserializer = Probe.serializer())
         }
 
         assertEquals(429, failure.statusCode)
@@ -100,7 +56,7 @@ class ApiClientTest {
         server.enqueue(MockResponse(code = 422, body = """{"detail":[{"msg":"invalid"}]}"""))
 
         val failure = assertFailsWith<ApiException.Http> {
-            HttpHourByHourRemoteService(client).page(cursor = null, limit = 30, forceRefresh = false)
+            client.get(path = "/v1/probe", deserializer = Probe.serializer())
         }
 
         assertEquals("El servidor ha retornat l'error 422.", failure.userMessage)
@@ -111,7 +67,7 @@ class ApiClientTest {
         server.enqueue(MockResponse(body = """{"items": "not a list"}"""))
 
         val failure = assertFailsWith<ApiException.InvalidResponse> {
-            HttpHourByHourRemoteService(client).page(cursor = null, limit = 30, forceRefresh = false)
+            client.get(path = "/v1/probe", deserializer = Probe.serializer())
         }
 
         assertEquals("La resposta del servidor no és vàlida.", failure.userMessage)
@@ -123,7 +79,7 @@ class ApiClientTest {
         server.close()
 
         val failure = assertFailsWith<ApiException.Network> {
-            HttpHourByHourRemoteService(ApiClient(url)).page(cursor = null, limit = 30, forceRefresh = false)
+            ApiClient(url).get(path = "/v1/probe", deserializer = Probe.serializer())
         }
 
         assertTrue(failure.userMessage.startsWith("No s'ha pogut connectar"))
@@ -178,10 +134,11 @@ class ApiClientTest {
     }
 
     @Test
-    fun pushRegistrationSendsTheAndroidTokenAndPreferences() = runTest {
+    fun pushRegistrationSendsTheAppTheAndroidTokenAndPreferences() = runTest {
         server.enqueue(MockResponse(code = 204))
         server.enqueue(MockResponse(code = 204))
-        val service = HttpPushSubscriptionRemoteService(client)
+        // The internal app is a separate app, and the backend keeps its subscriptions apart.
+        val service = HttpPushSubscriptionRemoteService(client, appId = "com.ahuguet.castellsenvena.internal")
 
         service.register(
             PushSubscriptionRequest(
@@ -204,6 +161,7 @@ class ApiClientTest {
         assertEquals("fcm:token", body.getValue("device_token").jsonPrimitive.content)
         assertEquals("1.3 (7)", body.getValue("app_version").jsonPrimitive.content)
         assertEquals("android", body.getValue("platform").jsonPrimitive.content)
+        assertEquals("com.ahuguet.castellsenvena.internal", body.getValue("app_id").jsonPrimitive.content)
         assertEquals("medium", body.getValue("minimum_interest").jsonPrimitive.content)
         val selection = body.getValue("group_selection") as JsonObject
         assertEquals("custom", selection.getValue("mode").jsonPrimitive.content)
@@ -213,10 +171,10 @@ class ApiClientTest {
         assertEquals("DELETE", removal.method)
         assertEquals("production", removal.url.queryParameter("environment"))
         assertEquals("android", removal.url.queryParameter("platform"))
+        assertEquals("com.ahuguet.castellsenvena.internal", removal.url.queryParameter("app_id"))
     }
 
-    private companion object {
-        const val EMPTY_AGENDA =
-            """{"items":[],"next_cursor":null,"official_url":"https://castellscat.cat/ca/agenda","from_cache":false,"source_status":"active"}"""
-    }
+    /** A body the client can decode, to exercise its error handling. */
+    @Serializable
+    private data class Probe(val items: List<String>)
 }

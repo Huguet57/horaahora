@@ -24,7 +24,15 @@ interface PushSubscriptionRemoteService {
     suspend fun unregister(installationId: String, environment: String, platform: String)
 }
 
-class HttpPushSubscriptionRemoteService(private val client: ApiClient) : PushSubscriptionRemoteService {
+/**
+ * Registers and removes the subscription of this app. [appId] is its application ID: the
+ * internal app is a separate app, and the backend keeps its subscriptions apart from the public
+ * app's.
+ */
+class HttpPushSubscriptionRemoteService(
+    private val client: ApiClient,
+    private val appId: String,
+) : PushSubscriptionRemoteService {
     override suspend fun register(request: PushSubscriptionRequest) {
         client.put(
             path = "/v1/push-subscriptions/${request.installationId}",
@@ -39,6 +47,7 @@ class HttpPushSubscriptionRemoteService(private val client: ApiClient) : PushSub
                     keys = request.groupSelection.keys,
                 ),
                 platform = request.platform,
+                appId = appId,
             ),
             serializer = PushSubscriptionBodyDto.serializer(),
         )
@@ -47,7 +56,7 @@ class HttpPushSubscriptionRemoteService(private val client: ApiClient) : PushSub
     override suspend fun unregister(installationId: String, environment: String, platform: String) {
         client.delete(
             path = "/v1/push-subscriptions/$installationId",
-            query = listOf("environment" to environment, "platform" to platform),
+            query = listOf("environment" to environment, "platform" to platform, "app_id" to appId),
         )
     }
 }

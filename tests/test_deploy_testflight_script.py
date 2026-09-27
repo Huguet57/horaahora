@@ -129,7 +129,11 @@ def test_invalid_marketing_version_is_rejected_before_building() -> None:
     assert "marketing version must contain two or three numeric components" in result.stderr
 
 
-def fake_xcodebuild_environment(tmp_path: Path, api_base_url: str) -> dict[str, str]:
+def fake_xcodebuild_environment(
+    tmp_path: Path,
+    api_base_url: str,
+    bundle_identifier: str = "com.ahuguet.castellsenvena",
+) -> dict[str, str]:
     """Put an xcodebuild on PATH that archives an app pointing at api_base_url."""
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
@@ -137,6 +141,7 @@ def fake_xcodebuild_environment(tmp_path: Path, api_base_url: str) -> dict[str, 
     fake_xcodebuild.write_text(
         "#!/usr/bin/env python3\n"
         f"API_BASE_URL = {api_base_url!r}\n"
+        f"BUNDLE_IDENTIFIER = {bundle_identifier!r}\n"
         f"EXPORT_MARKER = {str(tmp_path / 'exported')!r}\n"
         """import pathlib
 import plistlib
@@ -162,7 +167,7 @@ if "archive" in arguments:
             {
                 "ApplicationProperties": {
                     "ApplicationPath": "Applications/HoraAHoraApp.app",
-                    "CFBundleIdentifier": "com.ahuguet.castellsenvena",
+                    "CFBundleIdentifier": BUNDLE_IDENTIFIER,
                     "CFBundleShortVersionString": marketing_version,
                     "CFBundleVersion": build_number,
                 }
@@ -237,6 +242,65 @@ def test_deploy_refuses_an_archive_that_does_not_use_the_production_backend(
         "TestFlight builds must use https://castells-superapp-poc.vercel.app."
     ]
     assert not (tmp_path / "exported").exists()
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="TestFlight deploy requires macOS")
+def test_deploy_refuses_an_archive_of_the_internal_app(tmp_path: Path) -> None:
+    environment = fake_xcodebuild_environment(
+        tmp_path,
+        "https://castells-superapp-poc.vercel.app",
+        bundle_identifier="com.ahuguet.castellsenvena.internal",
+    )
+
+    result = run_fake_deploy(environment)
+
+    errors = [line for line in result.stderr.splitlines() if line.startswith("Error:")]
+    assert result.returncode != 0
+    assert errors == [
+        "Error: the archive is com.ahuguet.castellsenvena.internal; "
+        "TestFlight only receives com.ahuguet.castellsenvena."
+    ]
+    assert not (tmp_path / "exported").exists()
+
+
+@pytest.mark.parametrize("command", ["script", "make"])
+def test_the_internal_app_is_never_deployed(command: str) -> None:
+    environment = os.environ | {"CASTELLS_BUILD_PROFILE": "internal"}
+    arguments = ["--dry-run", "--skip-tests", "--ref", "HEAD", "--build-number", "1774400000"]
+
+    if command == "script":
+        result = run_script(*arguments, env=environment)
+    else:
+        result = subprocess.run(
+            ["make", "deploy-testflight", f"ARGS={' '.join(arguments)}"],
+            cwd=REPOSITORY_ROOT,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+    assert result.returncode != 0
+    assert (
+        "Error: TestFlight only receives the public app; CASTELLS_BUILD_PROFILE is internal."
+        in result.stderr
+    )
+    assert "Source commit" not in result.stdout
+
+
+def test_the_dry_run_archives_the_public_scheme() -> None:
+    result = run_script(
+        "--dry-run",
+        "--skip-tests",
+        "--ref",
+        "HEAD",
+        "--build-number",
+        "1774400000",
+        env=os.environ | {"CASTELLS_BUILD_PROFILE": "public"},
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "-scheme HoraAHoraApp " in result.stdout
 
 
 def test_deploy_script_is_documented() -> None:

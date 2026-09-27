@@ -4,11 +4,15 @@ on:
   pull_request:
     paths:
       - "HoraAHoraApp/**"
+      - "Makefile"
+      - "scripts/app_profiles/**"
       - ".github/workflows/ios.yml"
   push:
     branches: [main]
     paths:
       - "HoraAHoraApp/**"
+      - "Makefile"
+      - "scripts/app_profiles/**"
       - ".github/workflows/ios.yml"
   workflow_dispatch:
 
@@ -18,7 +22,7 @@ permissions:
 jobs:
   test-and-build:
     runs-on: macos-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v5
@@ -32,11 +36,11 @@ jobs:
         working-directory: HoraAHoraApp/Packages/CastellsKit
         run: swift test
 
-      - name: Build unsigned Release app
-        run: >-
-          xcodebuild build
-          -project HoraAHoraApp/HoraAHoraApp.xcodeproj
-          -scheme HoraAHoraApp
-          -configuration Release
-          -destination 'generic/platform=iOS'
-          CODE_SIGNING_ALLOWED=NO
+      # Each app is built unsigned in Release and inspected: the public one must not link the
+      # internal sections or have push entitlements, and the internal one must keep them under
+      # its own bundle identifier.
+      - name: Build and inspect the public app
+        run: make ios-build ios-verify CASTELLS_BUILD_PROFILE=public CONFIGURATION=Release
+
+      - name: Build and inspect the internal app
+        run: make ios-build ios-verify CASTELLS_BUILD_PROFILE=internal CONFIGURATION=Release

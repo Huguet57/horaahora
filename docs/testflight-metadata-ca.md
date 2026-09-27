@@ -20,13 +20,11 @@ Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes
 - Ajustos obre la política de privacitat i prepara un correu de suport editable amb la versió, el build i l'identificador tècnic; no s'envia res fins que l'usuari ho confirma manualment i no s'exporten converses.
 - La puntuació final es calcula amb un motor determinista i la taula 2026 versionada; la IA només interpreta el llenguatge.
 - Les fonts editorials es mostren amb atribució i enllaç de retorn.
-- Els tokens APNs només s'associen a l'identificador aleatori d'instal·lació per lliurar els avisos activats i es revoquen en desactivar-los.
+- L'app no demana permís de notificacions ni registra tokens APNs. Si una versió anterior tenia els avisos activats, en obrir-se deixa de registrar-se a APNs i en demana la baixa al backend.
 
-### Seccions ocultes (cal declarar-les a App Review)
+### Sense seccions ocultes
 
-La guideline 2.3.1 d'Apple no admet funcions ocultes sense documentar. Copia aquesta nota, en anglès, a **App Review Information → Notes** de cada versió:
-
-> The app keeps two experimental sections that are hidden by default: castells news with optional notifications ("Hora a Hora") and a calendar of performances ("Agenda"). To show them, open Ajustos (Settings) and tap the row with the app version seven times in a row; the same gesture hides them again. They use the same backend, and notification permission is only requested when the user turns news notifications on in that section of Ajustos.
+Des de la versió que separa l'app pública de l'app interna, el build que es puja no conté Hora a Hora, Agenda ni cap gest secret. La nota sobre seccions ocultes que es copiava a **App Review Information → Notes** (guideline 2.3.1) ja no s'aplica a aquestes versions i s'ha de treure d'App Store Connect en enviar-les. Aquest repositori no modifica App Store Connect.
 
 ## Camps que s'han de completar manualment
 

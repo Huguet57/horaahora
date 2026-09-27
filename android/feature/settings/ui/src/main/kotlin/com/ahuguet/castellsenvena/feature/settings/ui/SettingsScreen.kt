@@ -8,9 +8,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -18,38 +17,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
-import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-
-private enum class SettingsDestination {
-    ROOT,
-    NOTIFICATION_INTEREST,
-    SOURCES,
-}
+import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsCredit
 
 /**
- * Ajustos and its two subpages. Notification changes run in [actionScope],
- * so a permission request answered after leaving the screen still applies.
+ * Ajustos and its subpages: privacy, help and the app with the sources of its data.
+ *
+ * An app can add its own rows at the top ([leadingContent]), which can open one subpage of
+ * its own ([extraSubpage]); more sources ([additionalCredits]); and a handler for taps on the
+ * version row ([onVersionTap]), which returns what the row says for a moment, or null.
  */
 @Composable
 fun SettingsScreen(
-    model: SettingsModel,
     configuration: SettingsConfiguration,
-    hasFollowedGroups: Boolean,
-    actionScope: CoroutineScope,
-    onChooseGroups: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onContactSupport: (String) -> Unit,
     onCopyIdentifier: (String) -> Unit,
     modifier: Modifier = Modifier,
+    additionalCredits: List<SettingsCredit> = emptyList(),
+    onVersionTap: (() -> String?)? = null,
+    extraSubpage: @Composable (onBack: () -> Unit) -> Unit = {},
+    leadingContent: @Composable ColumnScope.(openExtraSubpage: () -> Unit) -> Unit = {},
 ) {
-    val state by model.state.collectAsState()
-    var destination by rememberSaveable { mutableStateOf(SettingsDestination.ROOT) }
+    var destination by rememberSaveable { mutableStateOf<SettingsDestination?>(null) }
     val reduceMotion = LocalReduceMotion.current
+    val back: () -> Unit = { destination = null }
 
-    LaunchedEffect(model) { model.refreshNotificationStatus() }
-    BackHandler(enabled = destination != SettingsDestination.ROOT) { destination = SettingsDestination.ROOT }
+    BackHandler(enabled = destination != null, onBack = back)
 
     AnimatedContent(
         targetState = destination,
@@ -57,7 +50,7 @@ fun SettingsScreen(
         transitionSpec = {
             when {
                 reduceMotion -> EnterTransition.None togetherWith ExitTransition.None
-                targetState != SettingsDestination.ROOT ->
+                targetState != null ->
                     (slideInHorizontally { it } togetherWith slideOutHorizontally { -it / 4 } + fadeOut())
                         .apply { targetContentZIndex = 1f }
                 else -> (slideInHorizontally { -it / 4 } togetherWith slideOutHorizontally { it })
@@ -67,37 +60,26 @@ fun SettingsScreen(
         label = "settings",
     ) { target ->
         when (target) {
-            SettingsDestination.ROOT -> SettingsRoot(
-                state = state,
+            null -> SettingsRoot(
                 configuration = configuration,
-                onNotificationsEnabledChange = { enabled ->
-                    actionScope.launch { model.setHourByHourNotificationsEnabled(enabled) }
-                },
-                onOpenNotificationInterest = { destination = SettingsDestination.NOTIFICATION_INTEREST },
-                onOpenSystemSettings = { actionScope.launch { model.openSystemSettings() } },
                 onOpenSources = { destination = SettingsDestination.SOURCES },
                 onOpenUrl = onOpenUrl,
                 onContactSupport = onContactSupport,
                 onCopyIdentifier = onCopyIdentifier,
-                onSecretTap = {
-                    if (model.registerSecretTap()) model.state.value.showsHiddenSections else null
-                },
-            )
-
-            SettingsDestination.NOTIFICATION_INTEREST -> NotificationInterestScreen(
-                state = state,
-                hasFollowedGroups = hasFollowedGroups,
-                onSelect = { level -> actionScope.launch { model.setMinimumInterest(level) } },
-                onChooseGroups = onChooseGroups,
-                onBack = { destination = SettingsDestination.ROOT },
+                onVersionTap = onVersionTap,
+                leadingContent = { leadingContent { destination = SettingsDestination.EXTRA } },
             )
 
             SettingsDestination.SOURCES -> SourcesAndCreditsScreen(
-                configuration = configuration,
-                showsHiddenSections = state.showsHiddenSections,
+                credits = configuration.credits + additionalCredits,
                 onOpenUrl = onOpenUrl,
-                onBack = { destination = SettingsDestination.ROOT },
+                onBack = back,
             )
+
+            SettingsDestination.EXTRA -> extraSubpage(back)
         }
     }
 }
+
+/** The subpages of Ajustos: the sources of the data, and the one an app adds. */
+private enum class SettingsDestination { SOURCES, EXTRA }

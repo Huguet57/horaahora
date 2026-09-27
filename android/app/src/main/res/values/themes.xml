@@ -6,7 +6,7 @@
         <item name="android:windowBackground">@color/window_background</item>
     </style>
 
-    <!-- Shown while the first Hora a Hora page loads. -->
+    <!-- Shown at launch, for a moment. -->
     <style name="Theme.CastellsEnVena.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/window_background</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>

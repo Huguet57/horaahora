@@ -32,6 +32,9 @@ class PushSubscriptionRequestSchema(BaseModel):
     group_selection: GroupSelectionSchema | None = None
     # iOS builds that predate Android support do not send it.
     platform: PushPlatform = PushPlatform.IOS
+    # The bundle ID or package name of the app. Builds that predate the internal app do not
+    # send it: they are the public app.
+    app_id: str | None = Field(default=None, max_length=200)
 
     @model_validator(mode="after")
     def validate_device_token(self) -> Self:
