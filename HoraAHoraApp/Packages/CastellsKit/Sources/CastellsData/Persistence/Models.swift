@@ -49,23 +49,25 @@ final class MessageRecord {
     }
 }
 
+/// The local copy of Hora a Hora. Only the internal app reads and writes it, through
+/// CastellsInternalData, but the table stays in both apps so that the schema never changes.
 @Model
-final class HourByHourCacheRecord {
-    @Attribute(.unique) var id: String
-    var sourceID: String
-    var externalID: String
-    var title: String
-    var displayTitle: String?
-    var summary: String
-    var publishedAt: Date?
-    var sourceOrder: Int
-    var articleURL: String
-    var actionURL: String?
-    var attribution: String
-    var createdAt: Date
-    var updatedAt: Date
+public final class HourByHourCacheRecord {
+    @Attribute(.unique) public var id: String
+    public var sourceID: String
+    public var externalID: String
+    public var title: String
+    public var displayTitle: String?
+    public var summary: String
+    public var publishedAt: Date?
+    public var sourceOrder: Int
+    public var articleURL: String
+    public var actionURL: String?
+    public var attribution: String
+    public var createdAt: Date
+    public var updatedAt: Date
 
-    init(item: CastellsDomain.HourByHourItem) {
+    public init(item: CastellsDomain.HourByHourItem) {
         self.id = item.id
         self.sourceID = item.sourceID
         self.externalID = item.externalID
@@ -81,7 +83,7 @@ final class HourByHourCacheRecord {
         self.updatedAt = item.updatedAt
     }
 
-    func update(with item: CastellsDomain.HourByHourItem) {
+    public func update(with item: CastellsDomain.HourByHourItem) {
         title = item.title
         displayTitle = item.displayTitle
         summary = item.summary
@@ -94,27 +96,29 @@ final class HourByHourCacheRecord {
     }
 }
 
+/// The local copy of the Agenda. Only the internal app reads and writes it, through
+/// CastellsInternalData, but the table stays in both apps so that the schema never changes.
 @Model
-final class AgendaCacheRecord {
-    @Attribute(.unique) var id: String
-    var sourceID: String
-    var externalID: String
-    var title: String
-    var localDate: String
-    var startsAt: Date?
-    var timeLabel: String
-    var timezone: String
-    var venue: String
-    var municipality: String
-    var participatingGroups: [String]
-    var notes: String
-    var sourceURL: String
-    var sourceOrder: Int
-    var attribution: String
-    var revision: String
-    var updatedAt: Date
+public final class AgendaCacheRecord {
+    @Attribute(.unique) public var id: String
+    public var sourceID: String
+    public var externalID: String
+    public var title: String
+    public var localDate: String
+    public var startsAt: Date?
+    public var timeLabel: String
+    public var timezone: String
+    public var venue: String
+    public var municipality: String
+    public var participatingGroups: [String]
+    public var notes: String
+    public var sourceURL: String
+    public var sourceOrder: Int
+    public var attribution: String
+    public var revision: String
+    public var updatedAt: Date
 
-    init(item: CastellsDomain.CastellEvent) {
+    public init(item: CastellsDomain.CastellEvent) {
         self.id = item.id
         self.sourceID = item.sourceID
         self.externalID = item.externalID
@@ -134,7 +138,7 @@ final class AgendaCacheRecord {
         self.updatedAt = item.updatedAt
     }
 
-    func update(with item: CastellsDomain.CastellEvent) {
+    public func update(with item: CastellsDomain.CastellEvent) {
         title = item.title
         localDate = item.localDate
         startsAt = item.startsAt

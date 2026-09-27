@@ -104,10 +104,9 @@ def test_ios_shared_modules_do_not_depend_on_internal_ones() -> None:
             assert swift_imports(source).isdisjoint(INTERNAL_SWIFT_MODULES), source
 
 
-def test_ios_shared_features_have_no_internal_entry_points() -> None:
-    # The data layer keeps the news and Agenda code, which the internal app still needs and
-    # which the public app never reaches; the features it shares must not offer them.
-    for module in SHARED_SWIFT_MODULES - {"CastellsDomain", "CastellsData"}:
+def test_ios_shared_modules_have_no_internal_entry_points() -> None:
+    # The domain keeps the models of the internal sections, which the local database stores.
+    for module in SHARED_SWIFT_MODULES - {"CastellsDomain"}:
         for source in (SWIFT_SOURCES / module).rglob("*.swift"):
             assert matches(source, IOS_INTERNAL_ENTRY_POINTS) == [], source
 
@@ -208,6 +207,14 @@ def test_android_firebase_is_only_in_the_internal_app() -> None:
     assert not [alias for alias in public if alias.startswith("firebase")]
     assert {"firebase.bom", "firebase.messaging"} <= internal
     assert not [path for path in conventions if "google-services" in path.read_text()]
+
+
+def test_android_shared_modules_have_no_internal_entry_points() -> None:
+    # The domain keeps the models of the internal sections, which the local database stores.
+    for project in gradle_projects() - INTERNAL_GRADLE_PROJECTS - {":app", ":core:domain"}:
+        main = ANDROID_ROOT.joinpath(*project.strip(":").split(":"), "src", "main")
+        for source in kotlin_sources(main):
+            assert matches(source, ANDROID_INTERNAL_ENTRY_POINTS) == [], source
 
 
 def test_android_public_app_sources_have_no_internal_code() -> None:

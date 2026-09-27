@@ -1,7 +1,7 @@
 import UIKit
 import UserNotifications
-import CastellsData
 import CastellsDomain
+import CastellsInternalData
 import FeatureInternalSettings
 
 @MainActor

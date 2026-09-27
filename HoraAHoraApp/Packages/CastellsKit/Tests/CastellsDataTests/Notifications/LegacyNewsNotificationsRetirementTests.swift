@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-import CastellsDomain
 @testable import CastellsData
 
 @MainActor
@@ -37,8 +36,8 @@ final class LegacyNewsNotificationsRetirementTests: XCTestCase {
     func testTheOldSettingsAndPermissionNeverSubscribeTheDeviceAgain() async {
         let defaults = freshDefaults()
         defaults.set(true, forKey: "castells.hour-by-hour.notifications-enabled")
-        NotificationPreferenceStore(userDefaults: defaults).save(.low)
-        HiddenSectionsStore(userDefaults: defaults).setUnlocked(true)
+        defaults.set("low", forKey: "castells.hour-by-hour.minimum-interest.v1")
+        defaults.set(true, forKey: "castells.hidden-sections.unlocked")
         let remote = RetirementRemoteStub()
         let system = LegacySystemStub(hadNewsNotifications: true)
 
@@ -67,9 +66,10 @@ final class LegacyNewsNotificationsRetirementTests: XCTestCase {
     }
 
     func testEverySettingThatAnEarlierVersionWroteCounts() async {
+        // The internal app still writes them: CastellsInternalDataTests checks its stores.
         let earlierSettings: [@MainActor (UserDefaults) -> Void] = [
-            { NotificationPreferenceStore(userDefaults: $0).save(.high) },
-            { HiddenSectionsStore(userDefaults: $0).setUnlocked(false) },
+            { $0.set("high", forKey: "castells.hour-by-hour.minimum-interest.v1") },
+            { $0.set(false, forKey: "castells.hidden-sections.unlocked") },
             { $0.set(false, forKey: "castells.hour-by-hour.notifications-enabled") },
             { $0.set(true, forKey: "castells.hour-by-hour.notification-onboarding-dismissed") },
         ]

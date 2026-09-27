@@ -39,6 +39,7 @@ include(
     ":core:network",
     ":core:database",
     ":core:data",
+    ":core:internaldata",
     ":feature:hourbyhour:presentation",
     ":feature:agenda:presentation",
     ":feature:calculator:presentation",

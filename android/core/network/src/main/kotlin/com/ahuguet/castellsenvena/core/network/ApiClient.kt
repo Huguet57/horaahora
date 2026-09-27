@@ -21,7 +21,10 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
-/** The HTTP client of the Castells backend. The remote services build on it. */
+/**
+ * The HTTP client of the Castells backend. The remote services build on it: those both apps
+ * use are in this module, and those of the internal app's sections in :core:internaldata.
+ */
 class ApiClient(
     baseUrl: String,
     private val httpClient: OkHttpClient = defaultHttpClient(),
@@ -29,7 +32,7 @@ class ApiClient(
     private val baseUrl: HttpUrl = baseUrl.toHttpUrl()
     private val json: Json = CastellsJson
 
-    internal suspend fun <T> get(
+    suspend fun <T> get(
         path: String,
         query: List<Pair<String, String>> = emptyList(),
         deserializer: DeserializationStrategy<T>,
@@ -38,7 +41,7 @@ class ApiClient(
         return decode(execute(request), deserializer)
     }
 
-    internal suspend fun <B, T> post(
+    suspend fun <B, T> post(
         path: String,
         body: B,
         serializer: SerializationStrategy<B>,
@@ -51,7 +54,7 @@ class ApiClient(
         return decode(execute(request), deserializer)
     }
 
-    internal suspend fun <B> put(path: String, body: B, serializer: SerializationStrategy<B>) {
+    suspend fun <B> put(path: String, body: B, serializer: SerializationStrategy<B>) {
         val request = Request.Builder()
             .url(url(path))
             .put(json.encodeToString(serializer, body).toRequestBody(JSON_MEDIA_TYPE))
@@ -59,7 +62,7 @@ class ApiClient(
         execute(request)
     }
 
-    internal suspend fun delete(path: String, query: List<Pair<String, String>> = emptyList()) {
+    suspend fun delete(path: String, query: List<Pair<String, String>> = emptyList()) {
         val request = Request.Builder().url(url(path, query)).delete().build()
         execute(request)
     }

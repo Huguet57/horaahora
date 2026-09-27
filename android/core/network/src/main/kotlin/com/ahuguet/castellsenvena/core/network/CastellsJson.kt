@@ -16,7 +16,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 
 /** JSON as the backend writes it: snake_case keys, declared with `@SerialName`. */
-internal val CastellsJson: Json = Json {
+val CastellsJson: Json = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
 }
@@ -25,7 +25,7 @@ internal val CastellsJson: Json = Json {
  * FastAPI writes ISO 8601 dates with or without fractional seconds and offset.
  * A date without offset is UTC.
  */
-internal object FlexibleInstantSerializer : KSerializer<Instant> {
+object FlexibleInstantSerializer : KSerializer<Instant> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("com.ahuguet.castellsenvena.Instant", PrimitiveKind.STRING)
 

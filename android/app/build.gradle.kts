@@ -113,6 +113,7 @@ dependencies {
     implementation(libs.sqldelight.android.driver)
 
     // Only the internal app: Hora a Hora, Agenda, their settings and the news notifications.
+    "internalImplementation"(projects.core.internaldata)
     "internalImplementation"(projects.feature.hourbyhour.ui)
     "internalImplementation"(projects.feature.agenda.ui)
     "internalImplementation"(projects.feature.internalsettings.ui)

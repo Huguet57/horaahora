@@ -43,12 +43,13 @@ SHARED_SWIFT_MODULES = frozenset(
     {"CastellsDomain", "CastellsData", "FeatureCalculator", "FeatureScoreTable", "FeatureSettings"}
 )
 INTERNAL_SWIFT_MODULES = frozenset(
-    {"FeatureHourByHour", "FeatureAgenda", "FeatureInternalSettings"}
+    {"CastellsInternalData", "FeatureHourByHour", "FeatureAgenda", "FeatureInternalSettings"}
 )
 
 # The Gradle projects only the internal app depends on.
 INTERNAL_GRADLE_PROJECTS = frozenset(
     {
+        ":core:internaldata",
         ":feature:hourbyhour:presentation",
         ":feature:hourbyhour:ui",
         ":feature:agenda:presentation",
@@ -62,8 +63,9 @@ SHARED_KOTLIN_PACKAGES = (
     "com.ahuguet.castellsenvena.feature.scoretable",
     "com.ahuguet.castellsenvena.feature.settings",
 )
-# The code of the internal sections, of the news notifications and of Firebase.
+# The code of the internal sections, of their data, of the news notifications and of Firebase.
 INTERNAL_KOTLIN_PACKAGES = (
+    "com.ahuguet.castellsenvena.core.internaldata",
     "com.ahuguet.castellsenvena.feature.hourbyhour",
     "com.ahuguet.castellsenvena.feature.agenda",
     "com.ahuguet.castellsenvena.feature.internalsettings",

@@ -2,11 +2,8 @@ package com.ahuguet.castellsenvena.core.data
 
 import com.ahuguet.castellsenvena.core.data.notifications.LegacyNewsNotificationsRetirement
 import com.ahuguet.castellsenvena.core.data.notifications.LegacyNewsNotificationsSystem
-import com.ahuguet.castellsenvena.core.data.notifications.NotificationPreferenceStore
-import com.ahuguet.castellsenvena.core.data.settings.KeyValueHiddenSectionsStore
 import com.ahuguet.castellsenvena.core.data.storage.InMemoryKeyValueStore
 import com.ahuguet.castellsenvena.core.data.storage.KeyValueStore
-import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
 import com.ahuguet.castellsenvena.core.network.service.PushSubscriptionRemoteService
 import com.ahuguet.castellsenvena.core.network.service.PushSubscriptionRequest
 import kotlin.test.Test
@@ -49,8 +46,8 @@ class LegacyNewsNotificationsRetirementTest {
     fun theOldSettingsNeverSubscribeTheDeviceAgain() = runTest {
         store.putBoolean("castells.hour-by-hour.notifications-enabled", true)
         store.putBoolean("castells.hour-by-hour.notification-permission-requested", true)
-        NotificationPreferenceStore(store).save(NotificationInterestLevel.LOW)
-        KeyValueHiddenSectionsStore(store).setUnlocked(true)
+        store.putString("castells.hour-by-hour.minimum-interest.v1", "low")
+        store.putBoolean("castells.hidden-sections.unlocked", true)
 
         retirement().retireIfNeeded()
 
@@ -72,9 +69,10 @@ class LegacyNewsNotificationsRetirementTest {
 
     @Test
     fun everySettingThatAnEarlierVersionWroteCounts() = runTest {
+        // The internal app still writes them: :core:internaldata checks its stores against these.
         val earlierSettings: List<(KeyValueStore) -> Unit> = listOf(
-            { NotificationPreferenceStore(it).save(NotificationInterestLevel.HIGH) },
-            { KeyValueHiddenSectionsStore(it).setUnlocked(false) },
+            { it.putString("castells.hour-by-hour.minimum-interest.v1", "high") },
+            { it.putBoolean("castells.hidden-sections.unlocked", false) },
             { it.putBoolean("castells.hour-by-hour.notifications-enabled", false) },
             { it.putBoolean("castells.hour-by-hour.notification-permission-requested", true) },
             { it.putBoolean("castells.hour-by-hour.notification-onboarding-dismissed", true) },

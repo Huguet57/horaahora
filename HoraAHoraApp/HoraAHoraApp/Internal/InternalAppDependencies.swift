@@ -1,6 +1,7 @@
 import Foundation
 import CastellsData
 import CastellsDomain
+import CastellsInternalData
 import FeatureAgenda
 import FeatureInternalSettings
 

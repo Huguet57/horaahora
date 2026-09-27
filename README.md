@@ -42,12 +42,11 @@ remotament ni des de l'app instal·lada:
 | Android | Flavor `public` | Flavor `internal`, versió amb el sufix `-internal` |
 
 Les dues apps comparteixen la calculadora, la taula de puntuacions i els ajustos de la
-calculadora. L'app pública no enllaça els mòduls d'Hora a Hora, Agenda ni els ajustos interns, i
-no conté cap punt d'entrada cap a ells. Conserva, però, l'esquema complet de la base de dades
-local, amb les còpies d'Hora a Hora i Agenda de les versions anteriors, perquè les
-actualitzacions mantinguin les converses sense cap migració. Per això la capa de dades compartida
-(`CastellsData` i `:core:data`) encara conté el codi de dades d'aquestes seccions, que l'app
-interna fa servir i l'app pública no crida enlloc.
+calculadora. L'app pública no enllaça els mòduls d'Hora a Hora, Agenda, els ajustos interns ni les
+seves dades (`CastellsInternalData` a iOS i `:core:internaldata` a Android), i no conté cap punt
+d'entrada cap a ells. Només en conserva l'esquema de la base de dades local, amb les taules
+d'Hora a Hora i Agenda de les versions anteriors, perquè les actualitzacions mantinguin les
+converses sense cap migració.
 
 Les ordres de `make` fan servir `CASTELLS_BUILD_PROFILE=public|internal` (també com a variable
 d'entorn); qualsevol altre valor atura la compilació:

@@ -6,11 +6,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import com.ahuguet.castellsenvena.core.data.notifications.NotificationPreferenceStore
-import com.ahuguet.castellsenvena.core.data.notifications.PushSubscriptionCoordinator
 import com.ahuguet.castellsenvena.core.data.storage.KeyValueStore
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationGroupSelection
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
+import com.ahuguet.castellsenvena.core.internaldata.notifications.NotificationPreferenceStore
+import com.ahuguet.castellsenvena.core.internaldata.notifications.PushSubscriptionCoordinator
 import com.ahuguet.castellsenvena.feature.internalsettings.presentation.HourByHourNotificationManaging
 import com.ahuguet.castellsenvena.feature.internalsettings.presentation.HourByHourNotificationStatus
 

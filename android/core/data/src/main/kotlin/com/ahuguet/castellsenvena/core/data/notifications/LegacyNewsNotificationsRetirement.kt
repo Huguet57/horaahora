@@ -55,14 +55,18 @@ class LegacyNewsNotificationsRetirement(
 
     /** An earlier version with news notifications left one of its settings, or their channel. */
     private fun hadNewsNotifications(): Boolean =
-        store.getString(NotificationPreferenceStore.DEFAULT_KEY) != null ||
+        store.getString(EARLIER_INTEREST_KEY) != null ||
             EARLIER_FLAGS.any { store.getBoolean(it) != null } ||
             system.hadNewsNotifications()
 
     private companion object {
         const val RETIRED_KEY = "castells.news-notifications.retired.v1"
 
-        /** Written by the news notifications and the hidden sections of earlier versions. */
+        /**
+         * Written by the news notifications and the hidden sections of earlier versions. The
+         * internal app still writes them; :core:internaldata checks that its stores match.
+         */
+        const val EARLIER_INTEREST_KEY = "castells.hour-by-hour.minimum-interest.v1"
         val EARLIER_FLAGS = listOf(
             "castells.hour-by-hour.notifications-enabled",
             "castells.hour-by-hour.notification-permission-requested",

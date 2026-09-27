@@ -24,24 +24,26 @@ comportament fora de línia.
 :app ──> :feature:*:ui ──> :feature:*:presentation ──> :core:domain ──> :core:common
   │            │
   │            └──> :core:designsystem
-  └──> :core:data ──> :core:network, :core:database ──> :core:domain
+  ├──> :core:data ──> :core:network, :core:database ──> :core:domain
+  └──> :core:internaldata ──> :core:data              (només l'app interna)
 ```
 
 | Mòdul | Contingut | Android? |
 | --- | --- | --- |
 | `core:common` | Dates i números en català, text sense accents, errors per a l'usuari | No |
 | `core:domain` | Models i interfícies de repositori | No |
-| `core:network` | Client HTTP (OkHttp) i DTO del contracte del backend | No |
+| `core:network` | Client HTTP (OkHttp) del backend, xat i subscripció als avisos | No |
 | `core:database` | Esquema SQLDelight: Hora a Hora, Agenda i converses | No |
-| `core:data` | Repositoris amb memòria cau, xat local i subscripció push | No |
+| `core:data` | Xat local, emmagatzematge clau-valor i baixa dels avisos antics | No |
+| `core:internaldata` | Hora a Hora, Agenda, colles i avisos: serveis, memòria cau i preferències | No |
 | `feature:*:presentation` | Estat i lògica de cada pantalla, amb proves | No |
 | `core:designsystem` | Tema, colors i components Compose compartits | Sí |
 | `feature:*:ui` | Pantalles Compose | Sí |
 | `app` | Composició, navegació, Firebase, permisos i enllaços | Sí |
 
-`feature:hourbyhour`, `feature:agenda` i `feature:internalsettings` (els avisos de notícies, les
-fonts d'Hora a Hora i Agenda i el gest secret, que amplien `feature:settings`) només formen part de
-l'app interna. A `app`, `src/main` té el codi comú, i `src/public` i `src/internal`, la composició,
+`core:internaldata`, `feature:hourbyhour`, `feature:agenda` i `feature:internalsettings` (els
+avisos de notícies, les fonts d'Hora a Hora i Agenda i el gest secret, que amplien
+`feature:settings`) només formen part de l'app interna. A `app`, `src/main` té el codi comú, i `src/public` i `src/internal`, la composició,
 l'activitat i la navegació de cada app; només `src/internal` té Firebase, el permís de
 notificacions i el servei de missatges.
 

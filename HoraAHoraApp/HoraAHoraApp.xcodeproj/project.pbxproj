@@ -38,6 +38,7 @@
 		C1000116 /* FeatureSettings in Frameworks */ = {isa = PBXBuildFile; productRef = C1100016 /* FeatureSettings */; };
 		C1000117 /* FeatureScoreTable in Frameworks */ = {isa = PBXBuildFile; productRef = C1100017 /* FeatureScoreTable */; };
 		C1000118 /* FeatureInternalSettings in Frameworks */ = {isa = PBXBuildFile; productRef = C1100018 /* FeatureInternalSettings */; };
+		C1000119 /* CastellsInternalData in Frameworks */ = {isa = PBXBuildFile; productRef = C1100019 /* CastellsInternalData */; };
 		C1000201 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2000001 /* Assets.xcassets */; };
 		C1000202 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B2000002 /* PrivacyInfo.xcprivacy */; };
 		D1000001 /* PublicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000001 /* PublicApp.swift */; };
@@ -91,6 +92,7 @@
 			files = (
 				C1000111 /* CastellsDomain in Frameworks */,
 				C1000112 /* CastellsData in Frameworks */,
+				C1000119 /* CastellsInternalData in Frameworks */,
 				C1000113 /* FeatureHourByHour in Frameworks */,
 				C1000114 /* FeatureAgenda in Frameworks */,
 				C1000115 /* FeatureCalculator in Frameworks */,
@@ -238,6 +240,7 @@
 			packageProductDependencies = (
 				C1100011 /* CastellsDomain */,
 				C1100012 /* CastellsData */,
+				C1100019 /* CastellsInternalData */,
 				C1100013 /* FeatureHourByHour */,
 				C1100014 /* FeatureAgenda */,
 				C1100015 /* FeatureCalculator */,
@@ -586,6 +589,10 @@
 		C1100018 /* FeatureInternalSettings */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FeatureInternalSettings;
+		};
+		C1100019 /* CastellsInternalData */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CastellsInternalData;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

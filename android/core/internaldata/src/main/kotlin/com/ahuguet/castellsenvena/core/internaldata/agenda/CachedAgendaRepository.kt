@@ -1,0 +1,236 @@
+package com.ahuguet.castellsenvena.core.internaldata.agenda
+
+import com.ahuguet.castellsenvena.core.common.TextFolding
+import com.ahuguet.castellsenvena.core.database.AgendaEventRecord
+import com.ahuguet.castellsenvena.core.database.CastellsDatabase
+import com.ahuguet.castellsenvena.core.domain.agenda.AgendaPage
+import com.ahuguet.castellsenvena.core.domain.agenda.AgendaRepository
+import com.ahuguet.castellsenvena.core.domain.agenda.AgendaSourceStatus
+import com.ahuguet.castellsenvena.core.domain.agenda.CastellEvent
+import com.ahuguet.castellsenvena.core.internaldata.network.AgendaRemoteService
+import java.time.Instant
+import java.time.LocalDate
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
+
+/**
+ * Serves the agenda from the network and keeps the loaded days on the device,
+ * so they can be read offline or while the official source is unavailable.
+ * The stored copy is then served whole, in one page: the backend's cursors
+ * cannot page through it, and a truncated page would stand for the whole range.
+ */
+class CachedAgendaRepository(
+    private val remoteService: AgendaRemoteService,
+    private val database: CastellsDatabase,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : AgendaRepository {
+    override val officialUrl: String = AgendaRepository.OFFICIAL_AGENDA_URL
+
+    private val queries get() = database.agendaEventRecordQueries
+
+    /**
+     * Unfiltered ranges being fetched page by page, keyed by the cursor of
+     * their next page, with the ids received so far. Only the last page knows
+     * the whole range, so only then can the stored copy be replaced.
+     */
+    private val pagedRanges = object : LinkedHashMap<String, PagedRange>() {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, PagedRange>?): Boolean =
+            size > MAX_PAGED_RANGES
+    }
+
+    override suspend fun cachedEvents(
+        from: LocalDate,
+        to: LocalDate,
+        group: String?,
+        municipality: String?,
+    ): List<CastellEvent> = cachedItems(from, to, group, municipality)
+
+    override suspend fun events(
+        from: LocalDate,
+        to: LocalDate,
+        group: String?,
+        municipality: String?,
+        cursor: String?,
+        limit: Int,
+        forceRefresh: Boolean,
+    ): AgendaPage =
+        try {
+            val page = remoteService.events(from, to, group, municipality, cursor, limit, forceRefresh)
+            if (page.sourceStatus == AgendaSourceStatus.UNAVAILABLE) purgeDemoItems()
+            store(
+                items = page.items,
+                from = from,
+                to = to,
+                completeRangeIds = completeRangeIds(from, to, group, municipality, cursor, page),
+            )
+            val cached = if (page.items.isEmpty() &&
+                page.sourceStatus == AgendaSourceStatus.UNAVAILABLE &&
+                cursor == null
+            ) {
+                cachedItems(from, to, group, municipality)
+            } else {
+                emptyList()
+            }
+            if (cached.isNotEmpty()) {
+                AgendaPage(
+                    items = cached,
+                    nextCursor = null,
+                    officialUrl = page.officialUrl,
+                    fromCache = true,
+                    sourceStatus = AgendaSourceStatus.UNAVAILABLE,
+                )
+            } else {
+                page
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (failure: Exception) {
+            if (cursor != null) throw failure
+            val cached = cachedItems(from, to, group, municipality)
+            if (cached.isEmpty()) throw failure
+            AgendaPage(
+                items = cached,
+                nextCursor = null,
+                officialUrl = officialUrl,
+                fromCache = true,
+                sourceStatus = AgendaSourceStatus.ACTIVE,
+            )
+        }
+
+    /**
+     * The ids of the whole range once a complete, unfiltered answer has
+     * arrived, over one page or several; null while it is still incomplete.
+     */
+    private fun completeRangeIds(
+        from: LocalDate,
+        to: LocalDate,
+        group: String?,
+        municipality: String?,
+        cursor: String?,
+        page: AgendaPage,
+    ): Set<String>? {
+        if (group != null || municipality != null || page.sourceStatus != AgendaSourceStatus.ACTIVE) return null
+        synchronized(pagedRanges) {
+            val previousIds = if (cursor == null) {
+                emptySet()
+            } else {
+                // A page whose earlier pages were not seen cannot vouch for the range.
+                pagedRanges.remove(cursor)?.takeIf { it.from == from && it.to == to }?.ids ?: return null
+            }
+            val ids = previousIds + page.items.map { it.id }
+            val nextCursor = page.nextCursor ?: return ids
+            pagedRanges[nextCursor] = PagedRange(from, to, ids)
+            return null
+        }
+    }
+
+    /**
+     * A complete, unfiltered answer replaces the stored range, so cancelled
+     * events disappear from the offline copy too.
+     */
+    private suspend fun store(
+        items: List<CastellEvent>,
+        from: LocalDate,
+        to: LocalDate,
+        completeRangeIds: Set<String>?,
+    ) = withContext(ioDispatcher) {
+        database.transaction {
+            val stale = completeRangeIds?.let { ids ->
+                queries.inRange(from.toString(), to.toString()).executeAsList().filter { it.id !in ids }
+            }.orEmpty()
+            for (item in items) queries.upsert(item.toRecord())
+            for (record in stale) queries.deleteById(record.id)
+        }
+    }
+
+    private suspend fun cachedItems(
+        from: LocalDate,
+        to: LocalDate,
+        group: String?,
+        municipality: String?,
+    ): List<CastellEvent> = withContext(ioDispatcher) {
+        val groupKey = group?.let(::searchKey)
+        val municipalityKey = municipality?.let(::searchKey)
+        queries.inRange(from.toString(), to.toString()).executeAsList()
+            .asSequence()
+            .filterNot(::isDemo)
+            .map { it.toDomain() }
+            .filter { event ->
+                (groupKey == null || event.participatingGroups.any { searchKey(it) == groupKey }) &&
+                    (municipalityKey == null || searchKey(event.municipality) == municipalityKey)
+            }
+            .toList()
+    }
+
+    private suspend fun purgeDemoItems() = withContext(ioDispatcher) {
+        database.transaction {
+            for (record in queries.all().executeAsList().filter(::isDemo)) {
+                queries.deleteById(record.id)
+            }
+        }
+    }
+
+    private data class PagedRange(val from: LocalDate, val to: LocalDate, val ids: Set<String>)
+
+    private companion object {
+        /** Abandoned paged loads are forgotten after this many newer ones. */
+        const val MAX_PAGED_RANGES = 16
+
+        val groupsSerializer = ListSerializer(String.serializer())
+
+        /** Simulated local data must never be shown as the official agenda. */
+        fun isDemo(record: AgendaEventRecord): Boolean =
+            record.sourceId == "cccc-fixture" ||
+                record.title.contains("demostració", ignoreCase = true) ||
+                record.notes.contains("dada simulada", ignoreCase = true)
+
+        fun searchKey(value: String): String = TextFolding.collapseWhitespace(TextFolding.fold(value))
+
+        fun CastellEvent.toRecord() = AgendaEventRecord(
+            id = id,
+            sourceId = sourceId,
+            externalId = externalId,
+            title = title,
+            localDate = localDate,
+            startsAt = startsAt?.toEpochMilli(),
+            timeLabel = timeLabel,
+            timezone = timezone,
+            venue = venue,
+            municipality = municipality,
+            participatingGroups = Json.encodeToString(groupsSerializer, participatingGroups),
+            notes = notes,
+            sourceUrl = sourceUrl,
+            sourceOrder = sourceOrder.toLong(),
+            attribution = attribution,
+            revision = revision,
+            updatedAt = updatedAt.toEpochMilli(),
+        )
+
+        fun AgendaEventRecord.toDomain() = CastellEvent(
+            id = id,
+            sourceId = sourceId,
+            externalId = externalId,
+            title = title,
+            localDate = localDate,
+            startsAt = startsAt?.let(Instant::ofEpochMilli),
+            timeLabel = timeLabel,
+            timezone = timezone,
+            venue = venue,
+            municipality = municipality,
+            participatingGroups = runCatching {
+                Json.decodeFromString(groupsSerializer, participatingGroups)
+            }.getOrDefault(emptyList()),
+            notes = notes,
+            sourceUrl = sourceUrl,
+            sourceOrder = sourceOrder.toInt(),
+            attribution = attribution,
+            revision = revision,
+            updatedAt = Instant.ofEpochMilli(updatedAt),
+        )
+    }
+}
