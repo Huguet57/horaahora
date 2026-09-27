@@ -158,7 +158,7 @@ Les configuracions Debug i Release apunten per defecte al backend POC desplegat 
 `https://castells-superapp-poc.vercel.app`. Per treballar contra el backend local al
 simulador, defineix `CASTELLS_API_BASE_URL=http://127.0.0.1:8000` a l'esquema d'Xcode.
 
-En un iPhone físic cal indicar una URL accessible des del dispositiu. Les converses i les còpies de l'Hora a Hora i l'Agenda es desen només amb SwiftData al dispositiu; el backend rep com a màxim els darrers 12 missatges i no persisteix cap conversa.
+En un iPhone físic cal indicar una URL accessible des del dispositiu. Les converses i les còpies de l'Hora a Hora i l'Agenda es desen amb SwiftData al dispositiu; el backend rep com a màxim els darrers 12 missatges. Amb «Millora la calculadora» activada (opció per defecte d'Ajustos), l'app marca `share_for_improvement` a les converses començades després de veure l'avís de la calculadora i el backend en desa els missatges i la resposta a `shared_conversations` durant 90 dies, sense identificador d'instal·lació ni IP. El cron diari de manteniment elimina les files caducades.
 
 Les notificacions de l'Hora a Hora no demanen permís en arrencar l'app. En una instal·lació nova, la secció mostra un onboarding descartable; «Configura-ho» obre la pestanya Ajustos. Des d'allà es poden activar o desactivar els avisos; si el permís s'havia denegat a iOS, l'app obre directament els ajustos del sistema per recuperar-lo. Quan APNs lliura o rota el token, l'app el registra al backend amb l'identificador aleatori d'instal·lació; en desactivar els avisos, en demana la revocació i reintenta si estava sense connexió. Les compilacions Debug indiquen l'entorn APNs `development`; TestFlight i Release indiquen `production`.
 

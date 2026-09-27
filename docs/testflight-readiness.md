@@ -27,7 +27,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | 3 | Certificat Apple Distribution i perfil App Store Connect | Fet amb signatura cloud-managed | Renovació automàtica; el perfil Store actual caduca el 29 d'abril de 2027. |
 | 4 | Registre nou de l'app amb el nom `Castells en vena`, idioma principal, Bundle ID i SKU | Fet | Registre creat amb el Bundle ID `com.ahuguet.castellsenvena`. |
 | 5 | Política de privacitat publicada amb URL HTTPS i accessible des de l'app | Repositori preparat | Desplegar el backend rebasat i verificar les quatre URLs. |
-| 6 | Formulari App Privacy: identificador de dispositiu i contingut d'usuari per funcionalitat, sense tracking | Pendent | Completar-lo a App Store Connect d'acord amb `PrivacyInfo.xcprivacy`. |
+| 6 | Formulari App Privacy: identificador de dispositiu per funcionalitat i contingut d'usuari per funcionalitat i analítica (millora de la calculadora), no vinculat i sense tracking | Pendent | Completar-lo a App Store Connect d'acord amb `PrivacyInfo.xcprivacy` abans de publicar la versió amb «Millora la calculadora». |
 | 7 | Declarar drets d'ús i atribució de Revista Castells i CCCC | Pendent | Confirmar-ho amb producte/legal abans de la beta externa. |
 | 8 | Edat, content rights i dades de contacte de revisió | Pendent | Completar-ho a App Store Connect. |
 | 9 | Crear grup intern, afegir testers i assignar el build processat | Build 4 present a TestFlight | Assignar el build més recent al grup intern quan estigui processat. |
@@ -55,7 +55,7 @@ Després de rebasar sobre l'`origin/main` que inclou la PR #8, la versió 1.0 (b
 - Agenda carrega dades reals, mostra la cache sense missatges tècnics i obre Google Maps.
 - Calculadora interpreta variants habituals, demana aclariments naturals i no inventa punts.
 - El backend no exposa claus ni proveïdor i limita les peticions.
-- La política de privacitat explica que els últims missatges necessaris viatgen al backend i al proveïdor d'IA, mentre l'historial complet queda al dispositiu.
+- La política de privacitat explica que els últims missatges necessaris viatgen al backend i al proveïdor d'IA, mentre l'historial complet queda al dispositiu. Amb «Millora la calculadora», les converses noves es desen 90 dies al backend sense identificadors del dispositiu.
 - El correu de suport mostra versió, build i identificador tècnic abans d'enviar-se, i no exporta converses.
 - S'ha provat almenys en un iPhone físic, un iPad o simulador i amb connectivitat intermitent.
 - Una instal·lació TestFlight registra un token APNs de producció a Supabase, rep un avís amb l'app tancada i deixa de rebre'n després de desactivar-los.
