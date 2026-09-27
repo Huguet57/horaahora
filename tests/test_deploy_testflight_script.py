@@ -241,10 +241,13 @@ def test_deploy_refuses_an_archive_that_does_not_use_the_production_backend(
 
 def test_deploy_script_is_documented() -> None:
     readme = (REPOSITORY_ROOT / "README.md").read_text()
+    readiness = (REPOSITORY_ROOT / "docs" / "testflight-readiness.md").read_text()
+    recommended_upload = readiness.split("## Pujada recomanada", 1)[1].split("\n## ", 1)[0]
 
     assert re.search(r"scripts/deploy-testflight\.sh", readme)
     assert "make deploy-testflight" in readme
     assert "--build-number" in readme
+    assert "make deploy-testflight" in recommended_upload
 
 
 def test_make_target_delegates_to_the_deploy_script() -> None:

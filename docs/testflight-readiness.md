@@ -8,7 +8,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | --- | --- | --- | --- |
 | Codi | 91 tests Python (inclosa integració PostgreSQL 17), 40 tests Swift i builds Debug/Release | Preparat | Fer merge quan el CI de l'últim commit sigui verd. |
 | Identitat | Bundle ID explícit `com.ahuguet.castellsenvena` i App ID amb Push Notifications | Configurat al projecte i al portal | Utilitzar el mateix Bundle ID al registre d'App Store Connect. |
-| Versió | `CFBundleShortVersionString` 1.0 i build 5 | Configurat | Incrementar sempre el build abans de cada pujada posterior. |
+| Versió | `CFBundleShortVersionString` 1.4; el build 5 del projecte només serveix per a compilacions locals i de CI | Configurat | Pujar sempre amb `make deploy-testflight`, que fa servir els segons Unix UTC com a build. |
 | Nom | Nom visible `Castells en vena` | Configurat | Utilitzar exactament aquest nom al registre d'App Store Connect i confirmar-ne la disponibilitat. |
 | Icona | App Icon opaca de 1024 × 1024 a l'asset catalog | Preparat | Validar la marca amb els socis abans de la beta externa. |
 | Privacitat | Política completa en CA, ES i EN, enllaç des d'Ajustos i `PrivacyInfo.xcprivacy` integrat | Preparat al repositori | Desplegar aquesta branca i completar l'etiqueta App Privacy d'App Store Connect d'acord amb el manifest. |
@@ -16,7 +16,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | Release | APNs `development` en Debug i `production` en Release; perfils Development i Store generats | Preparat | La signatura automàtica gestionarà les renovacions. |
 | Backend | URL Release `https://castells-superapp-poc.vercel.app`, Vercel `cdg1`, Supabase PostgreSQL a París i cron idempotent | Preparat al repositori | Aplicar Alembic a Supabase, configurar secrets i verificar `/health/ready`. |
 | Automatització | CI de tests Swift i build iOS Release sense signar | Preparat | Vigilar el run de l'últim commit. |
-| Archive | Archive signat i IPA App Store exportat amb certificat cloud-managed Apple Distribution | Build 4 present a TestFlight; build 5 pendent de pujar | Pujar el build 5 i revisar qualsevol avís de processament. |
+| Archive | Archive signat i IPA App Store exportat amb certificat cloud-managed Apple Distribution | Última pujada: 1.4 (build 1790470034), amb `make deploy-testflight` | Pujar els builds següents amb el mateix script i revisar qualsevol avís de processament. |
 
 ## Accions obligatòries al compte d'Apple
 
@@ -27,7 +27,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | 3 | Certificat Apple Distribution i perfil App Store Connect | Fet amb signatura cloud-managed | Renovació automàtica; el perfil Store actual caduca el 29 d'abril de 2027. |
 | 4 | Registre nou de l'app amb el nom `Castells en vena`, idioma principal, Bundle ID i SKU | Fet | Registre creat amb el Bundle ID `com.ahuguet.castellsenvena`. |
 | 5 | Política de privacitat publicada amb URL HTTPS i accessible des de l'app | Repositori preparat | Desplegar el backend rebasat i verificar les quatre URLs. |
-| 6 | Formulari App Privacy: identificador de dispositiu per funcionalitat i contingut d'usuari per funcionalitat i analítica (millora de la calculadora), no vinculat i sense tracking | Pendent | Completar-lo a App Store Connect d'acord amb `PrivacyInfo.xcprivacy` abans de publicar la versió amb «Millora la calculadora». |
+| 6 | Formulari App Privacy: identificador de dispositiu per funcionalitat i contingut d'usuari per funcionalitat i analítica (millora de la calculadora), no vinculat i sense tracking | Publicat el 27 de setembre de 2026 | Mantenir-lo d'acord amb `PrivacyInfo.xcprivacy` quan canviïn les dades que es recullen. |
 | 7 | Declarar drets d'ús i atribució de Revista Castells i CCCC | Pendent | Confirmar-ho amb producte/legal abans de la beta externa. |
 | 8 | Edat, content rights i dades de contacte de revisió | Pendent | Completar-ho a App Store Connect. |
 | 9 | Crear grup intern, afegir testers i assignar el build processat | Build 4 present a TestFlight | Assignar el build més recent al grup intern quan estigui processat. |
@@ -35,13 +35,10 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 
 ## Pujada recomanada
 
-1. Crea el registre de `Castells en vena` a App Store Connect amb el Bundle ID `com.ahuguet.castellsenvena`.
-2. Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj` amb el compte Apple de l'equip `B94LUNLMW9`.
-3. A **Signing & Capabilities**, comprova el Bundle ID, Push Notifications i la signatura automàtica.
-4. Selecciona **Any iOS Device (arm64)** i executa **Product → Archive** amb Release.
-5. A Organizer, executa **Validate App** i resol qualsevol avís.
-6. Executa **Distribute App → App Store Connect → Upload**.
-7. Espera que el build es processi, completa export compliance si Apple ho demana i assigna'l primer a un grup intern.
+1. Amb els canvis ja a `main`, executa `make deploy-testflight` en un Mac amb el compte Apple de l'equip `B94LUNLMW9` configurat a Xcode. El script arxiva en Release el commit exacte d'`origin/main`, fa servir els segons Unix UTC com a build i atura la pujada si l'arxiu no apunta al backend de producció.
+2. Espera que el build es processi, completa export compliance si Apple ho demana i assigna'l primer a un grup intern.
+
+No pugis un **Product → Archive** fet des d'Xcode: agafaria el build 5 del projecte, més baix que el 1790470034 que la 1.4 ja té a App Store Connect, i la pujada es rebutjaria. Si cal fixar el build, passa `--build-number` al script.
 
 El fitxer `HoraAHoraApp/ExportOptions-TestFlight.plist` ja s'ha validat exportant un IPA App Store signat amb `aps-environment=production` i `beta-reports-active=true`. No s'han d'afegir certificats, claus APNs ni contrasenyes al repositori.
 
