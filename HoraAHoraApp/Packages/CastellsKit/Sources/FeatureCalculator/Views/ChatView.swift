@@ -8,11 +8,13 @@ public struct ChatView: View {
     public init(
         repository: any ChatRepository,
         conversationID: UUID?,
+        sharing: (any ConversationSharingPreferences)? = nil,
         onConversationCreated: @escaping @MainActor () -> Void = {}
     ) {
         _model = State(initialValue: ChatViewModel(
             repository: repository,
             conversationID: conversationID,
+            sharing: sharing,
             onConversationCreated: onConversationCreated
         ))
     }
@@ -74,6 +76,14 @@ public struct ChatView: View {
                     .foregroundStyle(.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
+            }
+
+            if model.showsSharingNotice {
+                ConversationSharingNotice(
+                    accept: model.acceptSharing,
+                    decline: model.declineSharing
+                )
+                .onAppear { model.sharingNoticeAppeared() }
             }
 
             HStack(alignment: .bottom, spacing: 10) {

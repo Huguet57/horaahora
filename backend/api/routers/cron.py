@@ -53,5 +53,6 @@ def maintenance_cron(
     return {
         "status": "completed",
         "rate_limit_buckets_deleted": rate_limit_count,
+        "shared_conversations_deleted": container.conversation_sharing.purge_expired(),
         **notification_counts,
     }

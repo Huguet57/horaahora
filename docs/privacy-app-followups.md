@@ -12,7 +12,8 @@ Aquest document separa els controls de privacitat ja disponibles del treball fut
 - No s'exporten ni s'adjunten converses al correu de suport.
 - El backend registra i revoca tokens APNs associats només a l'identificador aleatori d'instal·lació, sense Firebase ni OneSignal.
 - Els tokens es desen a Supabase exclusivament per lliurar notificacions, es reenvien quan APNs els rota i se substitueixen per una marca de revocació quan l'usuari desactiva els avisos o Apple els invalida.
-- El rate limiting, el contingut sincronitzat, l'outbox i les entregues també es conserven a PostgreSQL; les converses continuen només al dispositiu.
+- El rate limiting, el contingut sincronitzat, l'outbox i les entregues també es conserven a PostgreSQL; l'historial complet de converses continua només al dispositiu.
+- «Millora la calculadora» (Ajustos, activada per defecte) desa al backend les consultes de les converses noves, la resposta o l'error i un identificador aleatori de la conversa durant 90 dies, sense l'identificador d'instal·lació ni la IP. La base és l'interès legítim: la calculadora ho explica en obrir la primera conversa amb l'opció de no compartir-ho, i només es comparteixen converses començades després de l'avís. Les versions anteriors de l'app no envien el camp `share_for_improvement` i el backend no en desa res.
 
 - Les notificacions sincronitzen el llindar d'interès i les colles seguides amb el backend. Jev rep només el contingut públic de les notícies; la personalització es calcula al backend.
 

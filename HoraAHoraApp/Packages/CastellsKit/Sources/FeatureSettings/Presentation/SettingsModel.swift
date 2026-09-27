@@ -35,18 +35,23 @@ public final class SettingsModel {
     public private(set) var isNotificationOnboardingDismissed: Bool
     public private(set) var minimumInterest: NotificationInterestLevel = .high
     public private(set) var isNotificationSynchronizationPending = false
+    public private(set) var isConversationSharingEnabled: Bool
 
     private let notificationManager: any HourByHourNotificationManaging
     private let persistNotificationOnboardingDismissal: @MainActor (Bool) -> Void
+    private let conversationSharing: (any ConversationSharingPreferences)?
 
     public init(
         notificationManager: any HourByHourNotificationManaging,
         notificationOnboardingDismissed: Bool = false,
-        persistNotificationOnboardingDismissal: @escaping @MainActor (Bool) -> Void = { _ in }
+        persistNotificationOnboardingDismissal: @escaping @MainActor (Bool) -> Void = { _ in },
+        conversationSharing: (any ConversationSharingPreferences)? = nil
     ) {
         self.notificationManager = notificationManager
         isNotificationOnboardingDismissed = notificationOnboardingDismissed
         self.persistNotificationOnboardingDismissal = persistNotificationOnboardingDismissal
+        self.conversationSharing = conversationSharing
+        isConversationSharingEnabled = conversationSharing?.isEnabled ?? false
     }
 
     public var showsNotificationOnboarding: Bool {
@@ -91,6 +96,20 @@ public final class SettingsModel {
 
     public func openSystemSettings() async {
         await notificationManager.openSystemSettings()
+    }
+
+    public var showsConversationSharing: Bool {
+        conversationSharing != nil
+    }
+
+    public func setConversationSharingEnabled(_ enabled: Bool) {
+        conversationSharing?.setEnabled(enabled)
+        refreshConversationSharing()
+    }
+
+    /// The calculator's notice can also change the choice while Settings stays in memory.
+    public func refreshConversationSharing() {
+        isConversationSharingEnabled = conversationSharing?.isEnabled ?? false
     }
 
     public func handleNotificationOnboarding(

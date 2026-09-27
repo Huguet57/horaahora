@@ -41,7 +41,10 @@ public struct SettingsRootView: View {
             .settingsListStyle()
             .navigationTitle("Ajustos")
             .settingsLargeNavigationTitle()
-            .task { await model.refreshNotificationStatus() }
+            .task {
+                model.refreshConversationSharing()
+                await model.refreshNotificationStatus()
+            }
         }
     }
 
@@ -95,11 +98,24 @@ public struct SettingsRootView: View {
     }
 
     private var privacySection: some View {
-        Section("Privacitat i dades") {
+        Section {
+            if model.showsConversationSharing {
+                Toggle(isOn: conversationSharingBinding) {
+                    Label("Millora la calculadora", systemImage: "text.bubble")
+                }
+            }
             Button { onOpenURL(configuration.privacyURL) } label: {
                 SettingsLinkLabel(title: "Política de privacitat", systemImage: "hand.raised")
             }
             .buttonStyle(.plain)
+        } header: {
+            Text("Privacitat i dades")
+        } footer: {
+            if model.showsConversationSharing {
+                Text(
+                    "Desa durant 90 dies les converses noves de la calculadora, sense cap identificador del dispositiu, per detectar errors i millorar les respostes."
+                )
+            }
         }
     }
 
@@ -158,6 +174,13 @@ public struct SettingsRootView: View {
                 Label("Fonts i crèdits", systemImage: "text.book.closed")
             }
         }
+    }
+
+    private var conversationSharingBinding: Binding<Bool> {
+        Binding(
+            get: { model.isConversationSharingEnabled },
+            set: { model.setConversationSharingEnabled($0) }
+        )
     }
 
     private var notificationsEnabledBinding: Binding<Bool> {
