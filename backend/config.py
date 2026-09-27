@@ -3,6 +3,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+# The internal development app (CASTELLS_BUILD_PROFILE=internal) adds this suffix to the
+# public app's bundle ID and package name, so APNs knows it as a different topic.
+INTERNAL_APP_SUFFIX = ".internal"
+
 
 @dataclass(frozen=True, slots=True)
 class Settings:
@@ -97,9 +101,19 @@ class Settings:
     def apns_environment(self) -> str:
         return "production" if self.vercel_env == "production" else "development"
 
-    def push_topic(self, platform: str) -> str:
-        """The app a subscription belongs to: the iOS bundle or the Android package."""
-        return self.android_package_name if platform == "android" else self.apns_bundle_id
+    def push_topic(self, platform: str, app_id: str | None = None) -> str | None:
+        """The app a subscription belongs to: the iOS bundle or the Android package.
+
+        Requests without `app_id` come from the public app, as every version before the
+        internal app did. The internal development app is a separate app, with the public
+        identifier plus INTERNAL_APP_SUFFIX. Any other app gets None.
+        """
+        public = self.android_package_name if platform == "android" else self.apns_bundle_id
+        if app_id is None or app_id == public:
+            return public
+        if app_id == public + INTERNAL_APP_SUFFIX:
+            return app_id
+        return None
 
 
 def _bool_env(name: str, default: bool) -> bool:

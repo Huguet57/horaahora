@@ -183,3 +183,110 @@ def test_each_platform_validates_its_own_token_format():
     assert ios_default.status_code == 204
     assert repository.registrations[-1][0].platform is PushPlatform.IOS
     assert repository.registrations[-1][0].device_token == "ab" * 32
+
+
+def app_test_client(repository: RecordingPushRepository):
+    return make_test_client(
+        settings=Settings(
+            database_url="sqlite://",
+            hour_by_hour_source_enabled=False,
+            apns_bundle_id="com.example.ios",
+            android_package_name="com.example.android",
+        ),
+        push_repository=repository,
+    )
+
+
+FIREBASE_TOKEN = "fGh1_Jk-2:APA91bExampleFirebaseRegistrationToken_0123456789abcdef"
+
+
+def test_the_internal_app_subscribes_under_its_own_bundle_and_package() -> None:
+    # The internal development app is a separate app: APNs only delivers its tokens with its
+    # own bundle ID as the topic.
+    repository = RecordingPushRepository()
+    client = app_test_client(repository)
+
+    responses = [
+        client.put(
+            "/v1/push-subscriptions/install-1",
+            json={"device_token": "ab" * 32, "app_id": "com.example.ios.internal"},
+        ),
+        client.put(
+            "/v1/push-subscriptions/install-2",
+            json={
+                "device_token": FIREBASE_TOKEN,
+                "platform": "android",
+                "app_id": "com.example.android.internal",
+            },
+        ),
+        client.delete("/v1/push-subscriptions/install-1?app_id=com.example.ios.internal"),
+        client.delete(
+            "/v1/push-subscriptions/install-2?platform=android&app_id=com.example.android.internal"
+        ),
+    ]
+
+    assert [response.status_code for response in responses] == [204] * 4
+    assert [topic for *_, topic in repository.registrations] == [
+        "com.example.ios.internal",
+        "com.example.android.internal",
+    ]
+    assert [topic for *_, topic in repository.unregistrations] == [
+        "com.example.ios.internal",
+        "com.example.android.internal",
+    ]
+
+
+def test_requests_without_an_app_are_the_public_app_as_before() -> None:
+    # Earlier versions send no app_id, and the public app retires their subscriptions with it.
+    repository = RecordingPushRepository()
+    client = app_test_client(repository)
+
+    responses = [
+        client.put("/v1/push-subscriptions/install-1", json={"device_token": "ab" * 32}),
+        client.put(
+            "/v1/push-subscriptions/install-1",
+            json={"device_token": "ab" * 32, "app_id": "com.example.ios"},
+        ),
+        client.delete("/v1/push-subscriptions/install-1"),
+        client.delete("/v1/push-subscriptions/install-1?app_id=com.example.ios"),
+        client.delete("/v1/push-subscriptions/install-2?platform=android"),
+    ]
+
+    assert [response.status_code for response in responses] == [204] * 5
+    assert [topic for *_, topic in repository.registrations] == ["com.example.ios"] * 2
+    assert [topic for *_, topic in repository.unregistrations] == [
+        "com.example.ios",
+        "com.example.ios",
+        "com.example.android",
+    ]
+
+
+def test_only_the_public_and_the_internal_app_can_subscribe() -> None:
+    repository = RecordingPushRepository()
+    client = app_test_client(repository)
+
+    responses = [
+        client.put(
+            "/v1/push-subscriptions/install-1",
+            json={"device_token": "ab" * 32, "app_id": "com.example.other"},
+        ),
+        # An iOS token cannot belong to the Android package.
+        client.put(
+            "/v1/push-subscriptions/install-1",
+            json={"device_token": "ab" * 32, "app_id": "com.example.android.internal"},
+        ),
+        client.put(
+            "/v1/push-subscriptions/install-2",
+            json={
+                "device_token": FIREBASE_TOKEN,
+                "platform": "android",
+                "app_id": "com.example.ios.internal",
+            },
+        ),
+        client.delete("/v1/push-subscriptions/install-1?app_id=com.example.other"),
+        client.delete("/v1/push-subscriptions/install-1?app_id=com.example.ios.internal.beta"),
+    ]
+
+    assert [response.status_code for response in responses] == [422] * 5
+    assert repository.registrations == []
+    assert repository.unregistrations == []

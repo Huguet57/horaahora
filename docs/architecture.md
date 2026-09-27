@@ -17,7 +17,9 @@ La separació es fa en temps de compilació i per mòduls, no amb un booleà en 
 l'app pública no depèn dels mòduls interns ni en conté cap punt d'entrada (pestanyes, deep links,
 delegat de notificacions, permisos o entitlements). Les dues apps fan servir el mateix esquema
 de base de dades local, sencer, perquè l'app pública es pugui actualitzar des de les versions que
-tenien les seccions internes sense perdre les converses.
+tenien les seccions internes sense perdre les converses. El backend desa les subscripcions d'avisos
+amb l'identificador de l'app que les fa (`app_id`), perquè APNs lliura els tokens de l'app interna
+amb el seu propi Bundle ID.
 
 `tests/test_app_build_profiles.py` fa complir aquests límits llegint el projecte Xcode, el paquet
 Swift i el build de Gradle amb `scripts/app_profiles`, que també inspecciona les apps compilades a

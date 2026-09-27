@@ -22,6 +22,7 @@ def register_push_subscription(
 ) -> Response:
     if not 1 <= len(installation_id) <= 128:
         raise HTTPException(status_code=422, detail="Identificador d'instal·lació no vàlid")
+    topic = _topic(container, payload.platform, payload.app_id)
     container.push_repository.register(
         PushSubscriptionRegistration(
             installation_id=installation_id,
@@ -37,7 +38,7 @@ def register_push_subscription(
             platform=payload.platform,
         ),
         environment=payload.environment or container.settings.apns_environment,
-        topic=container.settings.push_topic(payload.platform),
+        topic=topic,
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -51,12 +52,20 @@ def unregister_push_subscription(
     container: Annotated[ApplicationContainer, Depends(get_container)],
     environment: Literal["development", "production"] | None = None,
     platform: PushPlatform = PushPlatform.IOS,
+    app_id: str | None = None,
 ) -> Response:
     if not 1 <= len(installation_id) <= 128:
         raise HTTPException(status_code=422, detail="Identificador d'instal·lació no vàlid")
     container.push_repository.unregister(
         installation_id,
         environment=environment or container.settings.apns_environment,
-        topic=container.settings.push_topic(platform),
+        topic=_topic(container, platform, app_id),
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def _topic(container: ApplicationContainer, platform: PushPlatform, app_id: str | None) -> str:
+    topic = container.settings.push_topic(platform, app_id)
+    if topic is None:
+        raise HTTPException(status_code=422, detail="Identificador d'aplicació no vàlid")
+    return topic

@@ -34,11 +34,16 @@ public protocol PushSubscriptionRemoteService: Sendable {
     func unregister(installationID: String, environment: String) async throws
 }
 
+/// Registers and removes the subscription of this app. `appID` is its bundle identifier: the
+/// internal app is a separate app, and the backend keeps its subscriptions apart from the public
+/// app's, because APNs only delivers each token with its own app as the topic.
 public struct HTTPPushSubscriptionRemoteService: PushSubscriptionRemoteService {
     private let client: APIClient
+    private let appID: String
 
-    public init(client: APIClient) {
+    public init(client: APIClient, appID: String) {
         self.client = client
+        self.appID = appID
     }
 
     public func register(request: PushSubscriptionRequest) async throws {
@@ -50,7 +55,8 @@ public struct HTTPPushSubscriptionRemoteService: PushSubscriptionRemoteService {
                 locale: request.locale,
                 environment: request.environment,
                 minimumInterest: request.minimumInterest,
-                groupSelection: request.groupSelection
+                groupSelection: request.groupSelection,
+                appID: appID
             )
         )
     }
@@ -58,7 +64,10 @@ public struct HTTPPushSubscriptionRemoteService: PushSubscriptionRemoteService {
     public func unregister(installationID: String, environment: String) async throws {
         try await client.delete(
             path: "/v1/push-subscriptions/\(installationID)",
-            queryItems: [URLQueryItem(name: "environment", value: environment)]
+            queryItems: [
+                URLQueryItem(name: "environment", value: environment),
+                URLQueryItem(name: "app_id", value: appID),
+            ]
         )
     }
 }
@@ -70,4 +79,5 @@ private struct PushSubscriptionBody: Encodable, Sendable {
     let environment: String
     let minimumInterest: NotificationInterestLevel
     let groupSelection: NotificationGroupSelection
+    let appID: String
 }

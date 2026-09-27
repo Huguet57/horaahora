@@ -9,6 +9,9 @@ struct AppConfiguration {
     let appVersion: String
     let buildNumber: String
     let technicalIdentifier: String
+    /// `com.ahuguet.castellsenvena`, or `com.ahuguet.castellsenvena.internal` in the internal
+    /// app: the backend files push subscriptions under it.
+    let bundleIdentifier: String
     /// Where the internal app subscribes to news notifications, and where the public app
     /// unsubscribes the ones an earlier version turned on.
     let apnsEnvironment: String
@@ -54,6 +57,7 @@ struct AppConfiguration {
             technicalIdentifier: InstallationIdentifierStore(
                 userDefaults: userDefaults
             ).currentIdentifier(),
+            bundleIdentifier: bundle.bundleIdentifier ?? "com.ahuguet.castellsenvena",
             apnsEnvironment: apnsEnvironment,
             // No hi ha encara una URL oficial versionada i estable per a la taula del 2026.
             concursCastellsURL: nil

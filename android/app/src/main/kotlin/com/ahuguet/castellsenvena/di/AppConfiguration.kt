@@ -16,6 +16,11 @@ data class AppConfiguration(
     val appVersion: String,
     val buildNumber: String,
     val technicalIdentifier: String,
+    /**
+     * `com.ahuguet.castellsenvena`, or `com.ahuguet.castellsenvena.internal` in the internal
+     * app: the backend files push subscriptions under it.
+     */
+    val applicationId: String,
 ) {
     val settingsConfiguration: SettingsConfiguration
         get() = SettingsConfiguration(

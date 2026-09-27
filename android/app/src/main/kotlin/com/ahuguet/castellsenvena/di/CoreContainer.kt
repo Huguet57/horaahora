@@ -40,6 +40,7 @@ class CoreContainer(context: Context) {
         appVersion = BuildConfig.VERSION_NAME,
         buildNumber = BuildConfig.VERSION_CODE.toString(),
         technicalIdentifier = InstallationIdentifierStore(keyValueStore).currentIdentifier(),
+        applicationId = BuildConfig.APPLICATION_ID,
     )
 
     val apiClient = ApiClient(baseUrl = configuration.apiBaseUrl)

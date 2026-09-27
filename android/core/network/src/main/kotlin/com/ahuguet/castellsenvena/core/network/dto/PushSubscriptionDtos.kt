@@ -12,6 +12,7 @@ internal data class PushSubscriptionBodyDto(
     @SerialName("minimum_interest") val minimumInterest: String,
     @SerialName("group_selection") val groupSelection: GroupSelectionDto,
     val platform: String,
+    @SerialName("app_id") val appId: String,
 )
 
 @Serializable

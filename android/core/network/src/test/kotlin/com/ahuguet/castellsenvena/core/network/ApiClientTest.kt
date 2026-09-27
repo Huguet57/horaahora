@@ -178,10 +178,11 @@ class ApiClientTest {
     }
 
     @Test
-    fun pushRegistrationSendsTheAndroidTokenAndPreferences() = runTest {
+    fun pushRegistrationSendsTheAppTheAndroidTokenAndPreferences() = runTest {
         server.enqueue(MockResponse(code = 204))
         server.enqueue(MockResponse(code = 204))
-        val service = HttpPushSubscriptionRemoteService(client)
+        // The internal app is a separate app, and the backend keeps its subscriptions apart.
+        val service = HttpPushSubscriptionRemoteService(client, appId = "com.ahuguet.castellsenvena.internal")
 
         service.register(
             PushSubscriptionRequest(
@@ -204,6 +205,7 @@ class ApiClientTest {
         assertEquals("fcm:token", body.getValue("device_token").jsonPrimitive.content)
         assertEquals("1.3 (7)", body.getValue("app_version").jsonPrimitive.content)
         assertEquals("android", body.getValue("platform").jsonPrimitive.content)
+        assertEquals("com.ahuguet.castellsenvena.internal", body.getValue("app_id").jsonPrimitive.content)
         assertEquals("medium", body.getValue("minimum_interest").jsonPrimitive.content)
         val selection = body.getValue("group_selection") as JsonObject
         assertEquals("custom", selection.getValue("mode").jsonPrimitive.content)
@@ -213,6 +215,7 @@ class ApiClientTest {
         assertEquals("DELETE", removal.method)
         assertEquals("production", removal.url.queryParameter("environment"))
         assertEquals("android", removal.url.queryParameter("platform"))
+        assertEquals("com.ahuguet.castellsenvena.internal", removal.url.queryParameter("app_id"))
     }
 
     private companion object {

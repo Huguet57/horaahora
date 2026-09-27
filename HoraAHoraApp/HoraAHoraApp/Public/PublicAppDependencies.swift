@@ -16,7 +16,10 @@ final class PublicAppDependencies {
         core = try CoreDependencies(configuration: configuration, userDefaults: userDefaults)
         legacyNewsNotifications = LegacyNewsNotificationsRetirement(
             userDefaults: userDefaults,
-            remoteService: HTTPPushSubscriptionRemoteService(client: core.apiClient),
+            remoteService: HTTPPushSubscriptionRemoteService(
+                client: core.apiClient,
+                appID: configuration.bundleIdentifier
+            ),
             installationID: configuration.technicalIdentifier,
             environment: configuration.apnsEnvironment,
             system: IOSLegacyNewsNotificationsSystem()

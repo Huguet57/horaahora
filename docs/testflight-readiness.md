@@ -55,4 +55,4 @@ Després de rebasar sobre l'`origin/main` que inclou la PR #8, la versió 1.0 (b
 - El correu de suport mostra versió, build i identificador tècnic abans d'enviar-se, i no exporta converses.
 - S'ha provat almenys en un iPhone físic, un iPad o simulador i amb connectivitat intermitent.
 - Una instal·lació TestFlight que tenia els avisos de notícies activats deixa de rebre'n després d'actualitzar-se i d'obrir l'app, i la subscripció queda invalidada a Supabase.
-- Les proves d'Hora a Hora, Agenda i els avisos es fan amb l'app interna, que no passa per TestFlight: carreguen dades reals, obren enllaços i mapes, i un avís arriba amb l'app tancada si el backend l'envia al Bundle ID intern.
+- Les proves d'Hora a Hora, Agenda i els avisos es fan amb l'app interna, que no passa per TestFlight: carreguen dades reals, obren enllaços i mapes, i un avís arriba amb l'app tancada (el backend el lliura amb el Bundle ID intern com a tema d'APNs).

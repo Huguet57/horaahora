@@ -35,7 +35,10 @@ final class InternalAppDependencies {
         let notificationPreferenceStore = NotificationPreferenceStore(userDefaults: userDefaults)
         let hiddenSections = HiddenSectionsStore(userDefaults: userDefaults)
         let pushSubscriptionCoordinator = PushSubscriptionCoordinator(
-            remoteService: HTTPPushSubscriptionRemoteService(client: client),
+            remoteService: HTTPPushSubscriptionRemoteService(
+                client: client,
+                appID: configuration.bundleIdentifier
+            ),
             installationID: configuration.technicalIdentifier,
             appVersion: "\(configuration.appVersion) (\(configuration.buildNumber))",
             locale: Locale.current.identifier,

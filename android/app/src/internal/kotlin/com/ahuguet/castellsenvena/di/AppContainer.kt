@@ -47,7 +47,10 @@ class AppContainer(context: Context) {
     private val agendaFilterStore = KeyValueAgendaFilterStore(keyValueStore)
 
     val pushSubscriptionCoordinator = PushSubscriptionCoordinator(
-        remoteService = HttpPushSubscriptionRemoteService(core.apiClient),
+        remoteService = HttpPushSubscriptionRemoteService(
+            client = core.apiClient,
+            appId = configuration.applicationId,
+        ),
         installationId = configuration.technicalIdentifier,
         appVersion = "${configuration.appVersion} (${configuration.buildNumber})",
         locale = Locale.getDefault().toLanguageTag(),

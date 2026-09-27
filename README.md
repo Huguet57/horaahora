@@ -300,6 +300,9 @@ Passos de preparació de producció:
    `FCM_SERVICE_ACCOUNT_JSON` (la clau JSON d'un compte de servei del projecte Firebase amb
    permís per enviar missatges) i, si cal, `ANDROID_PACKAGE_NAME`. Sense aquesta clau, les
    entregues d'Android es marquen `PushServiceNotConfigured` i iOS continua funcionant.
+   `APNS_BUNDLE_ID` i `ANDROID_PACKAGE_NAME` són els de l'app pública. L'app interna s'hi
+   subscriu amb el mateix identificador i el sufix `.internal`, i fa servir la mateixa clau
+   d'APNs, que és de l'equip, i el mateix projecte Firebase.
    Mantén `PUSH_DELIVERY_ENABLED=false` al primer desplegament i sempre a Preview.
 4. Executa les migracions abans de desplegar codi que depengui del nou esquema:
 
@@ -390,7 +393,11 @@ de `AI_API_KEY`. El contracte `PUT /v1/push-subscriptions/{installation_id}` acc
 Les peticions antigues preserven els valors existents, amb Low i totes com a defaults.
 El camp `platform` indica el servei del token: `ios` (APNs, per defecte i hexadecimal) o
 `android` (Firebase Cloud Messaging, que conserva majúscules i minúscules). El `DELETE`
-rep la mateixa plataforma com a paràmetre `platform`.
+rep la mateixa plataforma com a paràmetre `platform`. El camp `app_id` (al `DELETE`, el
+paràmetre `app_id`) diu de quina app és la subscripció: el Bundle ID o el paquet de l'app pública,
+o els de l'app interna, amb el sufix `.internal`. El backend desa cada subscripció amb aquest
+identificador i l'envia a APNs com a `apns-topic`, perquè APNs només lliura un token amb la seva
+pròpia app. Les versions que no l'envien són l'app pública, i qualsevol altre valor retorna 422.
 
 A l'app interna d'iOS, Ajustos → «Quines notícies?» obre una pantalla amb tres opcions: **Totes**
 (`low`), **Rellevants** (`medium`) i **Destacades** (`high`). Es poden triar abans

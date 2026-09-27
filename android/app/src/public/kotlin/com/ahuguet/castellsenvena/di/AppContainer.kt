@@ -20,7 +20,10 @@ class AppContainer(context: Context) {
 
     private val legacyNewsNotifications = LegacyNewsNotificationsRetirement(
         store = core.keyValueStore,
-        remoteService = HttpPushSubscriptionRemoteService(core.apiClient),
+        remoteService = HttpPushSubscriptionRemoteService(
+            client = core.apiClient,
+            appId = core.configuration.applicationId,
+        ),
         installationId = core.configuration.technicalIdentifier,
         environment = core.configuration.pushEnvironment,
         platform = AppConfiguration.PUSH_PLATFORM,
