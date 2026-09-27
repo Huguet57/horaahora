@@ -13,8 +13,8 @@ from scripts.app_profiles.profiles import (
     INTERNAL_SWIFT_MODULES,
     IOS_PROJECT,
     IOS_ROOT,
+    LINKED_SHARED_SWIFT_MODULES,
     PUBLIC,
-    SHARED_SWIFT_MODULES,
     Profile,
 )
 
@@ -31,7 +31,7 @@ def verify_ios_app(app: Path, profile: Profile) -> list[str]:
         problems.append(f"{app.name}: declares the remote-notification background mode")
 
     executable = (app / info.get("CFBundleExecutable", app.stem)).read_bytes()
-    for module in sorted(SHARED_SWIFT_MODULES - {"CastellsDomain"}):
+    for module in sorted(LINKED_SHARED_SWIFT_MODULES):
         if module.encode() not in executable:
             problems.append(f"{app.name}: does not link {module}")
     for module in sorted(INTERNAL_SWIFT_MODULES):
@@ -92,7 +92,7 @@ def ios_facts(profile: Profile) -> list[str]:
         f"bundle identifier {profile.ios_bundle_identifier}, named «{profile.display_name}»",
         f"the executable {'links' if profile is INTERNAL else 'does not link'} "
         + ", ".join(sorted(INTERNAL_SWIFT_MODULES)),
-        "the executable links " + ", ".join(sorted(SHARED_SWIFT_MODULES - {"CastellsDomain"})),
+        "the executable links " + ", ".join(sorted(LINKED_SHARED_SWIFT_MODULES)),
         "entitlements for push notifications"
         + (" (aps-environment)" if profile is INTERNAL else ": none"),
     ]

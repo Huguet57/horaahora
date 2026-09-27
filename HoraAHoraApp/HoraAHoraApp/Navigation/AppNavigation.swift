@@ -16,6 +16,16 @@ struct InAppBrowser: UIViewControllerRepresentable {
     func updateUIViewController(_ viewController: SFSafariViewController, context: Context) {}
 }
 
+extension View {
+    /// Opens the link, while there is one, in an in-app browser over the whole screen.
+    func inAppBrowser(for link: Binding<PresentedLink?>) -> some View {
+        sheet(item: link) { link in
+            InAppBrowser(url: link.url)
+                .ignoresSafeArea()
+        }
+    }
+}
+
 /// The tabs both apps share, with the same titles and icons.
 extension View {
     func calculatorTabItem() -> some View {

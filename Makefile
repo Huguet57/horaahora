@@ -14,7 +14,9 @@ else
 $(error CASTELLS_BUILD_PROFILE must be public or internal, not "$(CASTELLS_BUILD_PROFILE)")
 endif
 
-IOS_DERIVED_DATA := build/ios/$(CASTELLS_BUILD_PROFILE)
+# Both schemes share it: their apps have different names, and the second build reuses the
+# modules the first compiled.
+IOS_DERIVED_DATA := build/ios
 IOS_APP := $(IOS_DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/$(IOS_SCHEME).app
 GRADLE := cd android && ./gradlew $(GRADLE_FLAGS) -Pcastells.buildProfile=$(CASTELLS_BUILD_PROFILE)
 

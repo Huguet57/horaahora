@@ -55,19 +55,20 @@ jobs:
             echo "No GOOGLE_SERVICES_JSON secret: the internal app is built without news notifications."
           fi
 
+      # The steps share one Gradle daemon, which setup-gradle stops at the end of the job.
       - name: Unit tests
-        run: ./gradlew --no-daemon test
+        run: ./gradlew test
 
       # Each profile is built, linted and inspected: the public APKs must not contain the
       # internal sections, Firebase or the notification permission, and the internal ones
       # must keep them under their own application id.
       - name: Build, lint and inspect the public app
         working-directory: .
-        run: make android-build android-lint android-verify CASTELLS_BUILD_PROFILE=public GRADLE_FLAGS=--no-daemon
+        run: make android-build android-lint android-verify CASTELLS_BUILD_PROFILE=public
 
       - name: Build, lint and inspect the internal app
         working-directory: .
-        run: make android-build android-lint android-verify CASTELLS_BUILD_PROFILE=internal GRADLE_FLAGS=--no-daemon
+        run: make android-build android-lint android-verify CASTELLS_BUILD_PROFILE=internal
 
       - name: Upload the debug APKs
         uses: actions/upload-artifact@v4

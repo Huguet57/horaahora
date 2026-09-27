@@ -14,7 +14,7 @@ default.
   profile (see the Makefile):
 
       python3 -m scripts.app_profiles android public
-      python3 -m scripts.app_profiles ios public --app build/ios/public/.../HoraAHoraApp.app
+      python3 -m scripts.app_profiles ios public --app build/ios/.../HoraAHoraApp.app
 
 Only the standard library is used, so the inspection also runs on the macOS CI runners.
 """

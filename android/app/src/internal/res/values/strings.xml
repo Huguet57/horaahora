@@ -2,7 +2,6 @@
 <resources>
     <!-- A name of its own, so nobody takes the internal app for the public one. -->
     <string name="app_name">Aleta interna</string>
-    <string name="hour_by_hour_channel_id" translatable="false">hour_by_hour</string>
     <string name="hour_by_hour_channel_name">Avisos de notícies</string>
     <string name="hour_by_hour_channel_description">Les notícies castelleres que has triat rebre</string>
 </resources>

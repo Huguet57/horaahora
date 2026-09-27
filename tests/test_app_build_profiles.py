@@ -20,8 +20,10 @@ from scripts.app_profiles.gradle_build import (
     android_variant_libraries,
     android_variant_projects,
     gradle_project_dependencies,
+    gradle_project_dir,
     gradle_projects,
     kotlin_imports,
+    kotlin_package,
 )
 from scripts.app_profiles.profiles import (
     ANDROID_ROOT,
@@ -40,7 +42,6 @@ from scripts.app_profiles.xcode_project import xcode_scheme, xcode_targets
 
 SWIFT_SOURCES = IOS_ROOT / "Packages" / "CastellsKit" / "Sources"
 APP = ANDROID_ROOT / "app"
-PRODUCTION_API = "https://castells-superapp-poc.vercel.app"
 
 # What the public app must never call or build: the ways back to the internal sections and
 # to news notifications (permission, registration, presentation and the secret gesture).
@@ -71,6 +72,10 @@ ANDROID_INTERNAL_ENTRY_POINTS = (
 def matches(source: Path, patterns: tuple[str, ...]) -> list[str]:
     text = source.read_text()
     return [pattern for pattern in patterns if re.search(pattern, text)]
+
+
+def shared_gradle_projects() -> set[str]:
+    return set(gradle_projects() - INTERNAL_GRADLE_PROJECTS - {":app"})
 
 
 def kotlin_sources(*folders: Path) -> list[Path]:
@@ -159,15 +164,15 @@ def test_ios_only_the_internal_app_can_receive_push_notifications() -> None:
 
 
 def test_ios_internal_app_uses_the_same_backends_as_the_public_one() -> None:
+    # tests/test_app_backend_targets.py pins the public app's backends.
     targets = xcode_targets()
+    public, internal = targets[PUBLIC.ios_scheme], targets[INTERNAL.ios_scheme]
 
-    for target in (targets[PUBLIC.ios_scheme], targets[INTERNAL.ios_scheme]):
-        assert target.configurations["Release"]["CASTELLS_API_BASE_URL"] == PRODUCTION_API
-        assert "CASTELLS_API_BASE_URL" not in target.configurations["Debug"]
-        assert target.base_configurations == {
-            "Debug": "HoraAHoraApp/Configuration/Debug.xcconfig",
-            "Release": None,
-        }
+    for configuration in ("Debug", "Release"):
+        assert internal.configurations[configuration].get("CASTELLS_API_BASE_URL") == (
+            public.configurations[configuration].get("CASTELLS_API_BASE_URL")
+        )
+    assert internal.base_configurations == public.base_configurations
 
 
 def test_ios_schemes_build_and_archive_one_profile_each() -> None:
@@ -194,9 +199,27 @@ def test_android_internal_app_adds_the_internal_modules() -> None:
 
 
 def test_android_shared_modules_do_not_depend_on_internal_ones() -> None:
-    for project in gradle_projects() - INTERNAL_GRADLE_PROJECTS - {":app"}:
+    for project in shared_gradle_projects():
         for dependencies in gradle_project_dependencies(project).values():
             assert dependencies.isdisjoint(INTERNAL_GRADLE_PROJECTS), project
+
+
+def test_android_dependencies_are_found_however_they_are_written(tmp_path: Path) -> None:
+    convention = tmp_path / "build-logic" / "convention"
+    convention.mkdir(parents=True)
+    (convention / "build.gradle.kts").write_text("")
+    module = gradle_project_dir(":feature:settings:presentation", tmp_path)
+    module.mkdir(parents=True)
+    (module / "build.gradle.kts").write_text(
+        "dependencies {\n"
+        "    implementation(projects.core.domain)\n"
+        '    implementation(project(":core:internaldata"))\n'
+        "}\n"
+    )
+
+    assert gradle_project_dependencies(":feature:settings:presentation", tmp_path) == {
+        "implementation": {":core:domain", ":core:internaldata"}
+    }
 
 
 def test_android_firebase_is_only_in_the_internal_app() -> None:
@@ -211,16 +234,14 @@ def test_android_firebase_is_only_in_the_internal_app() -> None:
 
 def test_android_shared_modules_have_no_internal_entry_points() -> None:
     # The domain keeps the models of the internal sections, which the local database stores.
-    for project in gradle_projects() - INTERNAL_GRADLE_PROJECTS - {":app", ":core:domain"}:
-        main = ANDROID_ROOT.joinpath(*project.strip(":").split(":"), "src", "main")
-        for source in kotlin_sources(main):
+    for project in shared_gradle_projects() - {":core:domain"}:
+        for source in kotlin_sources(gradle_project_dir(project) / "src" / "main"):
             assert matches(source, ANDROID_INTERNAL_ENTRY_POINTS) == [], source
 
 
 def test_android_public_app_sources_have_no_internal_code() -> None:
     shared_modules = [
-        ANDROID_ROOT.joinpath(*project.strip(":").split(":"), "src", "main")
-        for project in gradle_projects() - INTERNAL_GRADLE_PROJECTS - {":app"}
+        gradle_project_dir(project) / "src" / "main" for project in shared_gradle_projects()
     ]
     public_app = kotlin_sources(APP / "src" / "main", APP / "src" / "public")
 
@@ -229,8 +250,8 @@ def test_android_public_app_sources_have_no_internal_code() -> None:
         imports = kotlin_imports(source)
         assert not [name for name in imports if in_packages(name, INTERNAL_KOTLIN_PACKAGES)], source
     for source in public_app:
-        package = re.search(r"^package ([\w.]+)", source.read_text(), re.M)
-        assert package is not None and not in_packages(package[1], INTERNAL_KOTLIN_PACKAGES)
+        package = kotlin_package(source)
+        assert package is not None and not in_packages(package, INTERNAL_KOTLIN_PACKAGES)
         assert matches(source, ANDROID_INTERNAL_ENTRY_POINTS) == [], source
 
 

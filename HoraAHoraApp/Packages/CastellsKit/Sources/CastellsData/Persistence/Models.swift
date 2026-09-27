@@ -49,8 +49,7 @@ final class MessageRecord {
     }
 }
 
-/// The local copy of Hora a Hora. Only the internal app reads and writes it, through
-/// CastellsInternalData, but the table stays in both apps so that the schema never changes.
+/// The local copy of Hora a Hora, which only the internal app reads and writes.
 @Model
 public final class HourByHourCacheRecord {
     @Attribute(.unique) public var id: String
@@ -96,8 +95,7 @@ public final class HourByHourCacheRecord {
     }
 }
 
-/// The local copy of the Agenda. Only the internal app reads and writes it, through
-/// CastellsInternalData, but the table stays in both apps so that the schema never changes.
+/// The local copy of the Agenda, which only the internal app reads and writes.
 @Model
 public final class AgendaCacheRecord {
     @Attribute(.unique) public var id: String

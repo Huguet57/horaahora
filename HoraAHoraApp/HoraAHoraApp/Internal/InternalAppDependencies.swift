@@ -9,8 +9,7 @@ import FeatureInternalSettings
 /// app, plus Hora a Hora, Agenda, their settings and the news notifications.
 @MainActor
 final class InternalAppDependencies {
-    static let notificationOnboardingDismissedKey =
-        "castells.hour-by-hour.notification-onboarding-dismissed"
+    static let notificationOnboardingDismissedKey = NewsNotificationKeys.onboardingDismissed
     /// Where Hora a Hora and Agenda take their data from.
     static let sources = InternalSources(
         revistaCastellsURL: URL(string: "https://revistacastells.cat/castells-hora-a-hora/"),
@@ -36,10 +35,7 @@ final class InternalAppDependencies {
         let notificationPreferenceStore = NotificationPreferenceStore(userDefaults: userDefaults)
         let hiddenSections = HiddenSectionsStore(userDefaults: userDefaults)
         let pushSubscriptionCoordinator = PushSubscriptionCoordinator(
-            remoteService: HTTPPushSubscriptionRemoteService(
-                client: client,
-                appID: configuration.bundleIdentifier
-            ),
+            remoteService: core.pushSubscriptions,
             installationID: configuration.technicalIdentifier,
             appVersion: "\(configuration.appVersion) (\(configuration.buildNumber))",
             locale: Locale.current.identifier,

@@ -1,5 +1,6 @@
 package com.ahuguet.castellsenvena.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -29,11 +30,12 @@ interface NavigationSection {
 /**
  * [sections] behind a bottom navigation bar, which hides while [showsNavigationBar] is
  * false. The selected section keeps its scroll and navigation state while another one is
- * shown.
+ * shown, and back from another section returns to [homeSection] before leaving the app.
  */
 @Composable
 fun <S> SectionScaffold(
     sections: List<S>,
+    homeSection: S,
     selectedSection: S,
     onSelectSection: (S) -> Unit,
     showsNavigationBar: Boolean,
@@ -42,6 +44,8 @@ fun <S> SectionScaffold(
 ) where S : Enum<S>, S : NavigationSection {
     val sectionStates = rememberSaveableStateHolder()
     val reduceMotion = LocalReduceMotion.current
+
+    BackHandler(enabled = selectedSection != homeSection) { onSelectSection(homeSection) }
 
     Scaffold(
         modifier = modifier,

@@ -1,8 +1,9 @@
 """The Gradle projects of the Android app, and what the variants of each flavor depend on.
 
 The build files are Kotlin scripts. The expressions below read the declarations this build uses:
-`implementation(projects.core.data)`, `"internalImplementation"(libs.firebase.messaging)` and,
-in the convention plugins, `add("implementation", project(":core:designsystem"))`.
+`implementation(projects.core.data)` or `implementation(project(":core:data"))`,
+`"internalImplementation"(libs.firebase.messaging)` and, in the convention plugins,
+`add("implementation", project(":core:designsystem"))`.
 """
 
 from __future__ import annotations
@@ -14,7 +15,8 @@ from pathlib import Path
 from scripts.app_profiles.profiles import ANDROID_ROOT, PROFILES
 
 _PROJECT_DEPENDENCY = re.compile(
-    r'(?P<configuration>"?\w+"?)\(\s*projects\.(?P<accessor>[\w.]+)\s*\)'
+    r'(?P<configuration>"?\w+"?)\(\s*'
+    r'(?:projects\.(?P<accessor>[\w.]+)|project\(\s*"(?P<path>:[\w:]+)"\s*\))\s*\)'
 )
 _CATALOG_DEPENDENCY = re.compile(
     r'(?P<configuration>"?\w+"?)\(\s*(?:platform\(\s*)?libs\.(?P<alias>[\w.]+)'
@@ -34,8 +36,12 @@ def gradle_projects(root: Path = ANDROID_ROOT) -> frozenset[str]:
     return frozenset(projects)
 
 
+def gradle_project_dir(project: str, root: Path = ANDROID_ROOT) -> Path:
+    return root.joinpath(*project.strip(":").split(":"))
+
+
 def gradle_build_file(project: str, root: Path = ANDROID_ROOT) -> Path:
-    return root.joinpath(*project.strip(":").split(":"), "build.gradle.kts")
+    return gradle_project_dir(project, root) / "build.gradle.kts"
 
 
 def gradle_project_dependencies(project: str, root: Path = ANDROID_ROOT) -> dict[str, set[str]]:
@@ -43,7 +49,7 @@ def gradle_project_dependencies(project: str, root: Path = ANDROID_ROOT) -> dict
     text = gradle_build_file(project, root).read_text()
     dependencies: dict[str, set[str]] = defaultdict(set)
     for match in _PROJECT_DEPENDENCY.finditer(text):
-        path = ":" + match["accessor"].replace(".", ":")
+        path = match["path"] or ":" + match["accessor"].replace(".", ":")
         dependencies[match["configuration"].strip('"')].add(path)
     conventions = _convention_dependencies(root)
     for plugin in re.findall(r'id\("([\w.]+)"\)', text):
@@ -123,3 +129,8 @@ def android_variant_libraries(flavor: str, root: Path = ANDROID_ROOT) -> frozens
 
 def kotlin_imports(source: Path) -> frozenset[str]:
     return frozenset(re.findall(r"^import\s+([\w.]+)", source.read_text(), re.M))
+
+
+def kotlin_package(source: Path) -> str | None:
+    match = re.search(r"^package\s+([\w.]+)", source.read_text(), re.M)
+    return match[1] if match else None

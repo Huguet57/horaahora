@@ -23,7 +23,8 @@ import okhttp3.Response
 
 /**
  * The HTTP client of the Castells backend. The remote services build on it: those both apps
- * use are in this module, and those of the internal app's sections in :core:internaldata.
+ * use are in this module, and those of the internal app's sections, which only read, in
+ * :core:internaldata.
  */
 class ApiClient(
     baseUrl: String,
@@ -41,7 +42,7 @@ class ApiClient(
         return decode(execute(request), deserializer)
     }
 
-    suspend fun <B, T> post(
+    internal suspend fun <B, T> post(
         path: String,
         body: B,
         serializer: SerializationStrategy<B>,
@@ -54,7 +55,7 @@ class ApiClient(
         return decode(execute(request), deserializer)
     }
 
-    suspend fun <B> put(path: String, body: B, serializer: SerializationStrategy<B>) {
+    internal suspend fun <B> put(path: String, body: B, serializer: SerializationStrategy<B>) {
         val request = Request.Builder()
             .url(url(path))
             .put(json.encodeToString(serializer, body).toRequestBody(JSON_MEDIA_TYPE))
@@ -62,7 +63,7 @@ class ApiClient(
         execute(request)
     }
 
-    suspend fun delete(path: String, query: List<Pair<String, String>> = emptyList()) {
+    internal suspend fun delete(path: String, query: List<Pair<String, String>> = emptyList()) {
         val request = Request.Builder().url(url(path, query)).delete().build()
         execute(request)
     }

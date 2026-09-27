@@ -11,6 +11,7 @@ from scripts.app_profiles.profiles import (
     INTERNAL_KOTLIN_PACKAGES,
     INTERNAL_MANIFEST_ENTRIES,
     PUBLIC,
+    PUBLIC_FORBIDDEN_MANIFEST_ENTRIES,
     SHARED_KOTLIN_PACKAGES,
     Profile,
     in_packages,
@@ -36,21 +37,20 @@ def verify_android_apk(apk: Path, profile: Profile, *, minified: bool) -> list[s
             for name in archive.namelist()
             if re.fullmatch(r"classes\d*\.dex", name)
         )
-    other = INTERNAL if profile is PUBLIC else PUBLIC
     if not _contains(manifest, profile.android_application_id):
         problems.append(f"{apk.name}: the manifest is not {profile.android_application_id}")
     if profile is PUBLIC:
-        if _contains(manifest, other.android_application_id):
-            problems.append(f"{apk.name}: the manifest names {other.android_application_id}")
+        if _contains(manifest, INTERNAL.android_application_id):
+            problems.append(f"{apk.name}: the manifest names {INTERNAL.android_application_id}")
         problems.extend(
             f"{apk.name}: the manifest declares {entry}"
-            for entry in INTERNAL_MANIFEST_ENTRIES
+            for entry in PUBLIC_FORBIDDEN_MANIFEST_ENTRIES
             if _contains(manifest, entry)
         )
     else:
         problems.extend(
             f"{apk.name}: the manifest does not declare {entry}"
-            for entry in INTERNAL_MANIFEST_ENTRIES[:2]
+            for entry in INTERNAL_MANIFEST_ENTRIES
             if not _contains(manifest, entry)
         )
     if minified:
@@ -69,18 +69,19 @@ def verify_android_apk(apk: Path, profile: Profile, *, minified: bool) -> list[s
 
 
 def verify_android_mapping(mapping: Path, profile: Profile) -> list[str]:
-    """Problems with the R8 mapping of a release APK: the classes it kept, by original name."""
+    """Problems with the R8 mapping of a public release APK: internal classes it kept."""
+    if profile is not PUBLIC:
+        return []
     kept = [
         line.split(" -> ", 1)[0]
         for line in mapping.read_text().splitlines()
         if line and not line.startswith((" ", "#")) and " -> " in line
     ]
-    problems = []
-    for package in INTERNAL_KOTLIN_PACKAGES:
-        present = any(in_packages(name, (package,)) for name in kept)
-        if profile is PUBLIC and present:
-            problems.append(f"{mapping.parent.name}: the release keeps classes of {package}")
-    return problems
+    return [
+        f"{mapping.parent.name}: the release keeps classes of {package}"
+        for package in INTERNAL_KOTLIN_PACKAGES
+        if any(in_packages(name, (package,)) for name in kept)
+    ]
 
 
 def verify_android_outputs(outputs: Path, profile: Profile) -> list[str]:
@@ -109,16 +110,20 @@ def verify_android_outputs(outputs: Path, profile: Profile) -> list[str]:
 
 def android_facts(profile: Profile) -> list[str]:
     """What a successful inspection of the Android app of the profile has established."""
-    kept = "keeps" if profile is INTERNAL else "has none of"
+    internal_classes = ", ".join(INTERNAL_KOTLIN_PACKAGES)
+    if profile is PUBLIC:
+        profile_facts = [
+            "the manifest does not declare " + ", ".join(PUBLIC_FORBIDDEN_MANIFEST_ENTRIES),
+            f"the debug APK has none of the classes of {internal_classes}",
+            "the release APK's R8 mapping keeps none of those classes",
+        ]
+    else:
+        profile_facts = [
+            "the manifest declares " + ", ".join(INTERNAL_MANIFEST_ENTRIES),
+            f"the debug APK keeps the classes of {internal_classes}",
+        ]
     return [
         f"application id {profile.android_application_id}",
-        f"the manifest {'declares' if profile is INTERNAL else 'does not declare'} "
-        + ", ".join(INTERNAL_MANIFEST_ENTRIES[: 2 if profile is INTERNAL else 3]),
-        f"the debug APK {kept} the classes of " + ", ".join(INTERNAL_KOTLIN_PACKAGES),
-        *(
-            ["the release APK's R8 mapping keeps none of those classes"]
-            if profile is PUBLIC
-            else []
-        ),
+        *profile_facts,
         "the calculator, the score table and the settings are in",
     ]

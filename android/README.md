@@ -1,13 +1,9 @@
 # La calculadora de l'Aleta per a Android
 
-App Android nativa en Kotlin i Jetpack Compose, amb les mateixes seccions que l'app iOS. Genera
-dues apps, com a iOS:
-
-- L'**app pública** (flavor `public`, `com.ahuguet.castellsenvena`), la de Google Play:
-  **Calculadora**, **Puntuacions** i **Ajustos**.
-- L'**app interna** (flavor `internal`, `com.ahuguet.castellsenvena.internal`), «Aleta interna»: les
-  mateixes seccions, més **Hora a Hora** i **Agenda** com a seccions ocultes i els avisos de
-  notícies. S'instal·la al costat de la pública i no la pot substituir.
+App Android nativa en Kotlin i Jetpack Compose, amb les mateixes seccions que l'app iOS. Com a iOS,
+genera l'app pública (flavor `public`), la de Google Play, i l'app interna (flavor `internal`), que
+hi afegeix Hora a Hora, Agenda i els avisos de notícies; el
+[README principal](../README.md#app-pública-i-app-interna) explica què conté cadascuna.
 
 Parla amb el mateix backend i en respecta els contractes HTTP, les preferències d'avisos i el
 comportament fora de línia.

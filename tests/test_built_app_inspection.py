@@ -22,15 +22,12 @@ from scripts.app_profiles.profiles import (
     INTERNAL_KOTLIN_PACKAGES,
     PUBLIC,
     REPOSITORY_ROOT,
+    SHARED_KOTLIN_PACKAGES,
     SHARED_SWIFT_MODULES,
 )
 from scripts.app_profiles.xcode_project import xcode_targets
 
-PUBLIC_PACKAGES = [
-    "com.ahuguet.castellsenvena.feature.calculator.ui",
-    "com.ahuguet.castellsenvena.feature.scoretable.ui",
-    "com.ahuguet.castellsenvena.feature.settings.ui",
-]
+PUBLIC_PACKAGES = list(SHARED_KOTLIN_PACKAGES)
 
 
 def fake_apk(folder: Path, manifest: list[str], packages: list[str]) -> Path:
@@ -59,12 +56,13 @@ def fake_android_outputs(folder: Path, packages: list[str]) -> Path:
     return outputs
 
 
-def fake_ios_app(folder: Path, profile_bundle: str, name: str, modules: list[str]) -> Path:
+def fake_ios_app(folder: Path, modules: list[str]) -> Path:
+    """A public app whose executable names the given modules."""
     app = folder / "App.app"
     app.mkdir()
     info = {
-        "CFBundleIdentifier": profile_bundle,
-        "CFBundleDisplayName": name,
+        "CFBundleIdentifier": PUBLIC.ios_bundle_identifier,
+        "CFBundleDisplayName": PUBLIC.display_name,
         "CFBundleExecutable": "App",
     }
     (app / "Info.plist").write_bytes(plistlib.dumps(info, fmt=plistlib.FMT_BINARY))
@@ -188,16 +186,11 @@ def test_the_android_command_fails_on_internal_code_or_a_missing_apk(tmp_path: P
 
 def test_ios_app_inspection_rejects_internal_modules_in_the_public_app(tmp_path: Path) -> None:
     shared = sorted(SHARED_SWIFT_MODULES)
-    public = fake_ios_app(tmp_path, PUBLIC.ios_bundle_identifier, PUBLIC.display_name, shared)
+    public = fake_ios_app(tmp_path, shared)
     assert verify_ios_app(public, PUBLIC) == []
 
     (tmp_path / "leaking").mkdir()
-    leaking = fake_ios_app(
-        tmp_path / "leaking",
-        PUBLIC.ios_bundle_identifier,
-        PUBLIC.display_name,
-        [*shared, "FeatureHourByHour"],
-    )
+    leaking = fake_ios_app(tmp_path / "leaking", [*shared, "FeatureHourByHour"])
     assert verify_ios_app(leaking, PUBLIC) == ["App.app: links FeatureHourByHour"]
     assert "App.app: does not link FeatureAgenda" in verify_ios_app(public, INTERNAL)
 
@@ -225,7 +218,7 @@ def test_ios_build_settings_inspection_keeps_push_entitlements_internal() -> Non
 
 def test_the_ios_command_checks_the_app_and_the_settings_of_its_scheme(tmp_path: Path) -> None:
     modules = sorted(SHARED_SWIFT_MODULES)
-    app = fake_ios_app(tmp_path, PUBLIC.ios_bundle_identifier, PUBLIC.display_name, modules)
+    app = fake_ios_app(tmp_path, modules)
     tools = fake_xcodebuild(tmp_path, {"PRODUCT_BUNDLE_IDENTIFIER": PUBLIC.ios_bundle_identifier})
 
     result = run_inspection("ios", "public", "--app", str(app), tools=tools)
@@ -242,7 +235,7 @@ def test_the_ios_command_checks_the_app_and_the_settings_of_its_scheme(tmp_path:
 
 def test_the_ios_command_fails_when_the_public_app_can_receive_push(tmp_path: Path) -> None:
     modules = sorted(SHARED_SWIFT_MODULES)
-    app = fake_ios_app(tmp_path, PUBLIC.ios_bundle_identifier, PUBLIC.display_name, modules)
+    app = fake_ios_app(tmp_path, modules)
     settings = {
         "PRODUCT_BUNDLE_IDENTIFIER": PUBLIC.ios_bundle_identifier,
         "APS_ENVIRONMENT": "production",

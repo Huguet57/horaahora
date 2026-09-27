@@ -1,9 +1,10 @@
 import Foundation
+import CastellsData
 import CastellsDomain
 
 @MainActor
 public final class HiddenSectionsStore: HiddenSectionsPreferences {
-    private let key = "castells.hidden-sections.unlocked"
+    private let key = NewsNotificationKeys.sectionsUnlocked
     private let userDefaults: UserDefaults
 
     public init(userDefaults: UserDefaults = .standard) {

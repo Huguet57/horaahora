@@ -2,6 +2,7 @@ package com.ahuguet.castellsenvena.di
 
 import android.content.Context
 import android.os.SystemClock
+import com.ahuguet.castellsenvena.core.data.notifications.NewsNotificationKeys
 import com.ahuguet.castellsenvena.core.domain.agenda.AgendaGroupSelection
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationGroupSelection
 import com.ahuguet.castellsenvena.core.internaldata.agenda.CachedAgendaRepository
@@ -14,7 +15,6 @@ import com.ahuguet.castellsenvena.core.internaldata.network.HttpHourByHourRemote
 import com.ahuguet.castellsenvena.core.internaldata.notifications.NotificationPreferenceStore
 import com.ahuguet.castellsenvena.core.internaldata.notifications.PushSubscriptionCoordinator
 import com.ahuguet.castellsenvena.core.internaldata.settings.KeyValueHiddenSectionsStore
-import com.ahuguet.castellsenvena.core.network.service.HttpPushSubscriptionRemoteService
 import com.ahuguet.castellsenvena.feature.agenda.presentation.AgendaViewModel
 import com.ahuguet.castellsenvena.feature.hourbyhour.presentation.HourByHourViewModel
 import com.ahuguet.castellsenvena.feature.internalsettings.presentation.InternalSettingsModel
@@ -47,10 +47,7 @@ class AppContainer(context: Context) {
     private val agendaFilterStore = KeyValueAgendaFilterStore(keyValueStore)
 
     val pushSubscriptionCoordinator = PushSubscriptionCoordinator(
-        remoteService = HttpPushSubscriptionRemoteService(
-            client = core.apiClient,
-            appId = configuration.applicationId,
-        ),
+        remoteService = core.pushSubscriptions,
         installationId = configuration.technicalIdentifier,
         appVersion = "${configuration.appVersion} (${configuration.buildNumber})",
         locale = Locale.getDefault().toLanguageTag(),
@@ -79,9 +76,9 @@ class AppContainer(context: Context) {
 
     private val settingsModel = InternalSettingsModel(
         notificationManager = notificationManager,
-        notificationOnboardingDismissed = keyValueStore.getBoolean(NOTIFICATION_ONBOARDING_DISMISSED_KEY) ?: false,
+        notificationOnboardingDismissed = keyValueStore.getBoolean(NewsNotificationKeys.ONBOARDING_DISMISSED) ?: false,
         persistNotificationOnboardingDismissal = { dismissed ->
-            keyValueStore.putBoolean(NOTIFICATION_ONBOARDING_DISMISSED_KEY, dismissed)
+            keyValueStore.putBoolean(NewsNotificationKeys.ONBOARDING_DISMISSED, dismissed)
         },
         hiddenSections = KeyValueHiddenSectionsStore(keyValueStore),
         nowMillis = SystemClock::uptimeMillis,
@@ -116,8 +113,6 @@ class AppContainer(context: Context) {
     }
 
     private companion object {
-        const val NOTIFICATION_ONBOARDING_DISMISSED_KEY = "castells.hour-by-hour.notification-onboarding-dismissed"
-
         /** Where Hora a Hora and Agenda take their data from. */
         val SOURCES = InternalSources(
             revistaCastellsUrl = "https://revistacastells.cat/castells-hora-a-hora/",

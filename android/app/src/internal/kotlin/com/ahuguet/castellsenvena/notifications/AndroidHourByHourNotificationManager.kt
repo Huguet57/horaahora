@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import com.ahuguet.castellsenvena.core.data.notifications.NewsNotificationKeys
 import com.ahuguet.castellsenvena.core.data.storage.KeyValueStore
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationGroupSelection
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
@@ -52,22 +53,22 @@ class AndroidHourByHourNotificationManager(
 
         if (!HourByHourNotifications.hasPermission(context)) {
             val granted = permissionRequester.request() ?: return status()
-            store.putBoolean(PERMISSION_REQUESTED_KEY, true)
+            store.putBoolean(NewsNotificationKeys.PERMISSION_REQUESTED, true)
             if (!granted) {
                 // If the user allows notifications later in the system settings, that choice counts.
-                store.putBoolean(ENABLED_KEY, true)
+                store.putBoolean(NewsNotificationKeys.ENABLED, true)
                 return HourByHourNotificationStatus.DENIED
             }
         }
 
-        store.putBoolean(ENABLED_KEY, true)
+        store.putBoolean(NewsNotificationKeys.ENABLED, true)
         if (!HourByHourNotifications.areAllowed(context)) return HourByHourNotificationStatus.DENIED
         subscribe()
         return HourByHourNotificationStatus.ENABLED
     }
 
     override suspend fun disable(): HourByHourNotificationStatus {
-        store.putBoolean(ENABLED_KEY, false)
+        store.putBoolean(NewsNotificationKeys.ENABLED, false)
         pushSubscriptionCoordinator.setEnabled(false)
         tokenProvider.deleteToken()
         return if (HourByHourNotifications.areAllowed(context)) {
@@ -109,7 +110,7 @@ class AndroidHourByHourNotificationManager(
     }
 
     private fun status(): HourByHourNotificationStatus {
-        val choice = store.getBoolean(ENABLED_KEY)
+        val choice = store.getBoolean(NewsNotificationKeys.ENABLED)
         if (HourByHourNotifications.hasPermission(context) && HourByHourNotifications.areAllowed(context)) {
             return when (choice) {
                 null -> HourByHourNotificationStatus.NOT_DETERMINED
@@ -120,12 +121,7 @@ class AndroidHourByHourNotificationManager(
         // Android 13+ has not asked yet: turning the notifications on will.
         val canStillAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             !HourByHourNotifications.hasPermission(context) &&
-            store.getBoolean(PERMISSION_REQUESTED_KEY) != true
+            store.getBoolean(NewsNotificationKeys.PERMISSION_REQUESTED) != true
         return if (canStillAsk) HourByHourNotificationStatus.NOT_DETERMINED else HourByHourNotificationStatus.DENIED
-    }
-
-    private companion object {
-        const val ENABLED_KEY = "castells.hour-by-hour.notifications-enabled"
-        const val PERMISSION_REQUESTED_KEY = "castells.hour-by-hour.notification-permission-requested"
     }
 }

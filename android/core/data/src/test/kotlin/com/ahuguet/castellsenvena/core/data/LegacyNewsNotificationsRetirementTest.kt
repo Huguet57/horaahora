@@ -69,7 +69,6 @@ class LegacyNewsNotificationsRetirementTest {
 
     @Test
     fun everySettingThatAnEarlierVersionWroteCounts() = runTest {
-        // The internal app still writes them: :core:internaldata checks its stores against these.
         val earlierSettings: List<(KeyValueStore) -> Unit> = listOf(
             { it.putString("castells.hour-by-hour.minimum-interest.v1", "high") },
             { it.putBoolean("castells.hidden-sections.unlocked", false) },

@@ -1,11 +1,12 @@
 package com.ahuguet.castellsenvena.core.internaldata.notifications
 
+import com.ahuguet.castellsenvena.core.data.notifications.NewsNotificationKeys
 import com.ahuguet.castellsenvena.core.data.storage.KeyValueStore
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
 
 class NotificationPreferenceStore(
     private val store: KeyValueStore,
-    private val key: String = DEFAULT_KEY,
+    private val key: String = NewsNotificationKeys.MINIMUM_INTEREST,
 ) {
     val savedValue: NotificationInterestLevel?
         get() = store.getString(key)?.let(NotificationInterestLevel::fromWireValue)
@@ -20,9 +21,5 @@ class NotificationPreferenceStore(
 
     fun save(value: NotificationInterestLevel) {
         store.putString(key, value.wireValue)
-    }
-
-    companion object {
-        const val DEFAULT_KEY = "castells.hour-by-hour.minimum-interest.v1"
     }
 }

@@ -1,6 +1,5 @@
 package com.ahuguet.castellsenvena.navigation
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -98,13 +97,10 @@ fun CastellsApp(
     LaunchedEffect(settingsState.showsHiddenSections) {
         if (!settingsState.showsHiddenSections && selectedSection.isHidden) selectedSection = AppSection.SETTINGS
     }
-    // Back from another section returns to the calculator before leaving the app.
-    BackHandler(enabled = selectedSection != AppSection.CALCULATOR) {
-        selectedSection = AppSection.CALCULATOR
-    }
 
     SectionScaffold(
         sections = AppSection.entries.filter { settingsState.showsHiddenSections || !it.isHidden },
+        homeSection = AppSection.CALCULATOR,
         selectedSection = selectedSection,
         onSelectSection = { selectedSection = it },
         showsNavigationBar = !isChatVisible,

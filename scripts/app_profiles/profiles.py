@@ -42,6 +42,9 @@ PROFILES = {profile.name: profile for profile in (PUBLIC, INTERNAL)}
 SHARED_SWIFT_MODULES = frozenset(
     {"CastellsDomain", "CastellsData", "FeatureCalculator", "FeatureScoreTable", "FeatureSettings"}
 )
+# The shared modules whose names a built app's executable must contain. CastellsDomain holds
+# models and protocols, which the optimizer may inline completely, so it is not required.
+LINKED_SHARED_SWIFT_MODULES = SHARED_SWIFT_MODULES - {"CastellsDomain"}
 INTERNAL_SWIFT_MODULES = frozenset(
     {"CastellsInternalData", "FeatureHourByHour", "FeatureAgenda", "FeatureInternalSettings"}
 )
@@ -72,12 +75,13 @@ INTERNAL_KOTLIN_PACKAGES = (
     "com.ahuguet.castellsenvena.notifications",
     "com.google.firebase",
 )
-# What only the internal app's merged manifest declares.
+# What only the internal app's merged manifest declares: the news notifications.
 INTERNAL_MANIFEST_ENTRIES = (
     "android.permission.POST_NOTIFICATIONS",
     "com.ahuguet.castellsenvena.notifications.CastellsMessagingService",
-    "com.google.firebase",
 )
+# What the public app's merged manifest must not declare: those, and anything of Firebase.
+PUBLIC_FORBIDDEN_MANIFEST_ENTRIES = (*INTERNAL_MANIFEST_ENTRIES, "com.google.firebase")
 
 
 def in_packages(name: str, packages: Iterable[str]) -> bool:

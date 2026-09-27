@@ -25,7 +25,7 @@ struct PublicContentView: View {
 
                 SettingsRootView(
                     model: dependencies.core.settingsModel,
-                    configuration: dependencies.core.settingsConfiguration,
+                    configuration: dependencies.core.configuration.settingsConfiguration,
                     onOpenURL: { url in presentedLink = PresentedLink(url: url) },
                     onContactSupport: { url in openURL(url) },
                     onCopyIdentifier: { identifier in UIPasteboard.general.string = identifier }
@@ -39,9 +39,6 @@ struct PublicContentView: View {
             guard scenePhase == .active else { return }
             await dependencies.legacyNewsNotifications.retireIfNeeded()
         }
-        .sheet(item: $presentedLink) { link in
-            InAppBrowser(url: link.url)
-                .ignoresSafeArea()
-        }
+        .inAppBrowser(for: $presentedLink)
     }
 }

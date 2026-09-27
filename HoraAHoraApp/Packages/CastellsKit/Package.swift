@@ -23,8 +23,7 @@ let package = Package(
         .target(name: "CastellsDomain"),
         .target(name: "CastellsData", dependencies: ["CastellsDomain"]),
         // Only the internal app links it: the data of Hora a Hora, Agenda, the group directory,
-        // the news notifications and the hidden sections. The local database schema, tables of
-        // these sections included, stays in CastellsData for both apps.
+        // the news notifications and the hidden sections.
         .target(name: "CastellsInternalData", dependencies: ["CastellsData", "CastellsDomain"]),
         .target(name: "FeatureHourByHour", dependencies: ["CastellsDomain"]),
         .target(name: "FeatureAgenda", dependencies: ["CastellsDomain"]),

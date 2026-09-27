@@ -66,7 +66,6 @@ final class LegacyNewsNotificationsRetirementTests: XCTestCase {
     }
 
     func testEverySettingThatAnEarlierVersionWroteCounts() async {
-        // The internal app still writes them: CastellsInternalDataTests checks its stores.
         let earlierSettings: [@MainActor (UserDefaults) -> Void] = [
             { $0.set("high", forKey: "castells.hour-by-hour.minimum-interest.v1") },
             { $0.set(false, forKey: "castells.hidden-sections.unlocked") },

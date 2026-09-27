@@ -10,6 +10,7 @@ import com.ahuguet.castellsenvena.core.data.storage.InstallationIdentifierStore
 import com.ahuguet.castellsenvena.core.database.CastellsDatabase
 import com.ahuguet.castellsenvena.core.network.ApiClient
 import com.ahuguet.castellsenvena.core.network.service.HttpChatRemoteService
+import com.ahuguet.castellsenvena.core.network.service.HttpPushSubscriptionRemoteService
 import com.ahuguet.castellsenvena.feature.calculator.presentation.ConversationListViewModel
 import com.ahuguet.castellsenvena.platform.SharedPreferencesKeyValueStore
 import com.ahuguet.castellsenvena.startup.StartupGate
@@ -18,8 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 /**
- * What both apps build once per process: the preferences, the local database, the API and
- * the calculator. Each app's `AppContainer` adds its own sections on top.
+ * What both apps build once per process: the preferences, the local database, the API
+ * clients and the calculator. Each app's `AppContainer` adds its own sections on top.
  */
 class CoreContainer(context: Context) {
     private val appContext = context.applicationContext
@@ -44,6 +45,12 @@ class CoreContainer(context: Context) {
     )
 
     val apiClient = ApiClient(baseUrl = configuration.apiBaseUrl)
+
+    /**
+     * Subscriptions to the news notifications, under this app's application ID: the internal
+     * app subscribes, and the public app unsubscribes what an earlier version left.
+     */
+    val pushSubscriptions = HttpPushSubscriptionRemoteService(apiClient, appId = configuration.applicationId)
 
     /**
      * The whole schema, Hora a Hora and Agenda tables included, in both apps: the public app

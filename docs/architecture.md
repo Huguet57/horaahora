@@ -5,21 +5,16 @@ Aquest document defineix els límits que han de continuar sent estables quan el 
 ## App pública i app interna
 
 Cada plataforma genera dues apps a partir del mateix codi, triades en compilar amb
-`CASTELLS_BUILD_PROFILE=public|internal` (`public` per defecte):
-
-- L'**app pública** (`com.ahuguet.castellsenvena`) té la calculadora, la taula de puntuacions i els
-  ajustos de la calculadora. És l'única que es publica.
-- L'**app interna** (`com.ahuguet.castellsenvena.internal`) hi afegeix Hora a Hora, Agenda, els seus
-  ajustos, el gest secret i els avisos de notícies. És una app diferent: s'instal·la al costat de la
-  pública i no la pot substituir.
+`CASTELLS_BUILD_PROFILE=public|internal`. El [README](../README.md#app-pública-i-app-interna)
+explica què conté cadascuna i com es compila.
 
 La separació es fa en temps de compilació i per mòduls, no amb un booleà en temps d'execució:
 l'app pública no depèn dels mòduls interns ni en conté cap punt d'entrada (pestanyes, deep links,
-delegat de notificacions, permisos o entitlements). Les dues apps fan servir el mateix esquema
-de base de dades local, sencer, perquè l'app pública es pugui actualitzar des de les versions que
-tenien les seccions internes sense perdre les converses. El backend desa les subscripcions d'avisos
-amb l'identificador de l'app que les fa (`app_id`), perquè APNs lliura els tokens de l'app interna
-amb el seu propi Bundle ID.
+delegat de notificacions, permisos o entitlements). Només en comparteix l'esquema de la base de
+dades local, sencer, perquè l'app pública es pugui actualitzar des de les versions que tenien les
+seccions internes sense perdre les converses. El backend desa les subscripcions d'avisos amb
+l'identificador de l'app que les fa (`app_id`), perquè APNs lliura els tokens de l'app interna amb
+el seu propi Bundle ID.
 
 `tests/test_app_build_profiles.py` fa complir aquests límits llegint el projecte Xcode, el paquet
 Swift i el build de Gradle amb `scripts/app_profiles`, que també inspecciona les apps compilades a
@@ -77,11 +72,9 @@ Les dependències permeses són:
 - `CastellsInternalData`, només a l'app interna, implementa els serveis i els repositoris d'Hora a Hora, Agenda i colles, la subscripció als avisos i les preferències de les seccions ocultes. Pot dependre de `CastellsData` i `CastellsDomain`.
 - Cada `Feature*` conté presentació, vistes i utilitats pròpies. Pot dependre de `CastellsDomain`, però no de `CastellsData` ni del target principal.
 - Els dos targets d'app compilen el codi compartit de `HoraAHoraApp/HoraAHoraApp` (configuració, arrencada, navegació i `CoreDependencies`, que crea l'emmagatzematge, el client de l'API i la calculadora). Cada un afegeix la seva entrada i la seva composició: `Public/` (`PublicAppDependencies`, `PublicContentView`) i `Internal/` (`InternalAppDependencies`, `InternalContentView`, el delegat d'avisos i el gestor de notificacions, i l'entitlement `aps-environment`).
-- El target `HoraAHoraApp` és l'app pública: només pot dependre de `CastellsDomain`, `CastellsData`, `FeatureCalculator`, `FeatureScoreTable` i `FeatureSettings`, i no té entitlements. El target `HoraAHoraAppInternal` és l'app interna.
 - `FeatureScoreTable` mostra la taula de puntuacions a partir d'una còpia en JSON que porta com a recurs. `scripts/export_score_table.py` la genera del CSV del backend, que continua sent l'única font dels punts, i una prova de Pytest comprova que no quedi desfasada.
 - `FeatureSettings` conté els ajustos de la calculadora i ofereix punts d'extensió: seccions al principi, fonts addicionals i un gestor dels tocs a la versió. `FeatureInternalSettings`, només a l'app interna, els omple amb els avisos de notícies, les fonts d'Hora a Hora i Agenda i el gest secret. És l'única dependència entre features i sempre va en aquest sentit.
 - A l'app interna, Hora a Hora, Agenda i els seus ajustos són seccions ocultes. `HiddenSectionsPreferences` (domini) i `HiddenSectionsStore` (`CastellsInternalData`) en desen l'estat; `InternalSettingsModel` compta el gest secret d'Ajustos i la navegació només les mostra quan estan desbloquejades.
-- `CastellsData` conserva els models SwiftData d'Hora a Hora i Agenda, perquè l'esquema ha de continuar sent el mateix a les dues apps; els repositoris que els llegeixen i escriuen són a `CastellsInternalData`. De les dades dels avisos, l'app pública només fa servir `LegacyNewsNotificationsRetirement`, per retirar els que hagués activat una versió anterior.
 
 Els noms dels targets, productes públics i models SwiftData són part de la compatibilitat del projecte. Moure implementació entre carpetes no ha de canviar aquests contractes.
 
@@ -108,7 +101,7 @@ Les dependències permeses són:
 - Cada `:feature:*:ui` conté només Compose. Depèn de la seva presentació i de `:core:designsystem`, no de dades.
 - `:app` és l'arrel de composició. `src/main` té el codi compartit (`CoreContainer`, configuració, enllaços, arrencada, la barra de navegació i el manifest sense avisos); `src/public` i `src/internal` tenen cadascun el seu `AppContainer`, l'activitat i la navegació. Només `src/internal` té Firebase, el permís de notificacions, el servei de missatges, el canal d'avisos i els enllaços des dels avisos.
 - `:core:internaldata`, `:feature:hourbyhour:*`, `:feature:agenda:*` i `:feature:internalsettings:*` són dependències `internalImplementation`: l'app pública no les inclou. `:feature:internalsettings` amplia `:feature:settings`, com a iOS.
-- `:feature:scoretable:presentation` porta la taula de puntuacions com a recurs JSON, la mateixa còpia que l'app iOS, i n'ordena les files i calcula l'escala de les barres. Com a iOS, `HiddenSectionsPreferences` (`:core:domain`) i `KeyValueHiddenSectionsStore` (`:core:internaldata`) desen si Hora a Hora i Agenda es mostren a l'app interna, i `:core:database` conserva l'esquema d'aquestes seccions per a totes dues apps.
+- `:feature:scoretable:presentation` porta la taula de puntuacions com a recurs JSON, la mateixa còpia que l'app iOS, i n'ordena les files i calcula l'escala de les barres. Com a iOS, `HiddenSectionsPreferences` (`:core:domain`) i `KeyValueHiddenSectionsStore` (`:core:internaldata`) desen si Hora a Hora i Agenda es mostren a l'app interna.
 
 Els mòduls que no depenen d'Android es compilen i es proven en qualsevol JVM amb `-Pcastells.jvmOnly=true`. Les convencions de compilació viuen a `android/build-logic`.
 

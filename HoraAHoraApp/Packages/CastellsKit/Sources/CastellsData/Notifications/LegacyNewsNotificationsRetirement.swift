@@ -17,13 +17,6 @@ public protocol LegacyNewsNotificationsSystem: AnyObject {
 @MainActor
 public final class LegacyNewsNotificationsRetirement {
     private static let retiredKey = "castells.news-notifications.retired.v1"
-    /// Written by the news notifications and the hidden sections of earlier versions.
-    private static let earlierKeys = [
-        "castells.hour-by-hour.notifications-enabled",
-        "castells.hour-by-hour.minimum-interest.v1",
-        "castells.hour-by-hour.notification-onboarding-dismissed",
-        "castells.hidden-sections.unlocked",
-    ]
 
     private let userDefaults: UserDefaults
     private let remoteService: any PushSubscriptionRemoteService
@@ -66,7 +59,7 @@ public final class LegacyNewsNotificationsRetirement {
 
     /// An earlier version with news notifications left one of its settings, or the permission.
     private func hadNewsNotifications() async -> Bool {
-        if Self.earlierKeys.contains(where: { userDefaults.object(forKey: $0) != nil }) {
+        if NewsNotificationKeys.all.contains(where: { userDefaults.object(forKey: $0) != nil }) {
             return true
         }
         return await system.hadNewsNotifications()

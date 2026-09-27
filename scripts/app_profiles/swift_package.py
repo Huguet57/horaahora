@@ -16,7 +16,6 @@ class SwiftPackage:
     products: dict[str, tuple[str, ...]]
     # Target name to the targets it depends on.
     targets: dict[str, tuple[str, ...]]
-    test_targets: frozenset[str]
 
     def closure(self, names: Iterable[str]) -> frozenset[str]:
         """The targets that the given products or targets bring, including themselves."""
@@ -39,8 +38,7 @@ def swift_package(package_file: Path = SWIFT_PACKAGE) -> SwiftPackage:
         )
     }
     targets: dict[str, tuple[str, ...]] = {}
-    tests = set()
-    for match in re.finditer(r"\.(target|testTarget)\(", text):
+    for match in re.finditer(r"\.(?:target|testTarget)\(", text):
         arguments = _parenthesized(text, match.end() - 1)
         name = re.search(r'name:\s*"(\w+)"', arguments)
         if name is None:
@@ -49,9 +47,7 @@ def swift_package(package_file: Path = SWIFT_PACKAGE) -> SwiftPackage:
         targets[name.group(1)] = (
             tuple(re.findall(r'"(\w+)"', dependencies.group(1))) if dependencies else ()
         )
-        if match.group(1) == "testTarget":
-            tests.add(name.group(1))
-    return SwiftPackage(products=products, targets=targets, test_targets=frozenset(tests))
+    return SwiftPackage(products=products, targets=targets)
 
 
 def _parenthesized(text: str, opening: int) -> str:

@@ -2,7 +2,6 @@ package com.ahuguet.castellsenvena.di
 
 import android.content.Context
 import com.ahuguet.castellsenvena.core.data.notifications.LegacyNewsNotificationsRetirement
-import com.ahuguet.castellsenvena.core.network.service.HttpPushSubscriptionRemoteService
 import com.ahuguet.castellsenvena.navigation.CastellsAppModels
 import com.ahuguet.castellsenvena.platform.AndroidLegacyNewsNotificationsSystem
 import com.ahuguet.castellsenvena.startup.StartupGate
@@ -20,10 +19,7 @@ class AppContainer(context: Context) {
 
     private val legacyNewsNotifications = LegacyNewsNotificationsRetirement(
         store = core.keyValueStore,
-        remoteService = HttpPushSubscriptionRemoteService(
-            client = core.apiClient,
-            appId = core.configuration.applicationId,
-        ),
+        remoteService = core.pushSubscriptions,
         installationId = core.configuration.technicalIdentifier,
         environment = core.configuration.pushEnvironment,
         platform = AppConfiguration.PUSH_PLATFORM,

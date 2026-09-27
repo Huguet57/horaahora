@@ -11,9 +11,6 @@ plugins {
 val buildProfile: String = providers.gradleProperty("castells.buildProfile")
     .orElse(providers.environmentVariable("CASTELLS_BUILD_PROFILE"))
     .getOrElse("public")
-require(buildProfile in setOf("public", "internal")) {
-    "CASTELLS_BUILD_PROFILE must be public or internal, not \"$buildProfile\""
-}
 
 // The API the app talks to. Release builds always use castells.apiBaseUrl (production).
 // Debug builds use castells.apiBaseUrl.debug, a local backend, so testing never reaches
@@ -90,6 +87,10 @@ android {
     }
 }
 
+require(buildProfile in android.productFlavors.names) {
+    "CASTELLS_BUILD_PROFILE must be one of ${android.productFlavors.names.joinToString()}, not \"$buildProfile\""
+}
+
 androidComponents {
     beforeVariants { variant ->
         variant.enable = variant.flavorName == buildProfile
@@ -127,10 +128,12 @@ dependencies {
 // Firebase Cloud Messaging reads the Firebase project from google-services.json, which stays
 // out of the repository. Only the internal app uses it, and only if the file lists the
 // internal app; otherwise the internal app builds with news notifications unavailable.
+val internalApplicationId =
+    "${android.defaultConfig.applicationId}${android.productFlavors.getByName("internal").applicationIdSuffix}"
 val googleServices = file("google-services.json")
 if (buildProfile == "internal" &&
     googleServices.isFile &&
-    googleServices.readText().contains("\"com.ahuguet.castellsenvena.internal\"")
+    googleServices.readText().contains("\"$internalApplicationId\"")
 ) {
     pluginManager.apply("com.google.gms.google-services")
 }

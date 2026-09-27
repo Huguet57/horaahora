@@ -105,26 +105,20 @@ class _OpenStepParser:
         return "".join(characters)
 
 
-def parse_openstep_plist(text: str) -> Any:
-    return _OpenStepParser(text).parse()
-
-
 @dataclass(frozen=True)
 class XcodeTarget:
-    name: str
     # The Swift package products the target depends on, and the ones it links.
     products: frozenset[str]
     linked_products: frozenset[str]
     # Paths relative to the folder of the Xcode project.
     sources: tuple[str, ...]
-    resources: tuple[str, ...]
     # Build settings by configuration name, and the .xcconfig each configuration is based on.
     configurations: dict[str, dict[str, Any]]
     base_configurations: dict[str, str | None]
 
 
 def xcode_targets(project: Path = IOS_PROJECT) -> dict[str, XcodeTarget]:
-    document = parse_openstep_plist((project / "project.pbxproj").read_text())
+    document = _OpenStepParser((project / "project.pbxproj").read_text()).parse()
     objects: dict[str, dict[str, Any]] = document["objects"]
     root = objects[document["rootObject"]]
     paths = _xcode_paths(objects, root["mainGroup"])
@@ -147,7 +141,6 @@ def xcode_targets(project: Path = IOS_PROJECT) -> dict[str, XcodeTarget]:
             for configuration in objects[target["buildConfigurationList"]]["buildConfigurations"]
         ]
         targets[target["name"]] = XcodeTarget(
-            name=target["name"],
             products=frozenset(
                 objects[dependency]["productName"]
                 for dependency in target.get("packageProductDependencies", [])
@@ -158,9 +151,6 @@ def xcode_targets(project: Path = IOS_PROJECT) -> dict[str, XcodeTarget]:
                 if "productRef" in file
             ),
             sources=tuple(paths[file["fileRef"]] for file in phase_files("PBXSourcesBuildPhase")),
-            resources=tuple(
-                paths[file["fileRef"]] for file in phase_files("PBXResourcesBuildPhase")
-            ),
             configurations={
                 configuration["name"]: configuration["buildSettings"]
                 for configuration in configurations

@@ -73,10 +73,7 @@ struct InternalContentView: View {
             else { return }
             selectedSection = .settings
         }
-        .sheet(item: $presentedLink) { link in
-            InAppBrowser(url: link.url)
-                .ignoresSafeArea()
-        }
+        .inAppBrowser(for: $presentedLink)
     }
 
     private var tabView: some View {
@@ -99,7 +96,7 @@ struct InternalContentView: View {
             InternalSettingsRootView(
                 model: internalSettings,
                 settingsModel: dependencies.core.settingsModel,
-                configuration: dependencies.core.settingsConfiguration,
+                configuration: dependencies.core.configuration.settingsConfiguration,
                 sources: InternalAppDependencies.sources,
                 hasFollowedGroups: agendaModel.isGroupFilterActive && agendaModel.selectedGroupCount > 0,
                 onChooseGroups: {

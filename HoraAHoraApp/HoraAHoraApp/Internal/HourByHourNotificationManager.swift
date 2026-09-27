@@ -1,5 +1,6 @@
 import UIKit
 import UserNotifications
+import CastellsData
 import CastellsDomain
 import CastellsInternalData
 import FeatureInternalSettings
@@ -7,7 +8,7 @@ import FeatureInternalSettings
 @MainActor
 final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {
     private enum Preference {
-        static let enabledKey = "castells.hour-by-hour.notifications-enabled"
+        static let enabledKey = NewsNotificationKeys.enabled
     }
 
     private let notificationCenter: UNUserNotificationCenter

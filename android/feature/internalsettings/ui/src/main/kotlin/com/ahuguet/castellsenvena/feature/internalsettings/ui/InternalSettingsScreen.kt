@@ -12,8 +12,6 @@ import com.ahuguet.castellsenvena.feature.settings.ui.SettingsScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-private const val NOTIFICATION_INTEREST = "castells.settings.notification-interest"
-
 /**
  * Ajustos in the internal app: the calculator's settings, plus the news notifications and
  * the sources of Hora a Hora and Agenda while those sections show, and the secret gesture
@@ -45,25 +43,23 @@ fun InternalSettingsScreen(
         modifier = modifier,
         additionalCredits = if (state.showsHiddenSections) sources.credits else emptyList(),
         onVersionTap = model::versionTapMessage,
-        subpage = { key, onBack ->
-            if (key == NOTIFICATION_INTEREST) {
-                NotificationInterestScreen(
-                    state = state,
-                    hasFollowedGroups = hasFollowedGroups,
-                    onSelect = { level -> actionScope.launch { model.setMinimumInterest(level) } },
-                    onChooseGroups = onChooseGroups,
-                    onBack = onBack,
-                )
-            }
+        extraSubpage = { onBack ->
+            NotificationInterestScreen(
+                state = state,
+                hasFollowedGroups = hasFollowedGroups,
+                onSelect = { level -> actionScope.launch { model.setMinimumInterest(level) } },
+                onChooseGroups = onChooseGroups,
+                onBack = onBack,
+            )
         },
-        leadingContent = { openSubpage ->
+        leadingContent = { openExtraSubpage ->
             if (state.showsHiddenSections) {
                 NotificationSection(
                     state = state,
                     onEnabledChange = { enabled ->
                         actionScope.launch { model.setHourByHourNotificationsEnabled(enabled) }
                     },
-                    onOpenInterest = { openSubpage(NOTIFICATION_INTEREST) },
+                    onOpenInterest = openExtraSubpage,
                     onOpenSystemSettings = { actionScope.launch { model.openSystemSettings() } },
                 )
             }

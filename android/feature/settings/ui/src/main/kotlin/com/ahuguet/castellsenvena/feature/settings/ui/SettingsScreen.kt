@@ -19,16 +19,12 @@ import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsCredit
 
-/** The key of the built-in subpage with the sources of the data. */
-private const val SOURCES = "castells.settings.sources"
-
 /**
  * Ajustos and its subpages: privacy, help and the app with the sources of its data.
  *
- * An app can add its own rows at the top ([leadingContent]) with subpages of their own,
- * opened by key and drawn by [subpage]; more sources ([additionalCredits]); and a handler
- * for taps on the version row ([onVersionTap]), which returns what the row says for a
- * moment, or null.
+ * An app can add its own rows at the top ([leadingContent]), which can open one subpage of
+ * its own ([extraSubpage]); more sources ([additionalCredits]); and a handler for taps on the
+ * version row ([onVersionTap]), which returns what the row says for a moment, or null.
  */
 @Composable
 fun SettingsScreen(
@@ -39,10 +35,10 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     additionalCredits: List<SettingsCredit> = emptyList(),
     onVersionTap: (() -> String?)? = null,
-    subpage: @Composable (key: String, onBack: () -> Unit) -> Unit = { _, _ -> },
-    leadingContent: @Composable ColumnScope.(openSubpage: (String) -> Unit) -> Unit = {},
+    extraSubpage: @Composable (onBack: () -> Unit) -> Unit = {},
+    leadingContent: @Composable ColumnScope.(openExtraSubpage: () -> Unit) -> Unit = {},
 ) {
-    var destination by rememberSaveable { mutableStateOf<String?>(null) }
+    var destination by rememberSaveable { mutableStateOf<SettingsDestination?>(null) }
     val reduceMotion = LocalReduceMotion.current
     val back: () -> Unit = { destination = null }
 
@@ -66,21 +62,24 @@ fun SettingsScreen(
         when (target) {
             null -> SettingsRoot(
                 configuration = configuration,
-                onOpenSources = { destination = SOURCES },
+                onOpenSources = { destination = SettingsDestination.SOURCES },
                 onOpenUrl = onOpenUrl,
                 onContactSupport = onContactSupport,
                 onCopyIdentifier = onCopyIdentifier,
                 onVersionTap = onVersionTap,
-                leadingContent = { leadingContent { key -> destination = key } },
+                leadingContent = { leadingContent { destination = SettingsDestination.EXTRA } },
             )
 
-            SOURCES -> SourcesAndCreditsScreen(
+            SettingsDestination.SOURCES -> SourcesAndCreditsScreen(
                 credits = configuration.credits + additionalCredits,
                 onOpenUrl = onOpenUrl,
                 onBack = back,
             )
 
-            else -> subpage(target, back)
+            SettingsDestination.EXTRA -> extraSubpage(back)
         }
     }
 }
+
+/** The subpages of Ajustos: the sources of the data, and the one an app adds. */
+private enum class SettingsDestination { SOURCES, EXTRA }

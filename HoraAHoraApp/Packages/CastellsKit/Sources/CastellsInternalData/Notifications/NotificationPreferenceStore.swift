@@ -1,4 +1,5 @@
 import Foundation
+import CastellsData
 import CastellsDomain
 
 @MainActor
@@ -7,7 +8,7 @@ public final class NotificationPreferenceStore {
     private let key: String
 
     public init(userDefaults: UserDefaults = .standard,
-                key: String = "castells.hour-by-hour.minimum-interest.v1") {
+                key: String = NewsNotificationKeys.minimumInterest) {
         self.userDefaults = userDefaults
         self.key = key
     }
