@@ -18,7 +18,7 @@ Les dependències permeses són:
 
 - `backend/domain` conté models, regles i ports. No importa FastAPI, SQLAlchemy, proveïdors externs ni configuració d'infraestructura.
 - `backend/application` implementa casos d'ús i només depèn del domini. Les àrees d'Agenda, Hora a Hora, xat, sincronització, notificacions i paginació es mantenen separades.
-- `backend/adapters` implementa ports del domini. La persistència separa Agenda, Hora a Hora, subscripcions push i entregues/outbox.
+- `backend/adapters` implementa ports del domini. La persistència separa Agenda, Hora a Hora, subscripcions push, entregues/outbox i converses compartides.
 - `backend/api` transforma HTTP en crides d'aplicació. Cada contracte té el seu esquema i el seu router; els routers no construeixen adaptadors.
 - `backend/composition` és l'únic lloc que coneix alhora aplicació, adaptadors i configuració. Construeix `ApplicationContainer` i aplica els `ApplicationOverrides` tipats de proves.
 - `backend/app.py` només crea FastAPI, configura errors i middleware, construeix el contenidor i registra routers.

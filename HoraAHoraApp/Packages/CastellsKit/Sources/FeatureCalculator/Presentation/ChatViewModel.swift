@@ -12,19 +12,23 @@ public final class ChatViewModel {
     public private(set) var pendingUserMessage: ChatMessage?
     public private(set) var isSending = false
     public var errorMessage: String?
+    public private(set) var showsSharingNotice: Bool
     private var conversationID: UUID?
     private let repository: any ChatRepository
+    private let sharing: (any ConversationSharingPreferences)?
     private let sleep: Sleep
     private let onConversationCreated: @MainActor () -> Void
 
     public convenience init(
         repository: any ChatRepository,
         conversationID: UUID?,
+        sharing: (any ConversationSharingPreferences)? = nil,
         onConversationCreated: @escaping @MainActor () -> Void = {}
     ) {
         self.init(
             repository: repository,
             conversationID: conversationID,
+            sharing: sharing,
             sleep: { duration in try await ContinuousClock().sleep(for: duration) },
             onConversationCreated: onConversationCreated
         )
@@ -33,13 +37,18 @@ public final class ChatViewModel {
     init(
         repository: any ChatRepository,
         conversationID: UUID?,
+        sharing: (any ConversationSharingPreferences)? = nil,
         sleep: @escaping Sleep,
         onConversationCreated: @escaping @MainActor () -> Void = {}
     ) {
         self.repository = repository
         self.conversationID = conversationID
+        self.sharing = sharing
         self.sleep = sleep
         self.onConversationCreated = onConversationCreated
+        showsSharingNotice = sharing.map { $0.isEnabled && !$0.isNoticeAcknowledged } ?? false
+        // Loaded up front so the pushed chat renders its title and messages from the first frame.
+        load()
     }
 
     public var displayedMessages: [ChatMessage] {
@@ -64,7 +73,6 @@ public final class ChatViewModel {
     }
 
     public func loadFollowingPendingResponse() async {
-        load()
         while isSending && !Task.isCancelled {
             do {
                 try await sleep(.milliseconds(250))
@@ -107,6 +115,22 @@ public final class ChatViewModel {
             load()
         }
         isSending = false
+    }
+
+    /// Sharing only starts once the notice has been on screen.
+    public func sharingNoticeAppeared() {
+        sharing?.noticeWasShown()
+    }
+
+    public func acceptSharing() {
+        sharing?.acknowledgeNotice()
+        showsSharingNotice = false
+    }
+
+    public func declineSharing() {
+        sharing?.setEnabled(false)
+        sharing?.acknowledgeNotice()
+        showsSharingNotice = false
     }
 
     public func retry(_ messageID: UUID) async {

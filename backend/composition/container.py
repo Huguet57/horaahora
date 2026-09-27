@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from backend.adapters.persistence.database import Database
 from backend.application.agenda import AgendaService
 from backend.application.chat import ChatService
+from backend.application.conversation_sharing import ConversationSharingService
 from backend.application.hour_by_hour import HourByHourService
 from backend.application.notifications import HourByHourNotificationCoordinator
 from backend.composition.providers import (
@@ -20,10 +21,12 @@ from backend.composition.providers import (
     build_notification_repository,
     build_push_repository,
     build_rate_limiter,
+    build_shared_conversation_repository,
 )
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.scoring import ScoringEngine
+from backend.domain.calculator.sharing import SharedConversationRepository
 from backend.domain.calculator.table import ScoreTable
 from backend.domain.content.ports import (
     AgendaRepository,
@@ -49,6 +52,7 @@ class ApplicationOverrides:
     push_repository: PushSubscriptionRepository | None = None
     notification_repository: NotificationRepository | None = None
     notification_coordinator: HourByHourNotificationCoordinator | None = None
+    shared_conversation_repository: SharedConversationRepository | None = None
 
 
 @dataclass(slots=True)
@@ -56,6 +60,7 @@ class ApplicationContainer:
     settings: Settings
     database: Database
     chat_service: ChatService
+    conversation_sharing: ConversationSharingService
     hour_by_hour_service: HourByHourService
     agenda_service: AgendaService
     rate_limiter: RateLimiter
@@ -78,6 +83,9 @@ def build_container(
         database
     )
     push_repository = overrides.push_repository or build_push_repository(database)
+    shared_conversation_repository = (
+        overrides.shared_conversation_repository or build_shared_conversation_repository(database)
+    )
 
     hour_source = overrides.hour_by_hour_source
     if hour_source is None:
@@ -104,6 +112,7 @@ def build_container(
             contest_repository,
             ScoringEngine(ScoreTable.default()),
         ),
+        conversation_sharing=ConversationSharingService(shared_conversation_repository),
         hour_by_hour_service=HourByHourService(hour_repository, source=None),
         agenda_service=AgendaService(
             agenda_repository,

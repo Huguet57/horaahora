@@ -18,7 +18,7 @@ Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes
 
 - L'app no necessita registre ni credencials.
 - L'API de la beta és `https://castells-superapp-poc.vercel.app`.
-- Les converses es desen localment. Per interpretar una consulta, s'envien al backend com a màxim els darrers 12 missatges i un identificador aleatori d'instal·lació; no s'utilitzen per publicitat ni tracking.
+- Les converses es desen localment. Per interpretar una consulta, s'envien al backend com a màxim els darrers 12 missatges i un identificador aleatori d'instal·lació; no s'utilitzen per publicitat ni tracking. Amb «Millora la calculadora» (activada per defecte i desactivable a Ajustos), les converses noves es desen 90 dies sense identificadors del dispositiu per millorar les respostes.
 - Ajustos obre la política de privacitat i prepara un correu de suport editable amb la versió, el build i l'identificador tècnic; no s'envia res fins que l'usuari ho confirma manualment i no s'exporten converses.
 - La puntuació final es calcula amb un motor determinista i la taula 2026 versionada; la IA només interpreta el llenguatge.
 - Les fonts editorials es mostren amb atribució i enllaç de retorn.

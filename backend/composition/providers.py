@@ -22,10 +22,14 @@ from backend.adapters.persistence.notification_repository import SQLAlchemyNotif
 from backend.adapters.persistence.push_subscription_repository import (
     SQLAlchemyPushSubscriptionRepository,
 )
+from backend.adapters.persistence.shared_conversation_repository import (
+    SQLAlchemySharedConversationRepository,
+)
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.application.notification_ingestion import NotificationIngestionService
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
+from backend.domain.calculator.sharing import SharedConversationRepository
 from backend.domain.content.ports import (
     AgendaRepository,
     AgendaSource,
@@ -103,6 +107,10 @@ def build_push_repository(database: Database) -> SQLAlchemyPushSubscriptionRepos
 
 def build_notification_repository(database: Database) -> NotificationRepository:
     return SQLAlchemyNotificationRepository(database)
+
+
+def build_shared_conversation_repository(database: Database) -> SharedConversationRepository:
+    return SQLAlchemySharedConversationRepository(database)
 
 
 def build_notification_ingestion(settings: Settings, repository: NotificationRepository):

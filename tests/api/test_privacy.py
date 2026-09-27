@@ -55,6 +55,11 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
             "drets",
             "menors",
             "tracking",
+            "55 dies",
+            "Millora de la calculadora",
+            "«Millora la calculadora»",
+            "90 dies",
+            "interès legítim a millorar",
         ),
         "es": (
             "Política de privacidad",
@@ -71,6 +76,11 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
             "derechos",
             "menores",
             "seguimiento",
+            "55 días",
+            "Mejora de la calculadora",
+            "«Millora la calculadora»",
+            "90 días",
+            "interés legítimo en mejorar",
         ),
         "en": (
             "Privacy policy",
@@ -87,6 +97,11 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
             "rights",
             "children",
             "tracking",
+            "55 days",
+            "Improving the calculator",
+            "«Millora la calculadora»",
+            "90 days",
+            "legitimate interest in improving",
         ),
     }
     client = make_client()
@@ -108,8 +123,11 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
         assert "Andreu Huguet" in response.text
         assert "tenimaletaapp@gmail.com" in response.text
         assert "12" in response.text
-        assert "OpenAI" in response.text
-        assert "store: false" in response.text
+        assert "OpenRouter" in response.text
+        assert "Gemini" in response.text
+        assert 'data_collection: "deny"' in response.text
+        assert "OpenAI" not in response.text
+        assert "store: false" not in response.text
         assert "Vercel" in response.text
         assert "Supabase" in response.text
         assert "Neon" not in response.text
@@ -122,6 +140,12 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
         assert "CCCC" in response.text
         assert "Revista Castells" in response.text
         assert "TotCastells" not in response.text
+        for stale_promise in (
+            "persistència pròpia",
+            "persistencia propia",
+            "first-party chat persistence",
+        ):
+            assert stale_promise not in response.text
         assert "<script" not in response.text.lower()
         assert "[nom" not in response.text.lower()
         assert "[correu" not in response.text.lower()
@@ -162,7 +186,15 @@ def test_catalan_policy_document_has_no_draft_placeholders_or_old_name() -> None
     assert "identificador tècnic" in policy
     assert "manualment" in policy
     assert "no exporta converses" in policy
-    assert "`store: false`" in policy
+    assert "OpenRouter" in policy
+    assert "Gemini" in policy
+    assert '`data_collection: "deny"`' in policy
+    assert "OpenAI" not in policy
+    assert "### Millora de la calculadora" in policy
+    assert "«Millora la calculadora»" in policy
+    assert "90 dies" in policy
+    assert "interès legítim a millorar" in policy
+    assert "persistència pròpia dels xats" not in policy
     assert "`cdg1`" in policy
     assert "TotCastells" not in policy
     assert "[nom" not in policy.lower()
@@ -180,7 +212,8 @@ def test_only_explicit_conversation_sharing_remains_pending() -> None:
     assert "tokens APNs" in followups
     assert "## Pendent" in followups
     assert "compartició explícita de converses" in followups
-    pending = followups.split("## Pendent", 1)[1]
+    implemented, pending = followups.split("## Pendent", 1)
+    assert "«Millora la calculadora»" in implemented
     assert "registre i revocació de tokens APNs" not in pending
     assert "Afegir una pantalla" not in followups
     assert "Preparar un correu" not in followups

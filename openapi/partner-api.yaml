@@ -71,7 +71,7 @@ paths:
     post:
       operationId: calculateCastells
       summary: Interpreta una consulta, calcula puntuacions o respon sobre el Concurs
-      description: Els càlculs són deterministes, el coneixement del Concurs prové d'instantànies versionades i la resposta no identifica cap model o proveïdor. El servidor no persisteix la conversa.
+      description: Els càlculs són deterministes, el coneixement del Concurs prové d'instantànies versionades i la resposta no identifica cap model o proveïdor. El servidor només desa la consulta i la resposta, sense identificador d'instal·lació ni IP i durant 90 dies, quan `share_for_improvement` és cert.
       requestBody:
         required: true
         content:
@@ -180,6 +180,10 @@ components:
           minItems: 1
           maxItems: 12
           items: { $ref: '#/components/schemas/ChatMessage' }
+        share_for_improvement:
+          type: boolean
+          default: false
+          description: Permet desar la consulta per millorar la calculadora. Els clients antics no l'envien i no se'n desa res.
     ChatMessage:
       type: object
       required: [role, content]

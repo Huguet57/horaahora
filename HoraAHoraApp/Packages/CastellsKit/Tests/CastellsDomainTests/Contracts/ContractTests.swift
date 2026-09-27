@@ -72,6 +72,31 @@ final class ContractTests: XCTestCase {
         XCTAssertNil(legacyFallback.associatedURL)
     }
 
+    func testChatRequestSendsTheSharingChoice() throws {
+        let request = ChatRequest(
+            conversationID: UUID(uuidString: "3A35386D-F0E4-49CC-86D2-18FAC079645C")!,
+            installationID: "installation",
+            messages: [ChatRequestMessage(role: .user, content: "5d9f o 4d9fa?")],
+            shareForImprovement: true
+        )
+
+        let data = try JSONEncoder.castellsAPI.encode(request)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+        XCTAssertEqual(json["share_for_improvement"] as? Bool, true)
+        XCTAssertEqual(json["conversation_id"] as? String, "3A35386D-F0E4-49CC-86D2-18FAC079645C")
+    }
+
+    func testChatRequestIsPrivateByDefault() throws {
+        let request = ChatRequest(
+            conversationID: UUID(),
+            installationID: "installation",
+            messages: [ChatRequestMessage(role: .user, content: "5d9f o 4d9fa?")]
+        )
+
+        XCTAssertFalse(request.shareForImprovement)
+    }
+
     func testChatResponseDecodesProviderNeutralContract() throws {
         let json = #"""
         {
