@@ -24,6 +24,7 @@ def test_cron_ingests_both_publishers_and_exposes_deduplicated_articles_in_the_a
     notifications.ingest_hour_by_hour(RevistaCastellsHTMLSource().parse(REVISTA_HTML))
     settings = Settings(
         database_url="sqlite+pysqlite:///:memory:",
+        hour_by_hour_sources=("revista-castells", "el-mon-casteller"),
         revista_castells_url="https://revista.example/hora-a-hora/",
         vercel_env="production",
         cron_secret="test-secret",

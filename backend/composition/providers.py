@@ -8,9 +8,7 @@ from backend.adapters.content.cccc_agenda import (
     CCCCAgendaSnapshotSource,
 )
 from backend.adapters.content.combined_hour_by_hour import CombinedHourByHourSource
-from backend.adapters.content.el_mon_casteller import ElMonCastellerRSSSource
 from backend.adapters.content.group_directory import load_group_directory
-from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
 from backend.adapters.notifications.apns import APNsAuthorizationTokenProvider, APNsGateway
 from backend.adapters.notifications.fcm import FCMGateway, GoogleServiceAccountTokenProvider
@@ -27,6 +25,7 @@ from backend.adapters.persistence.shared_conversation_repository import (
 )
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.application.notification_ingestion import NotificationIngestionService
+from backend.composition.hour_by_hour_sources import enabled_sources
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.sharing import SharedConversationRepository
@@ -92,9 +91,7 @@ def build_hour_by_hour_repository(
 def build_hour_by_hour_source(settings: Settings) -> HourByHourSource | None:
     if not settings.hour_by_hour_source_enabled:
         return None
-    return CombinedHourByHourSource(
-        [RevistaCastellsHTMLSource(settings.revista_castells_url), ElMonCastellerRSSSource()]
-    )
+    return CombinedHourByHourSource(enabled_sources(settings))
 
 
 def build_agenda_repository(database: Database) -> AgendaRepository:

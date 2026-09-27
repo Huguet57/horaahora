@@ -29,6 +29,10 @@ def test_one_publisher_failure_does_not_block_the_other(failed_first, caplog) ->
     assert "bad feed" in caplog.text
 
 
+def test_without_publishers_there_is_nothing_to_read() -> None:
+    assert CombinedHourByHourSource([]).fetch() == []
+
+
 def test_all_publisher_failures_raise_instead_of_reporting_a_successful_sync() -> None:
     source = CombinedHourByHourSource([Mock(fetch=Mock(side_effect=ValueError("bad feed")))])
 

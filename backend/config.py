@@ -15,6 +15,7 @@ class Settings:
     jev_model: str = "jev-1.13.0"
     hour_by_hour_source_enabled: bool = True
     hour_by_hour_refresh_seconds: int = 300
+    hour_by_hour_sources: tuple[str, ...] = ("el-mon-casteller",)
     revista_castells_url: str = "https://revistacastells.cat/castells-hora-a-hora/"
     agenda_source: str = "disabled"
     agenda_refresh_seconds: int = 1_800
@@ -58,6 +59,7 @@ class Settings:
             jev_model=os.getenv("JEV_MODEL", defaults.jev_model),
             hour_by_hour_source_enabled=_bool_env("HOUR_BY_HOUR_SOURCE_ENABLED", True),
             hour_by_hour_refresh_seconds=int(os.getenv("HOUR_BY_HOUR_REFRESH_SECONDS", "300")),
+            hour_by_hour_sources=_list_env("HOUR_BY_HOUR_SOURCES", defaults.hour_by_hour_sources),
             revista_castells_url=os.getenv("REVISTA_CASTELLS_URL", defaults.revista_castells_url),
             agenda_source=os.getenv("AGENDA_SOURCE", defaults.agenda_source).lower(),
             agenda_refresh_seconds=int(os.getenv("AGENDA_REFRESH_SECONDS", "1800")),
@@ -105,6 +107,14 @@ def _bool_env(name: str, default: bool) -> bool:
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _list_env(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    values = (item.strip().lower() for item in value.split(","))
+    return tuple(dict.fromkeys(item for item in values if item))
 
 
 def migration_database_url_from_env() -> str:
