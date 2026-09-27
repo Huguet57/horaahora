@@ -89,3 +89,12 @@ def test_android_release_builds_use_production_and_debug_builds_the_local_backen
     assert release_url is not None
     assert 'providers.gradleProperty("castells.apiBaseUrl")' in release_url.group(1)
     assert "CASTELLS_API_BASE_URL" not in release_url.group(1)
+
+
+def test_the_local_backend_database_is_reachable_only_from_this_computer() -> None:
+    # Debug builds rely on the local backend, and the README runs alembic, the jobs and
+    # uvicorn from the host against the Compose database.
+    compose = (REPOSITORY_ROOT / "compose.yaml").read_text()
+    database = compose.split("\n  db:\n", 1)[1].split("\n\n", 1)[0]
+
+    assert '- "127.0.0.1:5432:5432"' in database
