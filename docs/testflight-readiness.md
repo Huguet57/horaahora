@@ -27,7 +27,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | 3 | Certificat Apple Distribution i perfil App Store Connect | Fet amb signatura cloud-managed | Renovació automàtica; el perfil Store actual caduca el 29 d'abril de 2027. |
 | 4 | Registre nou de l'app amb el nom `Castells en vena`, idioma principal, Bundle ID i SKU | Fet | Registre creat amb el Bundle ID `com.ahuguet.castellsenvena`. |
 | 5 | Política de privacitat publicada amb URL HTTPS i accessible des de l'app | Repositori preparat | Desplegar el backend rebasat i verificar les quatre URLs. |
-| 6 | Formulari App Privacy: identificador de dispositiu per funcionalitat i contingut d'usuari per funcionalitat i analítica (millora de la calculadora), no vinculat i sense tracking | Pendent | Completar-lo a App Store Connect d'acord amb `PrivacyInfo.xcprivacy` abans de publicar la versió amb «Millora la calculadora». |
+| 6 | Formulari App Privacy: identificador de dispositiu per funcionalitat i contingut d'usuari per funcionalitat i analítica (millora de la calculadora), no vinculat i sense tracking | Publicat el 27 de setembre de 2026 | Mantenir-lo d'acord amb `PrivacyInfo.xcprivacy` quan canviïn les dades que es recullen. |
 | 7 | Declarar drets d'ús i atribució de Revista Castells i CCCC | Pendent | Confirmar-ho amb producte/legal abans de la beta externa. |
 | 8 | Edat, content rights i dades de contacte de revisió | Pendent | Completar-ho a App Store Connect. |
 | 9 | Crear grup intern, afegir testers i assignar el build processat | Build 4 present a TestFlight | Assignar el build més recent al grup intern quan estigui processat. |
