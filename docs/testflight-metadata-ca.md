@@ -2,15 +2,13 @@
 
 ## Descripció de la beta
 
-Castells en vena és una prova de concepte d'una super-app castellera col·laborativa. Reuneix l'Hora a Hora de Revista Castells, l'agenda d'actuacions de la Coordinadora de Colles Castelleres de Catalunya i una calculadora conversacional basada en la taula de puntuacions del Concurs de Castells 2026.
+La calculadora de l'Aleta és una calculadora castellera que funciona com un xat: compara castells i actuacions escrits amb notació curta o en llenguatge natural i calcula la puntuació amb la taula oficial del Concurs de Castells 2026. La pestanya Puntuacions mostra aquesta taula de més a menys punts.
 
 ## Què cal provar
 
-- **Hora a Hora:** ordre cronològic, enllaços, detall intern dels apunts sense enllaç i lectura després d'una pèrdua temporal de connexió.
-- **Agenda:** punts als dies amb actuacions, gestos i fletxes de setmana/mes, plegat manual, canvi de dia, fitxes i obertura de la ubicació a Google Maps.
 - **Calculadora:** comparacions amb notació curta o llenguatge natural, sinònims castellers, seguiments dins una conversa, historial local i aclariments quan una expressió és ambigua.
+- **Puntuacions:** ordre de més a menys punts, barres que s'ajusten als castells visibles mentre es fa scroll i, en tocar un castell, el ressaltat dels castells de sota que descarregats en guanyen el carregat.
 - **General:** llegibilitat, rendiment, errors de dades i comportament en iPhone i iPad.
-- **Notificacions:** activa «Hora a Hora», tanca l'app i comprova la recepció i l'obertura de l'enllaç; després desactiva-les i confirma que no arriben més avisos.
 
 Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes per reproduir qualsevol problema.
 
@@ -23,6 +21,12 @@ Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes
 - La puntuació final es calcula amb un motor determinista i la taula 2026 versionada; la IA només interpreta el llenguatge.
 - Les fonts editorials es mostren amb atribució i enllaç de retorn.
 - Els tokens APNs només s'associen a l'identificador aleatori d'instal·lació per lliurar els avisos activats i es revoquen en desactivar-los.
+
+### Seccions ocultes (cal declarar-les a App Review)
+
+La guideline 2.3.1 d'Apple no admet funcions ocultes sense documentar. Copia aquesta nota, en anglès, a **App Review Information → Notes** de cada versió:
+
+> The app keeps two experimental sections that are hidden by default: castells news with optional notifications ("Hora a Hora") and a calendar of performances ("Agenda"). To show them, open Ajustos (Settings) and tap the row with the app version seven times in a row; the same gesture hides them again. They use the same backend, and notification permission is only requested when the user turns news notifications on in that section of Ajustos.
 
 ## Camps que s'han de completar manualment
 

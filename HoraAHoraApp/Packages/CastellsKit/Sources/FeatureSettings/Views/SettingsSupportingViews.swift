@@ -2,31 +2,34 @@ import SwiftUI
 
 struct SourcesAndCreditsView: View {
     let configuration: SettingsConfiguration
+    let showsHiddenSections: Bool
     let onOpenURL: (URL) -> Void
 
     var body: some View {
         List {
             Section {
                 creditRow(
-                    name: "Revista Castells",
-                    detail: "Font de l'Hora a Hora",
-                    url: configuration.revistaCastellsURL
-                )
-                creditRow(
-                    name: "El Món Casteller",
-                    detail: "Notícies, opinió, entrevistes i cròniques de l'Hora a Hora",
-                    url: configuration.elMonCastellerURL
-                )
-                creditRow(
-                    name: "Coordinadora de Colles Castelleres de Catalunya (CCCC)",
-                    detail: "Font de l'Agenda",
-                    url: configuration.ccccAgendaURL
-                )
-                creditRow(
                     name: "Taula oficial del Concurs de Castells 2026",
-                    detail: "Font de la Calculadora",
+                    detail: "Font de la calculadora i de les puntuacions",
                     url: configuration.concursCastellsURL
                 )
+                if showsHiddenSections {
+                    creditRow(
+                        name: "Revista Castells",
+                        detail: "Font de l'Hora a Hora",
+                        url: configuration.revistaCastellsURL
+                    )
+                    creditRow(
+                        name: "El Món Casteller",
+                        detail: "Notícies, opinió, entrevistes i cròniques de l'Hora a Hora",
+                        url: configuration.elMonCastellerURL
+                    )
+                    creditRow(
+                        name: "Coordinadora de Colles Castelleres de Catalunya (CCCC)",
+                        detail: "Font de l'Agenda",
+                        url: configuration.ccccAgendaURL
+                    )
+                }
             } footer: {
                 Text(
                     "Aquestes atribucions identifiquen les fonts de les dades i no impliquen cap col·laboració formal."

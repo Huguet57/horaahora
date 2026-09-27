@@ -119,7 +119,10 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
             assert f'href="/privacy/{linked_locale}"' in response.text
         for copy in required_copy:
             assert copy in response.text
-        assert "Castells en vena" in response.text
+        assert "La calculadora de l'Aleta" in response.text
+        assert "Castells en vena" not in response.text
+        for hidden_section in ("Hora a Hora", "Hour by Hour", "Agenda"):
+            assert hidden_section not in response.text
         assert "Andreu Huguet" in response.text
         assert "tenimaletaapp@gmail.com" in response.text
         assert "12" in response.text
@@ -178,7 +181,8 @@ def test_catalan_policy_document_has_no_draft_placeholders_or_old_name() -> None
     policy_path = Path(__file__).parents[2] / "docs" / "privacy-policy-ca.md"
     policy = policy_path.read_text()
 
-    assert policy.startswith("# Política de privacitat — Castells en vena")
+    assert policy.startswith("# Política de privacitat — La calculadora de l'Aleta")
+    assert "Castells en vena" not in policy
     assert "Andreu Huguet" in policy
     assert "tenimaletaapp@gmail.com" in policy
     assert "correu editable" in policy
@@ -228,11 +232,13 @@ def test_final_app_name_is_consistent_in_xcode_and_testflight_docs() -> None:
     metadata = (repository_root / "docs" / "testflight-metadata-ca.md").read_text()
     readme = (repository_root / "README.md").read_text()
 
-    assert project.count('INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";') == 2
+    assert (
+        project.count("""INFOPLIST_KEY_CFBundleDisplayName = "La calculadora de l'Aleta";""") == 2
+    )
     assert project.count("PRODUCT_BUNDLE_IDENTIFIER = com.ahuguet.castellsenvena;") == 2
     assert project.count("CURRENT_PROJECT_VERSION = 5;") == 2
     assert "com.andreu.HoraAHoraApp" not in project
-    assert "Nom visible `Castells en vena`" in readiness
+    assert "Nom visible `La calculadora de l'Aleta`" in readiness
     assert "`com.ahuguet.castellsenvena`" in readiness
-    assert "Castells en vena és" in metadata
+    assert "La calculadora de l'Aleta és" in metadata
     assert "`com.ahuguet.castellsenvena`" in readme

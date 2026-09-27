@@ -30,7 +30,7 @@ usage() {
   cat <<'EOF'
 Usage: scripts/deploy-testflight.sh [options]
 
-Build and upload Castells en vena to TestFlight from an exact Git ref.
+Build and upload La calculadora de l'Aleta to TestFlight from an exact Git ref.
 
 Options:
   --ref REF                 Git ref to deploy (default: origin/main)

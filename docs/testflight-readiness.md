@@ -9,7 +9,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 | Codi | 91 tests Python (inclosa integració PostgreSQL 17), 40 tests Swift i builds Debug/Release | Preparat | Fer merge quan el CI de l'últim commit sigui verd. |
 | Identitat | Bundle ID explícit `com.ahuguet.castellsenvena` i App ID amb Push Notifications | Configurat al projecte i al portal | Utilitzar el mateix Bundle ID al registre d'App Store Connect. |
 | Versió | `CFBundleShortVersionString` 1.0 i build 5 | Configurat | Incrementar sempre el build abans de cada pujada posterior. |
-| Nom | Nom visible `Castells en vena` | Configurat | Utilitzar exactament aquest nom al registre d'App Store Connect i confirmar-ne la disponibilitat. |
+| Nom | Nom visible `La calculadora de l'Aleta` (abans `Castells en vena`) | Configurat al projecte | Canviar el nom a App Store Connect (App Information) amb la versió que el publiqui i treure'n les captures de l'Hora a Hora i l'Agenda. |
 | Icona | App Icon opaca de 1024 × 1024 a l'asset catalog | Preparat | Validar la marca amb els socis abans de la beta externa. |
 | Privacitat | Política completa en CA, ES i EN, enllaç des d'Ajustos i `PrivacyInfo.xcprivacy` integrat | Preparat al repositori | Desplegar aquesta branca i completar l'etiqueta App Privacy d'App Store Connect d'acord amb el manifest. |
 | Xifrat | `ITSAppUsesNonExemptEncryption = NO` per HTTPS estàndard | Preparat | Confirmar si s'afegeix criptografia pròpia en el futur. |

@@ -1,8 +1,14 @@
-# Super-app castellera
+# La calculadora de l'Aleta
 
-Primera fase d'una app nativa per a iOS i Android, modular i amb quatre seccions: Hora a Hora, Agenda, una calculadora conversacional i Ajustos. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura concreta al domini o al contracte HTTP.
+App nativa per a iOS i Android centrada en una calculadora castellera conversacional i en la
+taula de puntuacions del Concurs de Castells 2026. Per defecte mostra tres pestanyes:
+Calculadora, Puntuacions i Ajustos. Hora a Hora i Agenda continuen a l'app com a seccions
+ocultes, amb els seus ajustos: set tocs seguits a la versió, a Ajustos, les mostren o les tornen
+a amagar. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni
+infraestructura concreta al domini o al contracte HTTP.
 
-El nom visible i definitiu de l'app és **Castells en vena**. El Bundle ID d'iOS i l'`applicationId` d'Android són `com.ahuguet.castellsenvena`.
+El nom visible de l'app és **La calculadora de l'Aleta** (abans, Castells en vena). El Bundle ID
+d'iOS i l'`applicationId` d'Android es mantenen: `com.ahuguet.castellsenvena`.
 
 ## Estructura
 
@@ -394,3 +400,11 @@ d'Alembic, els `ON CONFLICT`, la concurrència del rate limiter, els advisory lo
 proves d'integració se salten i la resta de la bateria continua sent local.
 
 La taula oficial versionada és `backend/data/taula_puntuacions_concurs_castells_2026.csv`. El motor aplica tres millors castells, màxim dos carregats, intents, estructures repetides i àlies explícits com `4d9net -> 4de9sf`.
+
+La pestanya Puntuacions de l'app porta una còpia en JSON d'aquesta taula, amb el nom de cada
+castell en català per als lectors de pantalla. Després de canviar el CSV, regenera-la; una prova
+comprova que no quedi desfasada:
+
+```bash
+uv run --frozen --no-sync python -m scripts.export_score_table
+```

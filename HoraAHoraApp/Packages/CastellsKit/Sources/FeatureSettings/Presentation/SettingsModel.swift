@@ -36,22 +36,32 @@ public final class SettingsModel {
     public private(set) var minimumInterest: NotificationInterestLevel = .high
     public private(set) var isNotificationSynchronizationPending = false
     public private(set) var isConversationSharingEnabled: Bool
+    /// Hora a Hora, Agenda and their settings, hidden unless a secret gesture shows them.
+    public private(set) var showsHiddenSections: Bool
 
     private let notificationManager: any HourByHourNotificationManaging
     private let persistNotificationOnboardingDismissal: @MainActor (Bool) -> Void
     private let conversationSharing: (any ConversationSharingPreferences)?
+    private let hiddenSections: (any HiddenSectionsPreferences)?
+    private let now: @MainActor () -> Date
+    private var secretTaps = SecretTapSequence()
 
     public init(
         notificationManager: any HourByHourNotificationManaging,
         notificationOnboardingDismissed: Bool = false,
         persistNotificationOnboardingDismissal: @escaping @MainActor (Bool) -> Void = { _ in },
-        conversationSharing: (any ConversationSharingPreferences)? = nil
+        conversationSharing: (any ConversationSharingPreferences)? = nil,
+        hiddenSections: (any HiddenSectionsPreferences)? = nil,
+        now: @escaping @MainActor () -> Date = { .now }
     ) {
         self.notificationManager = notificationManager
         isNotificationOnboardingDismissed = notificationOnboardingDismissed
         self.persistNotificationOnboardingDismissal = persistNotificationOnboardingDismissal
         self.conversationSharing = conversationSharing
         isConversationSharingEnabled = conversationSharing?.isEnabled ?? false
+        self.hiddenSections = hiddenSections
+        showsHiddenSections = hiddenSections?.isUnlocked ?? false
+        self.now = now
     }
 
     public var showsNotificationOnboarding: Bool {
@@ -60,7 +70,21 @@ public final class SettingsModel {
 
     public func refreshNotificationStatus() async {
         notificationStatus = await notificationManager.currentStatus()
+        if let hiddenSections {
+            hiddenSections.resolveDefault(notificationsEnabled: notificationStatus == .enabled)
+            showsHiddenSections = hiddenSections.isUnlocked
+        }
         await refreshPreferences()
+    }
+
+    /// Counts a tap on the version; the seventh quick one shows or hides the hidden sections.
+    /// Returns whether this tap changed them.
+    @discardableResult
+    public func registerSecretTap() -> Bool {
+        guard let hiddenSections, secretTaps.register(at: now()) else { return false }
+        hiddenSections.setUnlocked(!hiddenSections.isUnlocked)
+        showsHiddenSections = hiddenSections.isUnlocked
+        return true
     }
 
     public func setMinimumInterest(_ value: NotificationInterestLevel) async {

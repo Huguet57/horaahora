@@ -3,6 +3,7 @@ import UIKit
 import FeatureAgenda
 import FeatureCalculator
 import FeatureHourByHour
+import FeatureScoreTable
 import FeatureSettings
 
 struct ContentView: View {
@@ -10,7 +11,7 @@ struct ContentView: View {
 
     @State private var hourByHourModel: HourByHourViewModel
     @State private var agendaModel: AgendaViewModel
-    @State private var selectedSection = AppSection.hourByHour
+    @State private var selectedSection = AppSection.calculator
     @State private var showsAgendaGroupFilter = false
     @State private var presentedLink: PresentedLink?
     @State private var settingsModel: SettingsModel
@@ -33,9 +34,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        StartupLoadingContainer(
-            initialLoadHasCompleted: hourByHourModel.hasCompletedInitialLoad
-        ) {
+        StartupLoadingContainer {
             tabView
         }
         .task {
@@ -60,6 +59,11 @@ struct ContentView: View {
             guard phase == .active else { return }
             Task { await settingsModel.refreshNotificationStatus() }
         }
+        .onChange(of: settingsModel.showsHiddenSections) { _, showsHiddenSections in
+            guard !showsHiddenSections, selectedSection == .hourByHour || selectedSection == .agenda
+            else { return }
+            selectedSection = .settings
+        }
         .sheet(item: $presentedLink) { link in
             InAppBrowser(url: link.url)
                 .ignoresSafeArea()
@@ -68,36 +72,20 @@ struct ContentView: View {
 
     private var tabView: some View {
         TabView(selection: $selectedSection) {
-            HourByHourRootView(
-                model: hourByHourModel,
-                showsNotificationOnboarding: settingsModel.showsNotificationOnboarding,
-                onConfigureNotifications: {
-                    settingsModel.handleNotificationOnboarding(.configure) {
-                        Task { @MainActor in
-                            await Task.yield()
-                            selectedSection = .settings
-                        }
-                    }
-                },
-                onDismissNotificationOnboarding: {
-                    settingsModel.handleNotificationOnboarding(.dismiss)
-                }
-            ) { url in
-                presentedLink = PresentedLink(url: url)
-            }
-            .tabItem { Label("Hora a Hora", systemImage: "clock") }
-            .tag(AppSection.hourByHour)
-
-            AgendaRootView(model: agendaModel, showsGroupFilter: $showsAgendaGroupFilter)
-                .tabItem { Label("Agenda", systemImage: "calendar") }
-                .tag(AppSection.agenda)
-
             CalculatorRootView(
                 repository: dependencies.chatRepository,
                 sharing: dependencies.conversationSharing
             )
                 .tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }
                 .tag(AppSection.calculator)
+
+            ScoreTableRootView()
+                .tabItem { Label("Puntuacions", systemImage: "list.number") }
+                .tag(AppSection.scoreTable)
+
+            if settingsModel.showsHiddenSections {
+                hiddenSections
+            }
 
             SettingsRootView(
                 model: settingsModel,
@@ -116,8 +104,38 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
+    private var hiddenSections: some View {
+        HourByHourRootView(
+            model: hourByHourModel,
+            showsNotificationOnboarding: settingsModel.showsNotificationOnboarding,
+            onConfigureNotifications: {
+                settingsModel.handleNotificationOnboarding(.configure) {
+                    Task { @MainActor in
+                        await Task.yield()
+                        selectedSection = .settings
+                    }
+                }
+            },
+            onDismissNotificationOnboarding: {
+                settingsModel.handleNotificationOnboarding(.dismiss)
+            }
+        ) { url in
+            presentedLink = PresentedLink(url: url)
+        }
+        .tabItem { Label("Hora a Hora", systemImage: "clock") }
+        .tag(AppSection.hourByHour)
+
+        AgendaRootView(model: agendaModel, showsGroupFilter: $showsAgendaGroupFilter)
+            .tabItem { Label("Agenda", systemImage: "calendar") }
+            .tag(AppSection.agenda)
+    }
+
+    /// A tapped news notification opens its page, over Hora a Hora when it is shown.
     private func openHourByHourLink(_ url: URL) {
-        selectedSection = .hourByHour
+        if settingsModel.showsHiddenSections {
+            selectedSection = .hourByHour
+        }
         presentedLink = PresentedLink(url: url)
     }
 }

@@ -25,6 +25,7 @@
 		A1000014 /* FeatureAgenda in Frameworks */ = {isa = PBXBuildFile; productRef = A1100014 /* FeatureAgenda */; };
 		A1000015 /* FeatureCalculator in Frameworks */ = {isa = PBXBuildFile; productRef = A1100015 /* FeatureCalculator */; };
 		A1000016 /* FeatureSettings in Frameworks */ = {isa = PBXBuildFile; productRef = A1100016 /* FeatureSettings */; };
+		A1000017 /* FeatureScoreTable in Frameworks */ = {isa = PBXBuildFile; productRef = A1100017 /* FeatureScoreTable */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +58,7 @@
 				A1000014 /* FeatureAgenda in Frameworks */,
 				A1000015 /* FeatureCalculator in Frameworks */,
 				A1000016 /* FeatureSettings in Frameworks */,
+				A1000017 /* FeatureScoreTable in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -172,6 +174,7 @@
 				A1100014 /* FeatureAgenda */,
 				A1100015 /* FeatureCalculator */,
 				A1100016 /* FeatureSettings */,
+				A1100017 /* FeatureScoreTable */,
 			);
 			productName = HoraAHoraApp;
 			productReference = A2000004 /* HoraAHoraApp.app */;
@@ -296,7 +299,7 @@
 				INFOPLIST_FILE = HoraAHoraApp/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";
+				INFOPLIST_KEY_CFBundleDisplayName = "La calculadora de l'Aleta";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -325,7 +328,7 @@
 				INFOPLIST_FILE = HoraAHoraApp/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Castells en vena";
+				INFOPLIST_KEY_CFBundleDisplayName = "La calculadora de l'Aleta";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -395,6 +398,10 @@
 		A1100016 /* FeatureSettings */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FeatureSettings;
+		};
+		A1100017 /* FeatureScoreTable */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FeatureScoreTable;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

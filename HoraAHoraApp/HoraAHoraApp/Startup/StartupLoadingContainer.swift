@@ -1,17 +1,11 @@
 import SwiftUI
 
 struct StartupLoadingContainer<Content: View>: View {
-    let initialLoadHasCompleted: Bool
-
     @State private var gate = StartupLoadingGate()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let content: Content
 
-    init(
-        initialLoadHasCompleted: Bool,
-        @ViewBuilder content: () -> Content
-    ) {
-        self.initialLoadHasCompleted = initialLoadHasCompleted
+    init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
 
@@ -31,10 +25,9 @@ struct StartupLoadingContainer<Content: View>: View {
             value: isLoadingScreenPresented
         )
         .task { await gate.waitForMinimumDuration() }
-        .task { await gate.waitForMaximumDuration() }
     }
 
     private var isLoadingScreenPresented: Bool {
-        gate.shouldPresent(initialLoadHasCompleted: initialLoadHasCompleted)
+        !gate.hasMetMinimumDuration
     }
 }
