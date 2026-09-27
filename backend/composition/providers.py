@@ -25,7 +25,7 @@ from backend.adapters.persistence.shared_conversation_repository import (
 )
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
 from backend.application.notification_ingestion import NotificationIngestionService
-from backend.composition.hour_by_hour_sources import enabled_sources
+from backend.composition.hour_by_hour_sources import disabled_source_ids, enabled_sources
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.sharing import SharedConversationRepository
@@ -116,6 +116,7 @@ def build_notification_ingestion(settings: Settings, repository: NotificationRep
         JevNewsInterestClassifier(settings.jev_api_key, settings.jev_model),
         load_group_directory().groups,
         article_source=PublisherArticleTextSource(),
+        disabled_source_ids=disabled_source_ids(settings),
     )
 
 

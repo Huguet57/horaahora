@@ -1,5 +1,6 @@
 import logging
 import time
+from collections.abc import Collection
 
 from backend.domain.content.models import HourByHourItem
 from backend.domain.content.ports import ArticleTextSource
@@ -21,12 +22,17 @@ class NotificationIngestionService:
         groups: list[str],
         *,
         article_source: ArticleTextSource | None = None,
+        disabled_source_ids: Collection[str] = (),
     ):
         self.repository, self.classifier, self.groups = repository, classifier, groups
         self.article_source = article_source
+        self.disabled_source_ids = frozenset(disabled_source_ids)
 
     def ingest(self, items: list[HourByHourItem], *, deadline: float | None = None):
         deadline = deadline if deadline is not None else time.monotonic() + 45
+        # A source switched back on starts a new baseline, so what it published while
+        # it was off is listed without arriving as a burst of notifications.
+        self.repository.forget_baselines(self.disabled_source_ids)
         ingestion = self.repository.ingest_hour_by_hour(items)
         skipped = self.repository.recover_interrupted_classifications()
         classified = 0

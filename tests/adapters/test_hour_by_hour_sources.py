@@ -6,6 +6,7 @@ import requests
 
 from backend.adapters.content.el_mon_casteller import ElMonCastellerRSSSource
 from backend.adapters.content.revista_castells import RevistaCastellsHTMLSource
+from backend.composition.hour_by_hour_sources import disabled_source_ids
 from backend.composition.providers import build_hour_by_hour_source
 from backend.config import Settings
 
@@ -38,6 +39,18 @@ def test_only_the_configured_sources_are_read(monkeypatch, source_ids, expected_
 
     assert sorted(requested_urls) == expected_urls
     assert {item.source_id for item in items} == set(source_ids)
+
+
+@pytest.mark.parametrize(
+    ("source_ids", "disabled"),
+    [
+        (("el-mon-casteller",), {"revista-castells"}),
+        (("revista-castells",), {"el-mon-casteller"}),
+        (("revista-castells", "el-mon-casteller"), set()),
+    ],
+)
+def test_the_sources_left_out_are_the_disabled_ones(source_ids, disabled) -> None:
+    assert disabled_source_ids(Settings(hour_by_hour_sources=source_ids)) == disabled
 
 
 def test_an_unknown_source_stops_the_configuration() -> None:

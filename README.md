@@ -62,6 +62,10 @@ no es recorre tot l'arxiu històric.
 Revista Castells està donada de baixa. Per donar de baixa una font o tornar-la a donar
 d'alta, canvia la llista a l'entorn de producció i torna a desplegar. Les notícies ja
 desades d'una font donada de baixa continuen a la llista amb la seva atribució.
+Mentre una font està donada de baixa, cada sincronització n'oblida la base d'avisos.
+Així, la primera lectura després de tornar-la a donar d'alta crea una base nova: les
+notícies publicades entretant apareixen a la llista sense avisos i només es notifiquen
+les posteriors.
 
 El job manual `python -m backend.jobs.sync_hour_by_hour` i el cron utilitzen les mateixes
 fonts. La primera ingesta de cada mitjà crea una base sense avisos antics; les següents

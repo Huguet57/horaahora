@@ -1,7 +1,8 @@
+from collections.abc import Collection
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
@@ -113,3 +114,15 @@ def ingest_hour_by_hour(engine: Engine, items: list[HourByHourItem]) -> Notifica
         baseline_created=baseline_created,
         notifications_created=notifications_created,
     )
+
+
+def forget_baselines(engine: Engine, source_ids: Collection[str]) -> None:
+    """The next ingestion of these sources creates a new baseline, without notifications."""
+    if not source_ids:
+        return
+    with Session(engine) as session, session.begin():
+        session.execute(
+            delete(NotificationSyncStateRecord).where(
+                NotificationSyncStateRecord.source_id.in_(sorted(source_ids))
+            )
+        )
