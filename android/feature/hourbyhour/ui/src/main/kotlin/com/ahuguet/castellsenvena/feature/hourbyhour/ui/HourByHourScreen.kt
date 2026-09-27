@@ -1,5 +1,6 @@
 package com.ahuguet.castellsenvena.feature.hourbyhour.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -7,16 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -60,7 +61,7 @@ fun HourByHourScreen(
     val scope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
     var detailItemId by rememberSaveable { mutableStateOf<String?>(null) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val zone = remember { ZoneId.systemDefault() }
 
     val refresh: () -> Unit = {
@@ -81,7 +82,7 @@ fun HourByHourScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text("Hora a Hora") },
                 scrollBehavior = scrollBehavior,
             )
@@ -120,8 +121,7 @@ fun HourByHourScreen(
                             if (link != null) onOpenLink(link) else detailItemId = item.id
                         },
                         onLastItemShown = { item -> model.loadNextIfNeeded(after = item) },
-                        // Inside the pull to refresh, so scrolling back up expands the
-                        // large title before it starts a refresh.
+                        // The top bar takes its scrolled color while the list is under it.
                         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                     )
                 }
@@ -152,6 +152,7 @@ private fun HourByHourList(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (showsNotificationOnboarding) {
             item(key = "notification-onboarding") {
@@ -170,11 +171,10 @@ private fun HourByHourList(
                     modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
                 )
             }
-            itemsIndexed(group.items, key = { _, item -> item.id }, contentType = { _, _ -> "item" }) { index, item ->
+            items(group.items, key = { item -> item.id }, contentType = { "item" }) { item ->
                 HourByHourRow(
                     item = item,
                     zone = zone,
-                    showsDivider = index < group.items.lastIndex,
                     onClick = { onOpen(item) },
                     modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
                 )

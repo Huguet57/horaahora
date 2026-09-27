@@ -63,7 +63,7 @@ internal fun SettingsRoot(
     onContactSupport: (String) -> Unit,
     onCopyIdentifier: (String) -> Unit,
 ) {
-    SettingsScaffold(title = "Ajustos", largeTitle = true) {
+    SettingsScaffold(title = "Ajustos") {
         NotificationSection(
             state = state,
             onEnabledChange = onNotificationsEnabledChange,

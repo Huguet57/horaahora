@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ahuguet.castellsenvena.core.designsystem.component.ContentCard
 import com.ahuguet.castellsenvena.core.designsystem.component.SkeletonBlock
 import com.ahuguet.castellsenvena.core.designsystem.component.rememberPulseAlpha
 
@@ -47,20 +48,25 @@ internal fun HourByHourSkeleton() {
                 modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
             )
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(PaddingValues(horizontal = 16.dp, vertical = 12.dp)),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                repeat(3) { row -> SkeletonRow(showsSecondSummaryLine = (section + row) % 2 == 0) }
+                repeat(3) { row ->
+                    ContentCard {
+                        SkeletonRow(
+                            showsSecondSummaryLine = (section + row) % 2 == 0,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SkeletonRow(showsSecondSummaryLine: Boolean) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun SkeletonRow(showsSecondSummaryLine: Boolean, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             SkeletonBlock(width = 36.dp, height = 11.dp)
             Spacer(Modifier.weight(1f))

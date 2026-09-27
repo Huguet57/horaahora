@@ -1,6 +1,7 @@
 package com.ahuguet.castellsenvena.feature.calculator.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,7 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +32,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +53,7 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.ahuguet.castellsenvena.core.designsystem.component.ContentCard
 import com.ahuguet.castellsenvena.core.designsystem.component.ContentUnavailable
 import com.ahuguet.castellsenvena.core.domain.chat.ChatConversationSummary
 import com.ahuguet.castellsenvena.feature.calculator.presentation.ConversationAgeFormatter
@@ -70,7 +72,7 @@ internal fun ConversationListScreen(
     onCreate: () -> Unit,
 ) {
     val state by model.state.collectAsState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
     // The ages ("29 min") move on while the list is open.
     val now by produceState(Instant.now()) {
@@ -90,7 +92,7 @@ internal fun ConversationListScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text("Calculadora") },
                 scrollBehavior = scrollBehavior,
             )
@@ -118,7 +120,8 @@ internal fun ConversationListScreen(
                     .padding(padding)
                     .fillMaxSize(),
                 // Room for the button over the last row.
-                contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp),
+                contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(state.conversations, key = { conversation -> conversation.id }) { conversation ->
                     ConversationRow(
@@ -159,49 +162,51 @@ private fun ConversationRow(
     onDelete: () -> Unit,
 ) {
     var showsMenu by remember { mutableStateOf(false) }
-    ListItem(
-        headlineContent = { Text(text = conversation.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .semantics {
-                customActions = listOf(
-                    CustomAccessibilityAction("Canvia el nom") { onRename(); true },
-                    CustomAccessibilityAction("Elimina") { onDelete(); true },
-                )
+    ContentCard {
+        ListItem(
+            headlineContent = { Text(text = conversation.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .semantics {
+                    customActions = listOf(
+                        CustomAccessibilityAction("Canvia el nom") { onRename(); true },
+                        CustomAccessibilityAction("Elimina") { onDelete(); true },
+                    )
+                },
+            supportingContent = { Text(ConversationAgeFormatter.format(conversation.updatedAt, now)) },
+            trailingContent = {
+                Box {
+                    IconButton(onClick = { showsMenu = true }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "Opcions de la conversa")
+                    }
+                    DropdownMenu(expanded = showsMenu, onDismissRequest = { showsMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Canvia el nom") },
+                            leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                            onClick = {
+                                showsMenu = false
+                                onRename()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Elimina") },
+                            leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                            colors = MenuDefaults.itemColors(
+                                textColor = MaterialTheme.colorScheme.error,
+                                leadingIconColor = MaterialTheme.colorScheme.error,
+                            ),
+                            onClick = {
+                                showsMenu = false
+                                onDelete()
+                            },
+                        )
+                    }
+                }
             },
-        supportingContent = { Text(ConversationAgeFormatter.format(conversation.updatedAt, now)) },
-        trailingContent = {
-            Box {
-                IconButton(onClick = { showsMenu = true }) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "Opcions de la conversa")
-                }
-                DropdownMenu(expanded = showsMenu, onDismissRequest = { showsMenu = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Canvia el nom") },
-                        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                        onClick = {
-                            showsMenu = false
-                            onRename()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Elimina") },
-                        leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                        colors = MenuDefaults.itemColors(
-                            textColor = MaterialTheme.colorScheme.error,
-                            leadingIconColor = MaterialTheme.colorScheme.error,
-                        ),
-                        onClick = {
-                            showsMenu = false
-                            onDelete()
-                        },
-                    )
-                }
-            }
-        },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-    )
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        )
+    }
 }
 
 @Composable

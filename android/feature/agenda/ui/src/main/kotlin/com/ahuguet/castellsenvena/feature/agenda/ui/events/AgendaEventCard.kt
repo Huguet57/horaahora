@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,7 +17,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ahuguet.castellsenvena.core.designsystem.component.ContentCard
 import com.ahuguet.castellsenvena.core.designsystem.theme.TabularNumbers
 import com.ahuguet.castellsenvena.core.domain.agenda.CastellEvent
 import com.ahuguet.castellsenvena.feature.agenda.presentation.googleMapsSearchUrl
@@ -39,14 +38,10 @@ internal fun AgendaEventCard(
     modifier: Modifier = Modifier,
     isOutsideFilter: Boolean = false,
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {
-                if (isOutsideFilter) stateDescription = "Aquesta actuació no coincideix amb el filtre"
-            },
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ContentCard(
+        modifier = modifier.semantics(mergeDescendants = true) {
+            if (isOutsideFilter) stateDescription = "Aquesta actuació no coincideix amb el filtre"
+        },
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

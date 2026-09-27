@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.core.common.CatalanDates
+import com.ahuguet.castellsenvena.core.designsystem.component.ContentCard
 import com.ahuguet.castellsenvena.core.designsystem.theme.TabularNumbers
 import com.ahuguet.castellsenvena.core.domain.hourbyhour.HourByHourItem
 import java.time.ZoneId
@@ -35,12 +36,11 @@ import java.time.ZoneId
 internal fun HourByHourRow(
     item: HourByHourItem,
     zone: ZoneId,
-    showsDivider: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val opensLink = item.associatedUrl != null
-    Column(modifier = modifier.fillMaxWidth()) {
+    ContentCard(modifier = modifier.padding(horizontal = 16.dp)) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -52,7 +52,7 @@ internal fun HourByHourRow(
                     },
                     onClick = onClick,
                 )
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -96,12 +96,6 @@ internal fun HourByHourRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-        }
-        if (showsDivider) {
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
         }
     }
 }

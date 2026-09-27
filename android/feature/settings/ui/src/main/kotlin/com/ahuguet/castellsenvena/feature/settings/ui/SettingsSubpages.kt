@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -134,22 +133,17 @@ internal fun SourcesAndCreditsScreen(
 }
 
 /**
- * A settings page: a large title on the root page, a back arrow on the
- * subpages. Scrolls as a whole, with room at the end.
+ * A settings page under a top app bar, with a back arrow on the subpages.
+ * Scrolls as a whole, with room at the end.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsScaffold(
     title: String,
-    largeTitle: Boolean = false,
     onBack: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val scrollBehavior = if (largeTitle) {
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    } else {
-        TopAppBarDefaults.pinnedScrollBehavior()
-    }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val navigationIcon: @Composable () -> Unit = {
         if (onBack != null) {
             IconButton(onClick = onBack) {
@@ -160,11 +154,7 @@ internal fun SettingsScaffold(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            if (largeTitle) {
-                LargeTopAppBar(title = { Text(title) }, navigationIcon = navigationIcon, scrollBehavior = scrollBehavior)
-            } else {
-                TopAppBar(title = { Text(title) }, navigationIcon = navigationIcon, scrollBehavior = scrollBehavior)
-            }
+            TopAppBar(title = { Text(title) }, navigationIcon = navigationIcon, scrollBehavior = scrollBehavior)
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
