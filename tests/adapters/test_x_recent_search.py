@@ -41,7 +41,7 @@ def test_each_query_is_paged_with_the_bearer_token_and_the_required_fields() -> 
         return httpx.Response(200, json=pages[len(requests) - 1])
 
     source = XRecentSearchSource("token", transport=httpx.MockTransport(handle))
-    posts = source.search(WATCHLIST, since=SINCE)
+    posts = source.search(WATCHLIST, since=SINCE, timeout=30)
 
     assert [item.post_id for item in posts] == ["2", "1"]
     assert len(requests) == 2
@@ -66,7 +66,7 @@ def test_paging_stops_at_the_configured_limit() -> None:
 
     source = XRecentSearchSource("token", transport=httpx.MockTransport(handle), max_pages=2)
 
-    assert len(source.search(WATCHLIST, since=SINCE)) == 2
+    assert len(source.search(WATCHLIST, since=SINCE, timeout=30)) == 2
     assert len(requests) == 2
 
 
@@ -80,7 +80,7 @@ def test_a_post_matched_by_several_queries_is_returned_once() -> None:
         return httpx.Response(200, json=page(post("same")))
 
     posts = XRecentSearchSource("token", transport=httpx.MockTransport(handle)).search(
-        watchlist, since=SINCE
+        watchlist, since=SINCE, timeout=30
     )
 
     assert len(queries) > 1
@@ -97,10 +97,48 @@ def test_provider_errors_are_raised_without_retrying() -> None:
     source = XRecentSearchSource("token", transport=httpx.MockTransport(handle))
 
     with pytest.raises(httpx.HTTPStatusError):
-        source.search(WATCHLIST, since=SINCE)
+        source.search(WATCHLIST, since=SINCE, timeout=30)
     assert len(requests) == 1
 
 
 def test_a_bearer_token_is_required() -> None:
     with pytest.raises(ValueError, match="X_BEARER_TOKEN"):
         XRecentSearchSource("")
+
+
+def test_the_search_keeps_what_it_read_when_its_time_budget_runs_out(caplog) -> None:
+    requests: list[httpx.Request] = []
+    elapsed = [0.0]
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        elapsed[0] += 6
+        created_at = f"2026-09-27T0{len(requests)}:00:00Z"
+        return httpx.Response(
+            200, json=page(post(str(len(requests)), created_at), next_token="more")
+        )
+
+    source = XRecentSearchSource(
+        "token", transport=httpx.MockTransport(handle), clock=lambda: elapsed[0]
+    )
+
+    posts = source.search(WATCHLIST, since=SINCE, timeout=10)
+
+    # Posts already read are billed: keep them instead of discarding the whole search.
+    assert [item.post_id for item in posts] == ["2", "1"]
+    assert len(requests) == 2
+    assert requests[1].extensions["timeout"]["read"] == 4
+    assert "x_search_truncated" in caplog.text
+
+
+def test_a_spent_budget_makes_no_request() -> None:
+    requests: list[httpx.Request] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, json=page(post("1")))
+
+    source = XRecentSearchSource("token", transport=httpx.MockTransport(handle))
+
+    assert source.search(WATCHLIST, since=SINCE, timeout=0) == []
+    assert requests == []

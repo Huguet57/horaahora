@@ -27,9 +27,11 @@ class Source:
     def __init__(self, posts=(), error: Exception | None = None) -> None:
         self.posts, self.error = list(posts), error
         self.calls: list[tuple[SocialWatchlist, datetime]] = []
+        self.timeouts: list[float] = []
 
-    def search(self, watchlist, *, since):
+    def search(self, watchlist, *, since, timeout):
         self.calls.append((watchlist, since))
+        self.timeouts.append(timeout)
         if self.error is not None:
             raise self.error
         return self.posts
@@ -83,6 +85,8 @@ def test_posts_over_their_threshold_get_headlines_newest_first() -> None:
         status="completed", fetched=3, candidates=2, discovered=2, accepted=1, rejected=1
     )
     assert source.calls == [(WATCHLIST, NOW - timedelta(hours=12))]
+    # The search gets a share of the run's budget, leaving time for headlines.
+    assert 19 < source.timeouts[0] <= 20
     # Gran has its own, higher threshold; the others use the global one.
     assert writer.written == ["quijo", "anon"]
     assert repository.accepted_since(NOW - timedelta(days=1), limit=10) == [
@@ -128,8 +132,11 @@ def test_headlines_wait_for_the_next_run_when_the_time_budget_is_spent() -> None
     writer = Writer()
     repository = SQLAlchemySocialPostRepository(Database("sqlite+pysqlite:///:memory:"))
 
-    result = sync(Source([QUIJO]), writer, repository=repository, time_budget_seconds=0).run()
+    source = Source([QUIJO])
 
+    result = sync(source, writer, repository=repository, time_budget_seconds=0).run()
+
+    assert source.timeouts == [0]
     assert (result.discovered, result.accepted) == (1, 0)
     assert writer.written == []
     assert [post.post_id for post in repository.pending_headlines(limit=10)] == ["quijo"]

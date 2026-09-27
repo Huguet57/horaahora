@@ -5,7 +5,9 @@ from backend.domain.social.models import HeadlinedPost, SocialHeadline, SocialPo
 
 
 class SocialPostSource(Protocol):
-    def search(self, watchlist: SocialWatchlist, *, since: datetime) -> list[SocialPost]: ...
+    def search(
+        self, watchlist: SocialWatchlist, *, since: datetime, timeout: float
+    ) -> list[SocialPost]: ...
 
 
 class SocialHeadlineWriter(Protocol):

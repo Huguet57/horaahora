@@ -32,7 +32,7 @@ def run(
     limit: int,
     emit: Callable[[dict], None],
 ) -> None:
-    posts = source.search(watchlist, since=since)
+    posts = source.search(watchlist, since=since, timeout=60)
     candidates = [post for post in posts if watchlist.qualifies(post)]
     emit({"event": "x_posts_found", "fetched": len(posts), "candidates": len(candidates)})
     for post in candidates[:limit]:

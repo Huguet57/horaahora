@@ -8,8 +8,9 @@ SINCE = datetime(2026, 9, 27, tzinfo=UTC)
 
 
 class Source:
-    def search(self, watchlist, *, since):
+    def search(self, watchlist, *, since, timeout):
         assert since == SINCE
+        assert timeout > 0
         return [social_post("1", likes=12), social_post("2", likes=3), social_post("3", likes=20)]
 
 

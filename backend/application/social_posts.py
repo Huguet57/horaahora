@@ -21,6 +21,7 @@ SOCIAL_POSTS_LOCK_KEY = 2_026_092_708
 LOOKBACK = timedelta(hours=12)
 MAX_HEADLINE_ATTEMPTS = 3
 _PENDING_BATCH = 50
+_SEARCH_TIMEOUT_SECONDS = 20.0
 _HEADLINE_TIMEOUT_SECONDS = 15.0
 _MIN_HEADLINE_SECONDS = 5.0
 
@@ -70,7 +71,8 @@ class SocialPostSync:
                 return SocialPostSyncResult(status="already_running")
             deadline = time.monotonic() + self.time_budget_seconds
             now = self.clock()
-            posts, source_error = self._search(now)
+            search_timeout = min(_SEARCH_TIMEOUT_SECONDS, deadline - time.monotonic())
+            posts, source_error = self._search(now, timeout=max(0.0, search_timeout))
             candidates = [post for post in posts if self.watchlist.qualifies(post)]
             discovered = self.repository.save_candidates(candidates, seen_at=now)
             accepted = rejected = failed = 0
@@ -103,9 +105,10 @@ class SocialPostSync:
                 source_error=source_error,
             )
 
-    def _search(self, now: datetime) -> tuple[list[SocialPost], str]:
+    def _search(self, now: datetime, *, timeout: float) -> tuple[list[SocialPost], str]:
         try:
-            return self.source.search(self.watchlist, since=now - self.lookback), ""
+            posts = self.source.search(self.watchlist, since=now - self.lookback, timeout=timeout)
+            return posts, ""
         except Exception as error:
             # Keep deciding pending posts: they do not depend on this search.
             logger.warning("social_posts_search_failed reason=%s", type(error).__name__)
