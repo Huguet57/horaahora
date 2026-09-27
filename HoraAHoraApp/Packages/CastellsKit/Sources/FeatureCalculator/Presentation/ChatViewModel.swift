@@ -47,6 +47,8 @@ public final class ChatViewModel {
         self.sleep = sleep
         self.onConversationCreated = onConversationCreated
         showsSharingNotice = sharing.map { $0.isEnabled && !$0.isNoticeAcknowledged } ?? false
+        // Loaded up front so the pushed chat renders its title and messages from the first frame.
+        load()
     }
 
     public var displayedMessages: [ChatMessage] {
@@ -71,7 +73,6 @@ public final class ChatViewModel {
     }
 
     public func loadFollowingPendingResponse() async {
-        load()
         while isSending && !Task.isCancelled {
             do {
                 try await sleep(.milliseconds(250))

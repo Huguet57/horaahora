@@ -53,6 +53,7 @@ public struct ChatView: View {
                             isComposerFocused = false
                         })
                     }
+                    .defaultScrollAnchor(.bottom)
                     .scrollDismissesKeyboard(.interactively)
                     .scrollBounceBehavior(.always, axes: .vertical)
                 }

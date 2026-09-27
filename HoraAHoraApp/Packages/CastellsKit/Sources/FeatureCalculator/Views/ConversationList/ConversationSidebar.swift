@@ -22,12 +22,21 @@ struct ConversationSidebar: View {
                 }
 
                 ForEach(conversations) { conversation in
-                    NavigationLink(value: CalculatorDestination.conversation(conversation.id)) {
-                        ConversationRow(
-                            conversation: conversation,
-                            referenceDate: context.date
-                        )
+                    let destination = CalculatorDestination.conversation(conversation.id)
+                    Button { selection = destination } label: {
+                        HStack {
+                            ConversationRow(
+                                conversation: conversation,
+                                referenceDate: context.date
+                            )
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.forward")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
                     }
+                    .tag(destination)
+                    .selectionDisabled()
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) { onDelete(conversation.id) } label: {
                             Label("Elimina", systemImage: "trash")

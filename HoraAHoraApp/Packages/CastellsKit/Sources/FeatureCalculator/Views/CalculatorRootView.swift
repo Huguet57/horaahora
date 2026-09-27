@@ -6,6 +6,7 @@ public struct CalculatorRootView: View {
     private let sharing: (any ConversationSharingPreferences)?
     @State private var model: ConversationListViewModel
     @State private var selectedDestination: CalculatorDestination?
+    @State private var hidesTabBar = false
     @State private var preferredCompactColumn = NavigationSplitViewColumn.sidebar
     @State private var renameTarget: ChatConversationSummary?
     @State private var renameText = ""
@@ -23,7 +24,7 @@ public struct CalculatorRootView: View {
         NavigationSplitView(preferredCompactColumn: $preferredCompactColumn) {
             ConversationSidebar(
                 conversations: model.conversations,
-                selection: $selectedDestination,
+                selection: Binding(get: { selectedDestination }, set: { select($0) }),
                 onCreate: showNewConversation,
                 onDelete: model.delete,
                 onRename: beginRenaming
@@ -47,7 +48,7 @@ public struct CalculatorRootView: View {
                 CalculatorWelcomeView { showNewConversation() }
             }
         }
-        .calculatorTabBarVisibility(isChatPresented: selectedDestination != nil)
+        .calculatorTabBarVisibility(isChatPresented: hidesTabBar)
         .task { model.reload() }
         .alert(
             "Canvia el nom",
@@ -66,8 +67,26 @@ public struct CalculatorRootView: View {
     }
 
     private func showNewConversation() {
-        selectedDestination = .newConversation
-        preferredCompactColumn = .detail
+        select(.newConversation)
+    }
+
+    private func select(_ destination: CalculatorDestination?) {
+        guard let destination, selectedDestination == nil else {
+            // Going back, or switching chats side by side.
+            selectedDestination = destination
+            hidesTabBar = destination != nil
+            return
+        }
+        guard !hidesTabBar else { return }
+        // Hide the tab bar one update before pushing the chat: when both change together, the
+        // chat is laid out above the tab bar and its composer drops once the transition ends.
+        hidesTabBar = true
+        Task { @MainActor in
+            await Task.yield()
+            guard hidesTabBar, selectedDestination == nil else { return }
+            selectedDestination = destination
+            preferredCompactColumn = .detail
+        }
     }
 
     private func beginRenaming(_ conversation: ChatConversationSummary) {
