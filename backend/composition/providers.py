@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from backend.adapters.ai.jev import JevNewsInterestClassifier
+from backend.adapters.ai.social_headlines import OpenRouterSocialHeadlineWriter
 from backend.adapters.content.article_text import PublisherArticleTextSource
 from backend.adapters.content.cccc_agenda import (
     CCCCAgendaFixtureSource,
@@ -23,8 +24,13 @@ from backend.adapters.persistence.push_subscription_repository import (
 from backend.adapters.persistence.shared_conversation_repository import (
     SQLAlchemySharedConversationRepository,
 )
+from backend.adapters.persistence.social_post_repository import SQLAlchemySocialPostRepository
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
+from backend.adapters.social.x_recent_search import XRecentSearchSource
+from backend.adapters.social.x_watchlist import load_x_watchlist, parse_x_watchlist
 from backend.application.notification_ingestion import NotificationIngestionService
+from backend.application.social_posts import SOCIAL_POSTS_LOCK_KEY, SocialPostSync
+from backend.application.social_publication import SocialFeedPublisher, SocialHourByHourSource
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.sharing import SharedConversationRepository
@@ -38,6 +44,10 @@ from backend.domain.contest.ports import ContestKnowledgeRepository
 from backend.domain.notifications.models import NotificationDisposition, NotificationSendResult
 from backend.domain.notifications.ports import NotificationGateway, NotificationRepository
 from backend.domain.rate_limit import RateLimiter
+from backend.domain.social.models import SocialWatchlist
+from backend.domain.social.ports import SocialPostRepository
+
+X_POSTS_MODES = ("disabled", "shadow", "feed", "notify")
 
 
 def build_chat_model(settings: Settings) -> ChatModel:
@@ -83,12 +93,59 @@ def build_hour_by_hour_repository(
     return SQLAlchemyHourByHourRepository(database)
 
 
-def build_hour_by_hour_source(settings: Settings) -> HourByHourSource | None:
+def build_social_post_repository(database: Database) -> SocialPostRepository:
+    return SQLAlchemySocialPostRepository(database)
+
+
+def build_hour_by_hour_source(settings: Settings, database: Database) -> HourByHourSource | None:
     if not settings.hour_by_hour_source_enabled:
         return None
-    return CombinedHourByHourSource(
-        [RevistaCastellsHTMLSource(settings.revista_castells_url), ElMonCastellerRSSSource()]
+    sources: list[HourByHourSource] = [
+        RevistaCastellsHTMLSource(settings.revista_castells_url),
+        ElMonCastellerRSSSource(),
+    ]
+    if _x_posts_mode(settings) == "notify":
+        sources.append(SocialHourByHourSource(build_social_post_repository(database)))
+    return CombinedHourByHourSource(sources)
+
+
+def build_social_post_sync(
+    settings: Settings, database: Database, hour_repository: HourByHourRepository
+) -> SocialPostSync | None:
+    mode = _x_posts_mode(settings)
+    if mode == "disabled":
+        return None
+    if not settings.x_bearer_token:
+        raise RuntimeError(f"X_BEARER_TOKEN és obligatori amb X_POSTS_MODE={mode}")
+    if settings.ai_provider != "openrouter":
+        raise RuntimeError("Els titulars de X necessiten AI_PROVIDER=openrouter")
+    watchlist = build_x_watchlist(settings)
+    if watchlist.is_empty:
+        raise RuntimeError("La llista de seguiment de X no té comptes ni etiquetes")
+    return SocialPostSync(
+        XRecentSearchSource(settings.x_bearer_token),
+        build_social_post_repository(database),
+        OpenRouterSocialHeadlineWriter(
+            settings.ai_api_key, settings.ai_model, settings.ai_base_url or None
+        ),
+        watchlist,
+        # In notify mode the Hora a Hora ingestion publishes them, with notifications.
+        publisher=SocialFeedPublisher(hour_repository) if mode == "feed" else None,
+        lock=lambda: database.advisory_lock(SOCIAL_POSTS_LOCK_KEY),
     )
+
+
+def build_x_watchlist(settings: Settings) -> SocialWatchlist:
+    # A private secret keeps personal accounts out of the public repository.
+    if settings.x_watchlist_json.strip():
+        return parse_x_watchlist(settings.x_watchlist_json)
+    return load_x_watchlist(_data_path(settings.x_watchlist_path))
+
+
+def _x_posts_mode(settings: Settings) -> str:
+    if settings.x_posts_mode not in X_POSTS_MODES:
+        raise RuntimeError(f"X_POSTS_MODE no suportat: {settings.x_posts_mode}")
+    return settings.x_posts_mode
 
 
 def build_agenda_repository(database: Database) -> AgendaRepository:

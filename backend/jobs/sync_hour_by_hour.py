@@ -13,10 +13,11 @@ from backend.config import Settings
 
 
 def sync_once(settings: Settings) -> int:
-    source = build_hour_by_hour_source(settings)
-    if source is None:
+    if not settings.hour_by_hour_source_enabled:
         raise RuntimeError("HOUR_BY_HOUR_SOURCE_ENABLED ha d'estar activa")
-    repository = build_notification_repository(build_database(settings))
+    database = build_database(settings)
+    source = build_hour_by_hour_source(settings, database)
+    repository = build_notification_repository(database)
     service = build_notification_ingestion(settings, repository)
     with repository.database.advisory_lock(NOTIFICATION_LOCK_KEY) as acquired:
         if not acquired:

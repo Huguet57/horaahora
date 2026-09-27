@@ -35,4 +35,5 @@ def test_vercel_runs_the_backend_in_paris() -> None:
     assert config["crons"] == [
         {"path": "/internal/cron/hour-by-hour", "schedule": "* * * * *"},
         {"path": "/internal/cron/maintenance", "schedule": "17 3 * * *"},
+        {"path": "/internal/cron/x-posts", "schedule": "*/5 * * * *"},
     ]

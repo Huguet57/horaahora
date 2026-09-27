@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -36,6 +37,17 @@ def hour_by_hour_cron(
         "classified": result.classified,
         "classification_skipped": result.classification_skipped,
     }
+
+
+@router.get("/internal/cron/x-posts")
+def x_posts_cron(
+    container: Annotated[ApplicationContainer, Depends(get_container)],
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict[str, int | str]:
+    _authorize(container, authorization)
+    if container.social_post_sync is None:
+        return {"status": "disabled"}
+    return asdict(container.social_post_sync.run())
 
 
 @router.get("/internal/cron/maintenance")

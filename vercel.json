@@ -14,6 +14,10 @@
     {
       "path": "/internal/cron/maintenance",
       "schedule": "17 3 * * *"
+    },
+    {
+      "path": "/internal/cron/x-posts",
+      "schedule": "*/5 * * * *"
     }
   ],
   "rewrites": [
