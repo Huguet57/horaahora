@@ -1,4 +1,4 @@
-"""Withdraw an X post from Hora a Hora, for example after a correction or removal request.
+"""Withdraw an X post and its unsent notifications, e.g. after a correction or removal request.
 
 Run: python -m backend.jobs.hide_x_post https://x.com/usuari/status/1970000000000000001
 """

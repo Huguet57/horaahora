@@ -1,9 +1,19 @@
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from backend.adapters.persistence.database import Database
 from backend.adapters.persistence.hour_by_hour_repository import SQLAlchemyHourByHourRepository
+from backend.adapters.persistence.models import NotificationDeliveryRecord
+from backend.adapters.persistence.notification_repository import SQLAlchemyNotificationRepository
+from backend.adapters.persistence.push_subscription_repository import (
+    SQLAlchemyPushSubscriptionRepository,
+)
 from backend.adapters.persistence.social_post_repository import SQLAlchemySocialPostRepository
+from backend.domain.notifications.interest import InterestLevel
+from backend.domain.notifications.models import PushSubscriptionRegistration
 from backend.domain.social.models import (
     HeadlinedPost,
     SocialAuthor,
@@ -11,6 +21,7 @@ from backend.domain.social.models import (
     SocialPostContext,
 )
 from tests.support.hour_by_hour import hour_item
+from tests.support.notifications import ingest
 from tests.support.social import social_post
 
 NOW = datetime(2026, 9, 27, 12, tzinfo=UTC)
@@ -108,3 +119,42 @@ def test_a_hidden_post_leaves_the_feed_and_is_never_published_again() -> None:
     posts.save_candidates([post], seen_at=NOW + timedelta(minutes=5))
     assert posts.pending_headlines(limit=10) == []
     assert posts.hide("x", "unknown") is False
+
+
+def test_hiding_a_post_cancels_the_notifications_it_has_not_sent() -> None:
+    database = Database("sqlite+pysqlite:///:memory:")
+    posts = SQLAlchemySocialPostRepository(database)
+    notifications = SQLAlchemyNotificationRepository(database)
+    SQLAlchemyPushSubscriptionRepository(database).register(
+        PushSubscriptionRegistration(
+            installation_id="install",
+            device_token="ab" * 32,
+            app_version="1.0 (1)",
+            locale="ca-ES",
+            minimum_interest=InterestLevel.LOW,
+        ),
+        environment="production",
+        topic="app",
+    )
+    classified, unclassified, other = social_post("1"), social_post("2"), social_post("3")
+    posts.save_candidates([classified, unclassified, other], seen_at=NOW)
+    for post in (classified, unclassified, other):
+        posts.record_headline(post, ACCEPTED, decided_at=NOW)
+    ingest(notifications, [hour_item("baseline", source_id="x")])
+    # Classified: a delivery per subscription waits for APNs.
+    ingest(notifications, [hour_item("1", source_id="x"), hour_item("3", source_id="x")])
+    # Discovered but not classified yet: Jev must not create deliveries after the withdrawal.
+    notifications.ingest_hour_by_hour([hour_item("2", source_id="x")])
+
+    assert posts.hide("x", "1") is True
+    assert posts.hide("x", "2") is True
+
+    assert notifications.pending_classifications() == []
+    assert [delivery.title for delivery in notifications.claim_deliveries(limit=10)] == [
+        "Notícia 3"
+    ]
+    with Session(database.engine) as session:
+        cancelled = session.scalars(
+            select(NotificationDeliveryRecord).where(NotificationDeliveryRecord.status == "skipped")
+        ).all()
+    assert [delivery.last_error for delivery in cancelled] == ["Hidden"]

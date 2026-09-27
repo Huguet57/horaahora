@@ -135,7 +135,8 @@ FROM social_posts ORDER BY published_at DESC LIMIT 50;
 El job manual `python -m backend.jobs.sync_x_posts` fa el mateix que el cron. Una fallada de
 X no atura els titulars pendents, i un titular que falla tres vegades es descarta. Un post
 esborrat a X deixa de sortir a la cerca, però no es retira sol de l'Hora a Hora. Per retirar-lo
-(esborrat, correcció o petició de l'autor) i evitar que es torni a publicar:
+(esborrat, correcció o petició de l'autor), cancel·lar els avisos que encara no s'hagin enviat
+i evitar que es torni a publicar:
 
 ```bash
 vercel env run -e production -- \

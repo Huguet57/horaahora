@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import Select, delete, select, update
 from sqlalchemy.engine import Engine
@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.adapters.persistence.database import Database
 from backend.adapters.persistence.models import HourByHourRecord, SocialPostRecord
+from backend.adapters.persistence.notification_withdrawal import cancel_undelivered_notifications
 from backend.adapters.persistence.repository_support import (
     database_datetime,
     domain_datetime,
@@ -104,7 +105,7 @@ class SQLAlchemySocialPostRepository:
             ]
 
     def hide(self, network: str, post_id: str) -> bool:
-        """Withdraw a post from Hora a Hora and keep it from being published again."""
+        """Withdraw a post and its unsent notifications, and keep it from coming back."""
         with Session(self.engine) as session, session.begin():
             hidden = session.execute(
                 update(SocialPostRecord)
@@ -115,6 +116,13 @@ class SQLAlchemySocialPostRepository:
                 delete(HourByHourRecord).where(
                     HourByHourRecord.source_id == network, HourByHourRecord.external_id == post_id
                 )
+            )
+            cancel_undelivered_notifications(
+                session,
+                source_id=network,
+                external_id=post_id,
+                reason="Hidden",
+                now=database_datetime(datetime.now(UTC)),
             )
             return hidden == 1
 
