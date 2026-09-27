@@ -23,11 +23,5 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         configureKotlinJvmCompilation()
         addUnitTestDependencies()
         configureTestLogging()
-
-        // Firebase Cloud Messaging reads the Firebase project from
-        // google-services.json. Without it the app builds with push unavailable.
-        if (file("google-services.json").exists()) {
-            pluginManager.apply("com.google.gms.google-services")
-        }
     }
 }

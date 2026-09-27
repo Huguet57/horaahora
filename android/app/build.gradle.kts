@@ -3,6 +3,18 @@ plugins {
     id("castells.android.compose")
 }
 
+// The build profile. `public` is the app in the stores: the calculator, the score table and
+// their settings. `internal` is a separate development app, with its own identifier and
+// name, that adds Hora a Hora, Agenda, their settings and the news notifications. It is
+// chosen when building, with -Pcastells.buildProfile or CASTELLS_BUILD_PROFILE, and only the
+// chosen profile's variants exist. The default is public.
+val buildProfile: String = providers.gradleProperty("castells.buildProfile")
+    .orElse(providers.environmentVariable("CASTELLS_BUILD_PROFILE"))
+    .getOrElse("public")
+require(buildProfile in setOf("public", "internal")) {
+    "CASTELLS_BUILD_PROFILE must be public or internal, not \"$buildProfile\""
+}
+
 // The API the app talks to. Release builds always use castells.apiBaseUrl (production).
 // Debug builds use castells.apiBaseUrl.debug, a local backend, so testing never reaches
 // production; CASTELLS_API_BASE_URL overrides it.
@@ -26,6 +38,19 @@ android {
         applicationId = "com.ahuguet.castellsenvena"
         versionCode = providers.gradleProperty("castells.versionCode").orNull?.toInt() ?: 1
         versionName = "1.3"
+    }
+
+    flavorDimensions += "profile"
+    productFlavors {
+        create("public") {
+            dimension = "profile"
+        }
+        create("internal") {
+            dimension = "profile"
+            // An app of its own: it installs next to the public one and can never replace it.
+            applicationIdSuffix = ".internal"
+            versionNameSuffix = "-internal"
+        }
     }
 
     buildFeatures {
@@ -65,11 +90,15 @@ android {
     }
 }
 
+androidComponents {
+    beforeVariants { variant ->
+        variant.enable = variant.flavorName == buildProfile
+    }
+}
+
 dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.data)
-    implementation(projects.feature.hourbyhour.ui)
-    implementation(projects.feature.agenda.ui)
     implementation(projects.feature.calculator.ui)
     implementation(projects.feature.scoretable.ui)
     implementation(projects.feature.settings.ui)
@@ -82,9 +111,25 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.sqldelight.android.driver)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging)
+
+    // Only the internal app: Hora a Hora, Agenda, their settings and the news notifications.
+    "internalImplementation"(projects.feature.hourbyhour.ui)
+    "internalImplementation"(projects.feature.agenda.ui)
+    "internalImplementation"(projects.feature.internalsettings.ui)
+    "internalImplementation"(platform(libs.firebase.bom))
+    "internalImplementation"(libs.firebase.messaging)
     // Play services bring Fragment 1.1, whose permission results break the
     // Activity Result API used for the notification permission.
-    implementation(libs.androidx.fragment)
+    "internalImplementation"(libs.androidx.fragment)
+}
+
+// Firebase Cloud Messaging reads the Firebase project from google-services.json, which stays
+// out of the repository. Only the internal app uses it, and only if the file lists the
+// internal app; otherwise the internal app builds with news notifications unavailable.
+val googleServices = file("google-services.json")
+if (buildProfile == "internal" &&
+    googleServices.isFile &&
+    googleServices.readText().contains("\"com.ahuguet.castellsenvena.internal\"")
+) {
+    pluginManager.apply("com.google.gms.google-services")
 }

@@ -1,4 +1,4 @@
-package com.ahuguet.castellsenvena.feature.settings.presentation
+package com.ahuguet.castellsenvena.feature.internalsettings.presentation
 
 import com.ahuguet.castellsenvena.core.common.userMessage
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
@@ -40,7 +40,7 @@ enum class NotificationOnboardingAction {
     DISMISS,
 }
 
-data class SettingsState(
+data class InternalSettingsState(
     val notificationStatus: HourByHourNotificationStatus = HourByHourNotificationStatus.LOADING,
     val isUpdatingNotifications: Boolean = false,
     val notificationErrorMessage: String? = null,
@@ -61,7 +61,12 @@ data class SettingsState(
         ) && !isUpdatingNotifications
 }
 
-class SettingsModel(
+/**
+ * The settings of the internal app's own sections: the news notifications, their
+ * onboarding in Hora a Hora, and the secret gesture that shows or hides Hora a Hora
+ * and Agenda.
+ */
+class InternalSettingsModel(
     private val notificationManager: HourByHourNotificationManaging,
     notificationOnboardingDismissed: Boolean = false,
     private val persistNotificationOnboardingDismissal: (Boolean) -> Unit = {},
@@ -70,12 +75,12 @@ class SettingsModel(
     private val nowMillis: () -> Long = { System.nanoTime() / 1_000_000 },
 ) {
     private val mutableState = MutableStateFlow(
-        SettingsState(
+        InternalSettingsState(
             isNotificationOnboardingDismissed = notificationOnboardingDismissed,
             showsHiddenSections = hiddenSections?.isUnlocked ?: false,
         ),
     )
-    val state: StateFlow<SettingsState> = mutableState.asStateFlow()
+    val state: StateFlow<InternalSettingsState> = mutableState.asStateFlow()
     private val secretTaps = SecretTapSequence()
 
     suspend fun refreshNotificationStatus() {
@@ -98,6 +103,19 @@ class SettingsModel(
         preferences.setUnlocked(!preferences.isUnlocked)
         mutableState.update { it.copy(showsHiddenSections = preferences.isUnlocked) }
         return true
+    }
+
+    /**
+     * Counts a tap on the version row. When the tap completes the secret gesture, returns
+     * what the row says for a moment; null otherwise.
+     */
+    fun versionTapMessage(): String? {
+        if (!registerSecretTap()) return null
+        return if (state.value.showsHiddenSections) {
+            "S'han activat Hora a Hora i Agenda"
+        } else {
+            "S'han amagat Hora a Hora i Agenda"
+        }
     }
 
     suspend fun setMinimumInterest(value: NotificationInterestLevel) {

@@ -1,4 +1,4 @@
-package com.ahuguet.castellsenvena.feature.settings.presentation
+package com.ahuguet.castellsenvena.feature.internalsettings.presentation
 
 /** Seven quick taps on the version in Ajustos show or hide the sections hidden by default. */
 internal class SecretTapSequence {

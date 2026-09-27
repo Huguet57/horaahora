@@ -11,8 +11,8 @@ import com.ahuguet.castellsenvena.core.data.notifications.PushSubscriptionCoordi
 import com.ahuguet.castellsenvena.core.data.storage.KeyValueStore
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationGroupSelection
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
-import com.ahuguet.castellsenvena.feature.settings.presentation.HourByHourNotificationManaging
-import com.ahuguet.castellsenvena.feature.settings.presentation.HourByHourNotificationStatus
+import com.ahuguet.castellsenvena.feature.internalsettings.presentation.HourByHourNotificationManaging
+import com.ahuguet.castellsenvena.feature.internalsettings.presentation.HourByHourNotificationStatus
 
 /**
  * News notifications on Android: the system permission, the user's choice in

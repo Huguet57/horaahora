@@ -3,6 +3,5 @@ plugins {
 }
 
 dependencies {
-    api(projects.core.domain)
-    api(libs.kotlinx.coroutines.core)
+    implementation(projects.core.common)
 }

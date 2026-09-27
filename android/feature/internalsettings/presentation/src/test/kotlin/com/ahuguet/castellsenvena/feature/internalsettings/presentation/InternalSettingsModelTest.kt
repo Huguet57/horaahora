@@ -1,19 +1,19 @@
-package com.ahuguet.castellsenvena.feature.settings.presentation
+package com.ahuguet.castellsenvena.feature.internalsettings.presentation
 
 import com.ahuguet.castellsenvena.core.common.UserFacingFailure
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
-import java.net.URLDecoder
+import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsCredit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 
-class SettingsModelTest {
+class InternalSettingsModelTest {
     @Test
     fun thresholdCanChangeBeforeEnablingAndExposesPendingSync() = runTest {
         val manager = NotificationManagerStub(initialStatus = HourByHourNotificationStatus.NOT_DETERMINED)
-        val model = SettingsModel(manager)
+        val model = InternalSettingsModel(manager)
         model.refreshNotificationStatus()
         assertEquals(NotificationInterestLevel.HIGH, model.state.value.minimumInterest)
 
@@ -30,7 +30,7 @@ class SettingsModelTest {
 
     @Test
     fun refreshExposesPendingPermissionAndShowsOnboarding() = runTest {
-        val model = SettingsModel(
+        val model = InternalSettingsModel(
             NotificationManagerStub(initialStatus = HourByHourNotificationStatus.NOT_DETERMINED),
             notificationOnboardingDismissed = false,
         )
@@ -48,7 +48,7 @@ class SettingsModelTest {
             initialStatus = HourByHourNotificationStatus.NOT_DETERMINED,
             enabledStatus = HourByHourNotificationStatus.ENABLED,
         )
-        val model = SettingsModel(manager)
+        val model = InternalSettingsModel(manager)
 
         model.setHourByHourNotificationsEnabled(true)
 
@@ -59,7 +59,7 @@ class SettingsModelTest {
 
     @Test
     fun deniedPermissionIsExposedAsBlockedBySystem() = runTest {
-        val model = SettingsModel(
+        val model = InternalSettingsModel(
             NotificationManagerStub(
                 initialStatus = HourByHourNotificationStatus.NOT_DETERMINED,
                 enabledStatus = HourByHourNotificationStatus.DENIED,
@@ -79,7 +79,7 @@ class SettingsModelTest {
             initialStatus = HourByHourNotificationStatus.ENABLED,
             disabledStatus = HourByHourNotificationStatus.DISABLED,
         )
-        val model = SettingsModel(manager)
+        val model = InternalSettingsModel(manager)
 
         model.setHourByHourNotificationsEnabled(false)
 
@@ -90,7 +90,7 @@ class SettingsModelTest {
     @Test
     fun returningFromSystemSettingsRefreshesDeniedPermission() = runTest {
         val manager = NotificationManagerStub(initialStatus = HourByHourNotificationStatus.DENIED)
-        val model = SettingsModel(manager)
+        val model = InternalSettingsModel(manager)
         model.refreshNotificationStatus()
         manager.currentStatusValue = HourByHourNotificationStatus.ENABLED
 
@@ -104,7 +104,7 @@ class SettingsModelTest {
     fun openingSystemSettingsUsesTheInjectedPort() = runTest {
         val manager = NotificationManagerStub(initialStatus = HourByHourNotificationStatus.DENIED)
 
-        SettingsModel(manager).openSystemSettings()
+        InternalSettingsModel(manager).openSystemSettings()
 
         assertEquals(1, manager.openSystemSettingsCallCount)
     }
@@ -112,7 +112,7 @@ class SettingsModelTest {
     @Test
     fun onboardingCanBeDismissedAndPersistsTheChoice() {
         var persistedValue: Boolean? = null
-        val model = SettingsModel(
+        val model = InternalSettingsModel(
             NotificationManagerStub(initialStatus = HourByHourNotificationStatus.NOT_DETERMINED),
             notificationOnboardingDismissed = false,
             persistNotificationOnboardingDismissal = { persistedValue = it },
@@ -128,7 +128,7 @@ class SettingsModelTest {
     @Test
     fun onboardingConfigureActionOpensSettingsWithoutDismissingIt() {
         var didOpenSettings = false
-        val model = SettingsModel(NotificationManagerStub(initialStatus = HourByHourNotificationStatus.NOT_DETERMINED))
+        val model = InternalSettingsModel(NotificationManagerStub(initialStatus = HourByHourNotificationStatus.NOT_DETERMINED))
         model.setNotificationStatusForTesting(HourByHourNotificationStatus.NOT_DETERMINED)
 
         model.handleNotificationOnboarding(NotificationOnboardingAction.CONFIGURE) { didOpenSettings = true }
@@ -143,7 +143,7 @@ class SettingsModelTest {
             initialStatus = HourByHourNotificationStatus.ENABLED,
             failure = StubFailure(),
         )
-        val model = SettingsModel(manager)
+        val model = InternalSettingsModel(manager)
         model.refreshNotificationStatus()
 
         model.setHourByHourNotificationsEnabled(false)
@@ -155,7 +155,7 @@ class SettingsModelTest {
 
     @Test
     fun unavailablePushCannotBeToggled() = runTest {
-        val model = SettingsModel(NotificationManagerStub(initialStatus = HourByHourNotificationStatus.UNAVAILABLE))
+        val model = InternalSettingsModel(NotificationManagerStub(initialStatus = HourByHourNotificationStatus.UNAVAILABLE))
 
         model.refreshNotificationStatus()
 
@@ -164,54 +164,30 @@ class SettingsModelTest {
     }
 
     @Test
-    fun privacyUrlIsBuiltBelowTheInjectedApiBaseUrl() {
-        assertEquals(
-            "https://example.test/service/privacy",
-            configuration(apiBaseUrl = "https://example.test/service/").privacyUrl,
+    fun theInternalSourcesAreCreditedWithTheirOfficialPages() {
+        val sources = InternalSources(
+            revistaCastellsUrl = "https://revistacastells.cat/castells-hora-a-hora/",
+            elMonCastellerUrl = "https://www.elmoncasteller.cat/",
+            ccccAgendaUrl = null,
         )
-        assertEquals("https://example.test/privacy", configuration(apiBaseUrl = "https://example.test").privacyUrl)
+
+        assertEquals(
+            listOf(
+                SettingsCredit(
+                    "Revista Castells",
+                    "Font de l'Hora a Hora",
+                    "https://revistacastells.cat/castells-hora-a-hora/",
+                ),
+                SettingsCredit(
+                    "El Món Casteller",
+                    "Notícies, opinió, entrevistes i cròniques de l'Hora a Hora",
+                    "https://www.elmoncasteller.cat/",
+                ),
+                SettingsCredit("Coordinadora de Colles Castelleres de Catalunya (CCCC)", "Font de l'Agenda", null),
+            ),
+            sources.credits,
+        )
     }
-
-    @Test
-    fun supportEmailUrlIncludesEditableEncodedMetadata() {
-        val url = configuration(
-            supportEmail = "suport+castells@example.test",
-            appVersion = "2.4",
-            buildNumber = "91",
-            technicalIdentifier = "ABC 123/ç",
-        ).supportEmailUrl
-
-        assertTrue(url.startsWith("mailto:suport+castells@example.test?"))
-        val query = url.substringAfter('?').split('&').associate { parameter ->
-            parameter.substringBefore('=') to URLDecoder.decode(parameter.substringAfter('='), Charsets.UTF_8)
-        }
-        assertEquals("Suport La calculadora de l'Aleta", query["subject"])
-        assertTrue(query.getValue("body").contains("Versió: 2.4 (91)"))
-        assertTrue(query.getValue("body").contains("Identificador tècnic: ABC 123/ç"))
-        assertTrue(url.contains("%0A"))
-        assertTrue(url.contains("%C3%A7"))
-        assertFalse(url.contains(' '))
-        assertEquals("Versió 2.4 (91)", configuration(appVersion = "2.4", buildNumber = "91").versionAndBuild)
-    }
-
-    private fun configuration(
-        apiBaseUrl: String = "https://example.test",
-        supportEmail: String = "support@example.test",
-        appVersion: String = "1.0",
-        buildNumber: String = "1",
-        technicalIdentifier: String = "test-id",
-    ) = SettingsConfiguration(
-        apiBaseUrl = apiBaseUrl,
-        supportEmail = supportEmail,
-        appName = "La calculadora de l'Aleta",
-        appVersion = appVersion,
-        buildNumber = buildNumber,
-        technicalIdentifier = technicalIdentifier,
-        revistaCastellsUrl = "https://revistacastells.cat/castells-hora-a-hora/",
-        elMonCastellerUrl = "https://www.elmoncasteller.cat/",
-        ccccAgendaUrl = "https://castellscat.cat/public/ca/agenda",
-        concursCastellsUrl = null,
-    )
 
     private class StubFailure : Exception(), UserFacingFailure {
         override val userMessage = "No s'ha pogut canviar la configuració."

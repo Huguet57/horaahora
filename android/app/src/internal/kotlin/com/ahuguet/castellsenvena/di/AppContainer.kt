@@ -2,80 +2,52 @@ package com.ahuguet.castellsenvena.di
 
 import android.content.Context
 import android.os.SystemClock
-import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import com.ahuguet.castellsenvena.BuildConfig
 import com.ahuguet.castellsenvena.core.data.agenda.CachedAgendaRepository
 import com.ahuguet.castellsenvena.core.data.agenda.KeyValueAgendaFilterStore
-import com.ahuguet.castellsenvena.core.data.chat.DatabaseChatRepository
 import com.ahuguet.castellsenvena.core.data.groups.RemoteGroupDirectoryRepository
 import com.ahuguet.castellsenvena.core.data.hourbyhour.CachedHourByHourRepository
 import com.ahuguet.castellsenvena.core.data.notifications.NotificationPreferenceStore
 import com.ahuguet.castellsenvena.core.data.notifications.PushSubscriptionCoordinator
 import com.ahuguet.castellsenvena.core.data.settings.KeyValueHiddenSectionsStore
-import com.ahuguet.castellsenvena.core.data.storage.InstallationIdentifierStore
-import com.ahuguet.castellsenvena.core.database.CastellsDatabase
 import com.ahuguet.castellsenvena.core.domain.agenda.AgendaGroupSelection
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationGroupSelection
-import com.ahuguet.castellsenvena.core.network.ApiClient
 import com.ahuguet.castellsenvena.core.network.service.HttpAgendaRemoteService
-import com.ahuguet.castellsenvena.core.network.service.HttpChatRemoteService
 import com.ahuguet.castellsenvena.core.network.service.HttpGroupDirectoryRemoteService
 import com.ahuguet.castellsenvena.core.network.service.HttpHourByHourRemoteService
 import com.ahuguet.castellsenvena.core.network.service.HttpPushSubscriptionRemoteService
 import com.ahuguet.castellsenvena.feature.agenda.presentation.AgendaViewModel
-import com.ahuguet.castellsenvena.feature.calculator.presentation.ConversationListViewModel
 import com.ahuguet.castellsenvena.feature.hourbyhour.presentation.HourByHourViewModel
-import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsModel
+import com.ahuguet.castellsenvena.feature.internalsettings.presentation.InternalSettingsModel
+import com.ahuguet.castellsenvena.feature.internalsettings.presentation.InternalSources
 import com.ahuguet.castellsenvena.navigation.CastellsAppModels
 import com.ahuguet.castellsenvena.notifications.AndroidHourByHourNotificationManager
 import com.ahuguet.castellsenvena.notifications.FirebasePushTokenProvider
 import com.ahuguet.castellsenvena.notifications.NotificationPermissionRequester
-import com.ahuguet.castellsenvena.platform.SharedPreferencesKeyValueStore
 import com.ahuguet.castellsenvena.startup.StartupGate
 import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * The composition root: builds the app's objects once per process and wires
- * them together, like `AppDependencies` on iOS.
+ * The composition root of the internal app: the calculator and the score table that the
+ * public app has, plus Hora a Hora, Agenda, their settings and the news notifications.
+ * Like `AppDependencies` on iOS, it builds the app's objects once per process.
  */
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
+    private val core = CoreContainer(appContext)
 
     /** Work that must outlive a screen: sends, deletions, subscription writes. */
-    val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val applicationScope: CoroutineScope get() = core.applicationScope
 
-    val startupGate = StartupGate(now = SystemClock::uptimeMillis)
+    val startupGate: StartupGate get() = core.startupGate
 
-    private val keyValueStore = SharedPreferencesKeyValueStore(
-        appContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE),
-    )
-
-    val configuration = AppConfiguration(
-        apiBaseUrl = BuildConfig.API_BASE_URL,
-        pushEnvironment = BuildConfig.PUSH_ENVIRONMENT,
-        appVersion = BuildConfig.VERSION_NAME,
-        buildNumber = BuildConfig.VERSION_CODE.toString(),
-        technicalIdentifier = InstallationIdentifierStore(keyValueStore).currentIdentifier(),
-    )
-
-    private val apiClient = ApiClient(baseUrl = configuration.apiBaseUrl)
-    private val database = CastellsDatabase(
-        AndroidSqliteDriver(schema = CastellsDatabase.Schema, context = appContext, name = DATABASE_NAME),
-    )
-
+    private val configuration = core.configuration
+    private val keyValueStore = core.keyValueStore
     private val agendaFilterStore = KeyValueAgendaFilterStore(keyValueStore)
-    private val chatRepository = DatabaseChatRepository(
-        database = database,
-        remoteService = HttpChatRemoteService(apiClient),
-        installationId = configuration.technicalIdentifier,
-    )
 
     val pushSubscriptionCoordinator = PushSubscriptionCoordinator(
-        remoteService = HttpPushSubscriptionRemoteService(apiClient),
+        remoteService = HttpPushSubscriptionRemoteService(core.apiClient),
         installationId = configuration.technicalIdentifier,
         appVersion = "${configuration.appVersion} (${configuration.buildNumber})",
         locale = Locale.getDefault().toLanguageTag(),
@@ -102,7 +74,7 @@ class AppContainer(context: Context) {
         },
     )
 
-    private val settingsModel = SettingsModel(
+    private val settingsModel = InternalSettingsModel(
         notificationManager = notificationManager,
         notificationOnboardingDismissed = keyValueStore.getBoolean(NOTIFICATION_ONBOARDING_DISMISSED_KEY) ?: false,
         persistNotificationOnboardingDismissal = { dismissed ->
@@ -114,17 +86,18 @@ class AppContainer(context: Context) {
 
     val models = CastellsAppModels(
         hourByHour = HourByHourViewModel(
-            repository = CachedHourByHourRepository(HttpHourByHourRemoteService(apiClient), database),
+            repository = CachedHourByHourRepository(HttpHourByHourRemoteService(core.apiClient), core.database),
         ),
         agenda = AgendaViewModel(
-            repository = CachedAgendaRepository(HttpAgendaRemoteService(apiClient), database),
-            groupDirectoryRepository = RemoteGroupDirectoryRepository(HttpGroupDirectoryRemoteService(apiClient)),
+            repository = CachedAgendaRepository(HttpAgendaRemoteService(core.apiClient), core.database),
+            groupDirectoryRepository = RemoteGroupDirectoryRepository(HttpGroupDirectoryRemoteService(core.apiClient)),
             filterStore = agendaFilterStore,
         ),
-        conversationList = ConversationListViewModel(chatRepository),
-        chatRepository = chatRepository,
+        conversationList = core.conversationList,
+        chatRepository = core.chatRepository,
         settings = settingsModel,
         settingsConfiguration = configuration.settingsConfiguration,
+        sources = SOURCES,
         actionScope = applicationScope,
     )
 
@@ -140,8 +113,13 @@ class AppContainer(context: Context) {
     }
 
     private companion object {
-        const val PREFERENCES_NAME = "castells"
-        const val DATABASE_NAME = "castells.db"
         const val NOTIFICATION_ONBOARDING_DISMISSED_KEY = "castells.hour-by-hour.notification-onboarding-dismissed"
+
+        /** Where Hora a Hora and Agenda take their data from. */
+        val SOURCES = InternalSources(
+            revistaCastellsUrl = "https://revistacastells.cat/castells-hora-a-hora/",
+            elMonCastellerUrl = "https://www.elmoncasteller.cat/",
+            ccccAgendaUrl = "https://castellscat.cat/public/ca/agenda",
+        )
     }
 }

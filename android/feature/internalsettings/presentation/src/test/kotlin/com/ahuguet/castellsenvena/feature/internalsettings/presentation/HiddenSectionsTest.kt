@@ -1,4 +1,4 @@
-package com.ahuguet.castellsenvena.feature.settings.presentation
+package com.ahuguet.castellsenvena.feature.internalsettings.presentation
 
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
 import com.ahuguet.castellsenvena.core.domain.settings.HiddenSectionsPreferences
@@ -30,6 +30,16 @@ class HiddenSectionsTest {
     }
 
     @Test
+    fun theVersionRowSaysWhatTheGestureDid() {
+        val model = model(HiddenSectionsStub())
+
+        assertEquals(List(6) { null }, List(6) { versionTap(model) })
+        assertEquals("S'han activat Hora a Hora i Agenda", versionTap(model))
+        assertEquals(List(6) { null }, List(6) { versionTap(model) })
+        assertEquals("S'han amagat Hora a Hora i Agenda", versionTap(model))
+    }
+
+    @Test
     fun aPauseStartsTheSequenceAgain() {
         val model = model(HiddenSectionsStub())
         tap(model, times = 6)
@@ -46,7 +56,7 @@ class HiddenSectionsTest {
     @Test
     fun usersWhoAlreadyGetNewsKeepTheHiddenSections() = runTest {
         val preferences = HiddenSectionsStub()
-        val model = SettingsModel(StatusStub(HourByHourNotificationStatus.ENABLED), hiddenSections = preferences)
+        val model = InternalSettingsModel(StatusStub(HourByHourNotificationStatus.ENABLED), hiddenSections = preferences)
 
         model.refreshNotificationStatus()
 
@@ -57,7 +67,7 @@ class HiddenSectionsTest {
     @Test
     fun everybodyElseStartsWithoutThem() = runTest {
         val preferences = HiddenSectionsStub()
-        val model = SettingsModel(StatusStub(HourByHourNotificationStatus.NOT_DETERMINED), hiddenSections = preferences)
+        val model = InternalSettingsModel(StatusStub(HourByHourNotificationStatus.NOT_DETERMINED), hiddenSections = preferences)
 
         model.refreshNotificationStatus()
 
@@ -73,17 +83,22 @@ class HiddenSectionsTest {
         assertFalse(model.state.value.showsHiddenSections)
     }
 
-    private fun model(preferences: HiddenSectionsStub?) = SettingsModel(
+    private fun model(preferences: HiddenSectionsStub?) = InternalSettingsModel(
         notificationManager = StatusStub(HourByHourNotificationStatus.NOT_DETERMINED),
         hiddenSections = preferences,
         nowMillis = { clock },
     )
 
-    private fun tap(model: SettingsModel, times: Int): List<Boolean> = List(times) { tapOnce(model) }
+    private fun tap(model: InternalSettingsModel, times: Int): List<Boolean> = List(times) { tapOnce(model) }
 
-    private fun tapOnce(model: SettingsModel): Boolean {
+    private fun tapOnce(model: InternalSettingsModel): Boolean {
         clock += 400
         return model.registerSecretTap()
+    }
+
+    private fun versionTap(model: InternalSettingsModel): String? {
+        clock += 400
+        return model.versionTapMessage()
     }
 }
 
