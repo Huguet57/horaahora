@@ -7,11 +7,12 @@ from datetime import UTC, datetime
 
 import requests
 
-from backend.adapters.content.el_mon_casteller_rss import parse_feed
+from backend.adapters.content.el_mon_casteller_rss import SOURCE_ID, parse_feed
 from backend.domain.content.models import HourByHourItem
 
 
 class ElMonCastellerRSSSource:
+    SOURCE_ID = SOURCE_ID
     FEED_URLS = tuple(
         f"https://www.elmoncasteller.cat/category/{category}/feed/"
         for category in ("noticies", "opinio", "entrevistes", "cronica")
