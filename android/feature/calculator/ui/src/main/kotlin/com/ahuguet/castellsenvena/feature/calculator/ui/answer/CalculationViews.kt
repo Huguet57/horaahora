@@ -56,7 +56,7 @@ internal fun ComparisonTable(presentation: ComparisonPresentation) {
         SectionLabel(Icons.Outlined.TableChart, "Comparativa")
         TableSurface {
             val header = TableRow.Cells(
-                listOf<@Composable () -> Unit>({ Text("Castell", style = cellStyle, color = CastellsTheme.colors.secondaryText) }) +
+                listOf<@Composable () -> Unit>({ Text("Castell", style = cellStyle, color = MaterialTheme.colorScheme.onSurfaceVariant) }) +
                     presentation.columns.map { column ->
                         {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -77,7 +77,7 @@ internal fun ComparisonTable(presentation: ComparisonPresentation) {
             val castellRows = (0 until presentation.maximumCastellCount).map { index ->
                 TableRow.Cells(
                     listOf<@Composable () -> Unit>({
-                        Text("${index + 1}", style = detailStyle, color = CastellsTheme.colors.tertiaryText)
+                        Text("${index + 1}", style = detailStyle, color = MaterialTheme.colorScheme.outline)
                     }) + presentation.columns.map { column -> { ComparisonCastellCell(column.castells.getOrNull(index)) } },
                 )
             }
@@ -107,7 +107,7 @@ internal fun ComparisonTable(presentation: ComparisonPresentation) {
 @Composable
 private fun ComparisonCastellCell(castell: ComparisonPresentation.Castell?) {
     if (castell == null) {
-        Text("—", style = cellStyle, color = CastellsTheme.colors.tertiaryText)
+        Text("—", style = cellStyle, color = MaterialTheme.colorScheme.outline)
         return
     }
     Column(horizontalAlignment = Alignment.End, modifier = Modifier.alpha(if (castell.counted) 1f else 0.55f)) {
@@ -116,7 +116,7 @@ private fun ComparisonCastellCell(castell: ComparisonPresentation.Castell?) {
         Text(
             text = "${castell.result} · ${CatalanNumbers.grouped(castell.points)}$suffix",
             style = detailStyle.merge(TabularNumbers),
-            color = CastellsTheme.colors.secondaryText,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -126,7 +126,7 @@ internal fun ScoreRanking(presentation: ScorePresentation) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SectionLabel(Icons.Filled.FormatListNumbered, presentation.title)
         TableSurface {
-            val secondary = CastellsTheme.colors.secondaryText
+            val secondary = MaterialTheme.colorScheme.onSurfaceVariant
             val pointHeaders = when (presentation.outcome) {
                 ScorePresentation.Outcome.LOADED -> listOf("Carregat")
                 ScorePresentation.Outcome.UNLOADED -> listOf("Descarregat")
@@ -195,12 +195,12 @@ internal fun PerformanceSummary(presentation: PerformanceSummaryPresentation) {
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(row.notation, style = notationStyle)
-                        Text(row.result, style = detailStyle, color = CastellsTheme.colors.secondaryText)
+                        Text(row.result, style = detailStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(
                         text = CatalanNumbers.grouped(row.points),
                         style = cellStyle.merge(TabularNumbers),
-                        color = if (row.counted) LocalContentColor.current else CastellsTheme.colors.secondaryText,
+                        color = if (row.counted) LocalContentColor.current else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -232,7 +232,7 @@ private fun TableSurface(content: @Composable () -> Unit) {
 
 @Composable
 private fun SectionLabel(icon: ImageVector, text: String, emphasized: Boolean = false) {
-    val color = if (emphasized) LocalContentColor.current else CastellsTheme.colors.secondaryText
+    val color = if (emphasized) LocalContentColor.current else MaterialTheme.colorScheme.onSurfaceVariant
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
         Text(text = text, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = color)

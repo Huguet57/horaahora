@@ -31,7 +31,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.TabularNumbers
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarFold
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarMath
@@ -126,7 +125,7 @@ private fun WeekdayHeader() {
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = CastellsTheme.colors.tertiaryText,
+                color = MaterialTheme.colorScheme.outline,
                 textAlign = TextAlign.Center,
             )
         }

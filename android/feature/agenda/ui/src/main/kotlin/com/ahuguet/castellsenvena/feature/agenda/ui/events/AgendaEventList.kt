@@ -45,7 +45,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 import com.ahuguet.castellsenvena.core.domain.agenda.AgendaSourceStatus
 import com.ahuguet.castellsenvena.core.domain.agenda.CastellEvent
@@ -105,7 +104,7 @@ internal fun AgendaEventList(
                             Text(
                                 text = "No hi ha actuacions de les colles seleccionades",
                                 style = MaterialTheme.typography.titleSmall,
-                                color = CastellsTheme.colors.secondaryText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = animated()
                                     .fillMaxWidth()
@@ -154,7 +153,7 @@ internal fun AgendaEventList(
                 Text(
                     text = "No hi ha actuacions aquest dia",
                     style = MaterialTheme.typography.titleSmall,
-                    color = CastellsTheme.colors.secondaryText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -167,13 +166,13 @@ internal fun AgendaEventList(
 
 @Composable
 private fun OtherEventsDisclosure(count: Int, isExpanded: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
-    val color = CastellsTheme.colors.secondaryText
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(CastellsTheme.colors.card)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(
                 onClickLabel = if (isExpanded) "Plega les actuacions" else "Mostra les actuacions",
                 onClick = onToggle,
@@ -208,14 +207,14 @@ private fun OfficialAgendaFallback(message: String, onRetry: () -> Unit, onOpenO
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CastellsTheme.colors.card, RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
             .padding(start = 14.dp, top = 14.dp, end = 14.dp, bottom = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(
             imageVector = Icons.Filled.WifiOff,
             contentDescription = null,
-            tint = CastellsTheme.colors.secondaryText,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(22.dp),
         )
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -224,7 +223,7 @@ private fun OfficialAgendaFallback(message: String, onRetry: () -> Unit, onOpenO
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
-            Text(text = message, style = MaterialTheme.typography.bodySmall, color = CastellsTheme.colors.secondaryText)
+            Text(text = message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row {
                 TextButton(onClick = onRetry, contentPadding = PaddingValues(end = 12.dp)) {
                     Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))

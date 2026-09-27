@@ -1,6 +1,5 @@
 package com.ahuguet.castellsenvena.feature.agenda.ui.groupfilter
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,9 +8,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -28,9 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -45,21 +42,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.core.designsystem.component.ContentUnavailable
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedCard
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedDivider
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedRow
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedSectionFooter
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedSectionHeader
-import com.ahuguet.castellsenvena.core.designsystem.component.groupedItemShape
+import com.ahuguet.castellsenvena.core.designsystem.component.ListRow
+import com.ahuguet.castellsenvena.core.designsystem.component.SectionFooter
+import com.ahuguet.castellsenvena.core.designsystem.component.SectionHeader
 import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.feature.agenda.presentation.AgendaViewModel
 import com.ahuguet.castellsenvena.feature.agenda.presentation.groupfilter.AgendaGroupFilterState
@@ -68,7 +60,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Chooses the groups the Agenda and the news notifications follow, and the
- * groups featured at the top of the list.
+ * groups featured at the top of the list. Every choice applies at once, so
+ * the sheet closes like any other: dragged down, with back or tapping outside.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,28 +75,16 @@ internal fun AgendaGroupFilterSheet(
     val scope = rememberCoroutineScope()
     var query by rememberSaveable { mutableStateOf("") }
     val reloadDirectory: () -> Unit = { scope.launch { model.loadGroupDirectory(forceRefresh = true) } }
-    val close: () -> Unit = {
-        scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
-    }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = CastellsTheme.colors.groupedBackground,
-    ) {
-        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
-            Text(
-                text = "Filtra per colles",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .semantics { heading() },
-            )
-            TextButton(onClick = close, modifier = Modifier.align(Alignment.CenterEnd)) {
-                Text("Fet", fontWeight = FontWeight.SemiBold)
-            }
-        }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Text(
+            text = "Filtra per colles",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                .semantics { heading() },
+        )
 
         if (filter.availableGroups.isEmpty()) {
             ContentUnavailable(
@@ -131,40 +112,35 @@ internal fun AgendaGroupFilterSheet(
                 )
                 if (query.isBlank()) {
                     item(key = "bulk:all") {
-                        GroupedCard(modifier = Modifier.padding(top = 8.dp)) {
-                            BulkSelectionRow(
-                                title = "Totes les colles",
-                                isSelected = !filter.isActive,
-                                onClick = model::toggleFollowingAllGroups,
-                            )
-                        }
+                        BulkSelectionRow(
+                            title = "Totes les colles",
+                            isSelected = !filter.isActive,
+                            onClick = model::toggleFollowingAllGroups,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
                     }
                     if (filter.featuredGroups.isNotEmpty()) {
-                        item(key = "header:featured") { GroupedSectionHeader("Colles destacades") }
+                        item(key = "header:featured") { SectionHeader("Colles destacades") }
                         item(key = "bulk:featured") {
-                            GroupCell(shape = groupedItemShape(0, filter.featuredGroups.size + 1), showsDivider = true) {
-                                BulkSelectionRow(
-                                    title = "Totes les destacades",
-                                    isSelected = filter.areAllFeaturedGroupsFollowed,
-                                    onClick = model::toggleFollowingFeaturedGroups,
-                                )
-                            }
+                            BulkSelectionRow(
+                                title = "Totes les destacades",
+                                isSelected = filter.areAllFeaturedGroupsFollowed,
+                                onClick = model::toggleFollowingFeaturedGroups,
+                            )
                         }
-                        groupRows(filter.featuredGroups, keyPrefix = "featured", actions = rowActions, leadingRows = 1)
+                        groupRows(filter.featuredGroups, keyPrefix = "featured", actions = rowActions)
                     }
-                    item(key = "header:all") { GroupedSectionHeader("Totes les colles") }
+                    item(key = "header:all") { SectionHeader("Totes les colles") }
                     groupRows(filter.availableGroups, keyPrefix = "all", actions = rowActions)
                 } else {
-                    item(key = "header:results") { GroupedSectionHeader("Resultats") }
+                    item(key = "header:results") { SectionHeader("Resultats") }
                     if (results.isEmpty()) {
                         item(key = "no-results") {
-                            GroupedCard {
-                                Text(
-                                    text = "No s'ha trobat cap colla",
-                                    color = CastellsTheme.colors.secondaryText,
-                                    modifier = Modifier.padding(16.dp),
-                                )
-                            }
+                            Text(
+                                text = "No s'ha trobat cap colla",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(16.dp),
+                            )
                         }
                     } else {
                         groupRows(results, keyPrefix = "result", actions = rowActions)
@@ -173,15 +149,13 @@ internal fun AgendaGroupFilterSheet(
 
                 if (directoryErrorMessage != null) {
                     item(key = "directory-error") {
-                        Column(modifier = Modifier.padding(top = 24.dp)) {
-                            GroupedCard {
-                                GroupedRow(
-                                    title = "Torna a carregar el directori",
-                                    titleColor = MaterialTheme.colorScheme.primary,
-                                    onClick = reloadDirectory,
-                                )
-                            }
-                            GroupedSectionFooter(
+                        Column(modifier = Modifier.padding(top = 16.dp)) {
+                            ListRow(
+                                title = "Torna a carregar el directori",
+                                titleColor = MaterialTheme.colorScheme.primary,
+                                onClick = reloadDirectory,
+                            )
+                            SectionFooter(
                                 "No s'ha pogut actualitzar el directori. Es mostra l'última còpia disponible.",
                             )
                         }
@@ -198,41 +172,15 @@ private class GroupRowActions(
     val onToggleFeatured: (String) -> Unit,
 )
 
-/** Group rows inside one card; [leadingRows] rows of the card come before them. */
-private fun LazyListScope.groupRows(
-    groups: List<String>,
-    keyPrefix: String,
-    actions: GroupRowActions,
-    leadingRows: Int = 0,
-) {
-    val count = groups.size + leadingRows
-    itemsIndexed(groups, key = { _, name -> "$keyPrefix:$name" }, contentType = { _, _ -> "group" }) { index, name ->
-        val position = index + leadingRows
-        GroupCell(shape = groupedItemShape(position, count), showsDivider = position < count - 1) {
-            GroupFilterRow(
-                name = name,
-                isFollowing = actions.filter.isFollowing(name),
-                isFeatured = actions.filter.isFeatured(name),
-                onToggleFollowing = { actions.onToggleFollowing(name) },
-                onToggleFeatured = { actions.onToggleFeatured(name) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun GroupCell(shape: Shape, showsDivider: Boolean, content: @Composable () -> Unit) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = shape,
-        color = CastellsTheme.colors.groupedCard,
-    ) {
-        Column {
-            content()
-            if (showsDivider) GroupedDivider(startIndent = 56.dp)
-        }
+private fun LazyListScope.groupRows(groups: List<String>, keyPrefix: String, actions: GroupRowActions) {
+    items(groups, key = { name -> "$keyPrefix:$name" }, contentType = { "group" }) { name ->
+        GroupFilterRow(
+            name = name,
+            isFollowing = actions.filter.isFollowing(name),
+            isFeatured = actions.filter.isFeatured(name),
+            onToggleFollowing = { actions.onToggleFollowing(name) },
+            onToggleFeatured = { actions.onToggleFeatured(name) },
+        )
     }
 }
 
@@ -244,7 +192,7 @@ private fun GroupFilterRow(
     onToggleFollowing: () -> Unit,
     onToggleFeatured: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = Modifier.padding(end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -259,30 +207,27 @@ private fun GroupFilterRow(
             Icon(
                 imageVector = if (isFeatured) Icons.Filled.Star else Icons.Outlined.StarOutline,
                 contentDescription = if (isFeatured) "Treu $name de colles destacades" else "Destaca $name",
-                tint = if (isFeatured) CastellsTheme.colors.star else CastellsTheme.colors.secondaryText,
+                tint = if (isFeatured) CastellsTheme.colors.star else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
 @Composable
-private fun BulkSelectionRow(title: String, isSelected: Boolean, onClick: () -> Unit) {
+private fun BulkSelectionRow(title: String, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .toggleable(value = isSelected, role = Role.Checkbox, onValueChange = { onClick() })
             .padding(start = 4.dp, end = 16.dp, top = 2.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Checkbox(checked = isSelected, onCheckedChange = null, modifier = Modifier.padding(12.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-        )
+        Text(text = title, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
+/** A search field shaped like the Material search bar. */
 @Composable
 private fun GroupSearchField(query: String, onQueryChange: (String) -> Unit, onFocused: () -> Unit) {
     val focusManager = LocalFocusManager.current
@@ -305,10 +250,10 @@ private fun GroupSearchField(query: String, onQueryChange: (String) -> Unit, onF
             }
         },
         singleLine = true,
-        shape = RoundedCornerShape(12.dp),
+        shape = CircleShape,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),

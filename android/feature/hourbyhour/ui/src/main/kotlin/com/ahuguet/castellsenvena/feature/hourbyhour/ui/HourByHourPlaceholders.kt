@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.core.designsystem.component.SkeletonBlock
 import com.ahuguet.castellsenvena.core.designsystem.component.rememberPulseAlpha
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 
 /** Placeholder rows while the first page loads. */
 @Composable
@@ -45,21 +44,15 @@ internal fun HourByHourSkeleton() {
             SkeletonBlock(
                 width = 190.dp,
                 height = 14.dp,
-                modifier = Modifier.padding(start = 32.dp, top = 24.dp, bottom = 12.dp),
+                modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
             )
-            Surface(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = CastellsTheme.colors.groupedCard,
+                    .padding(PaddingValues(horizontal = 16.dp, vertical = 12.dp)),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                Column(
-                    modifier = Modifier.padding(PaddingValues(horizontal = 16.dp, vertical = 14.dp)),
-                    verticalArrangement = Arrangement.spacedBy(22.dp),
-                ) {
-                    repeat(3) { row -> SkeletonRow(showsSecondSummaryLine = (section + row) % 2 == 0) }
-                }
+                repeat(3) { row -> SkeletonRow(showsSecondSummaryLine = (section + row) % 2 == 0) }
             }
         }
     }
@@ -111,7 +104,7 @@ internal fun NotificationOnboardingCard(
                 Text(
                     text = "Activa els avisos de l'Hora a Hora quan tu vulguis.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CastellsTheme.colors.secondaryText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 TextButton(onClick = onConfigure, contentPadding = PaddingValues(0.dp)) {
                     Text("Configura-ho", fontWeight = FontWeight.SemiBold)
@@ -121,7 +114,7 @@ internal fun NotificationOnboardingCard(
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Ara no",
-                    tint = CastellsTheme.colors.secondaryText,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

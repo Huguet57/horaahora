@@ -2,7 +2,6 @@ package com.ahuguet.castellsenvena.feature.settings.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,8 +13,13 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.FrontHand
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -35,15 +39,11 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ahuguet.castellsenvena.core.designsystem.component.DisclosureIcon
 import com.ahuguet.castellsenvena.core.designsystem.component.ExternalLinkIcon
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedCard
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedDivider
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedRow
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedSectionFooter
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedSectionHeader
+import com.ahuguet.castellsenvena.core.designsystem.component.ListRow
+import com.ahuguet.castellsenvena.core.designsystem.component.SectionFooter
+import com.ahuguet.castellsenvena.core.designsystem.component.SectionHeader
 import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.feature.settings.presentation.HourByHourNotificationStatus
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
@@ -71,52 +71,35 @@ internal fun SettingsRoot(
             onOpenSystemSettings = onOpenSystemSettings,
         )
 
-        GroupedSectionHeader("Privacitat i dades")
-        GroupedCard {
-            GroupedRow(
-                title = "Política de privacitat",
-                leadingIcon = Icons.Outlined.FrontHand,
-                onClick = { onOpenUrl(configuration.privacyUrl) },
-                trailing = { ExternalLinkIcon() },
-            )
-        }
+        SectionHeader("Privacitat i dades")
+        ListRow(
+            title = "Política de privacitat",
+            leadingIcon = Icons.Outlined.FrontHand,
+            onClick = { onOpenUrl(configuration.privacyUrl) },
+            trailing = { ExternalLinkIcon() },
+        )
 
-        GroupedSectionHeader("Ajuda")
-        GroupedCard {
-            GroupedRow(
-                title = "Contacta amb suport",
-                leadingIcon = Icons.Outlined.Email,
-                onClick = { onContactSupport(configuration.supportEmailUrl) },
-                trailing = { ExternalLinkIcon() },
-            )
-            GroupedDivider(startIndent = 54.dp)
-            CopyIdentifierRow(identifier = configuration.technicalIdentifier, onCopy = onCopyIdentifier)
-        }
+        SectionHeader("Ajuda")
+        ListRow(
+            title = "Contacta amb suport",
+            leadingIcon = Icons.Outlined.Email,
+            onClick = { onContactSupport(configuration.supportEmailUrl) },
+            trailing = { ExternalLinkIcon() },
+        )
+        CopyIdentifierRow(identifier = configuration.technicalIdentifier, onCopy = onCopyIdentifier)
 
-        GroupedSectionHeader("Sobre ${configuration.appName}")
-        GroupedCard {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics(mergeDescendants = true) {}
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
-                Text(configuration.appName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(
-                    text = configuration.versionAndBuild,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = CastellsTheme.colors.secondaryText,
-                )
-            }
-            GroupedDivider()
-            GroupedRow(
-                title = "Fonts i crèdits",
-                leadingIcon = Icons.AutoMirrored.Outlined.MenuBook,
-                onClick = onOpenSources,
-                trailing = { DisclosureIcon() },
-            )
-        }
+        SectionHeader("Sobre ${configuration.appName}")
+        ListRow(
+            title = configuration.appName,
+            subtitle = configuration.versionAndBuild,
+            leadingIcon = Icons.Outlined.Info,
+            modifier = Modifier.semantics(mergeDescendants = true) {},
+        )
+        ListRow(
+            title = "Fonts i crèdits",
+            leadingIcon = Icons.AutoMirrored.Outlined.MenuBook,
+            onClick = onOpenSources,
+        )
     }
 }
 
@@ -130,49 +113,46 @@ private fun NotificationSection(
     val status = state.notificationStatus
     val isEnabled = status == HourByHourNotificationStatus.ENABLED
 
-    GroupedSectionHeader("Notificacions")
-    GroupedCard {
-        GroupedRow(
-            title = "Avisos de notícies",
-            leadingIcon = Icons.Outlined.Notifications,
+    SectionHeader("Notificacions")
+    ListRow(
+        title = "Avisos de notícies",
+        leadingIcon = Icons.Outlined.Notifications,
+        enabled = state.canToggleNotifications,
+        modifier = Modifier.toggleable(
+            value = isEnabled,
             enabled = state.canToggleNotifications,
-            modifier = Modifier.toggleable(
-                value = isEnabled,
-                enabled = state.canToggleNotifications,
-                role = Role.Switch,
-                onValueChange = onEnabledChange,
-            ),
-            trailing = {
-                Switch(checked = isEnabled, onCheckedChange = null, enabled = state.canToggleNotifications)
-            },
+            role = Role.Switch,
+            onValueChange = onEnabledChange,
+        ),
+        trailing = {
+            Switch(checked = isEnabled, onCheckedChange = null, enabled = state.canToggleNotifications)
+        },
+    )
+    ListRow(
+        title = "Quines notícies?",
+        subtitle = state.minimumInterest.settingsTitle,
+        leadingIcon = Icons.Outlined.Tune,
+        enabled = status != HourByHourNotificationStatus.LOADING,
+        onClick = onOpenInterest,
+    )
+    if (status == HourByHourNotificationStatus.DENIED) {
+        MessageRow(text = "Bloquejades per Android", color = CastellsTheme.colors.warning)
+        ListRow(
+            title = "Obre els ajustos del sistema",
+            leadingIcon = Icons.Outlined.Settings,
+            leadingIconTint = MaterialTheme.colorScheme.primary,
+            titleColor = MaterialTheme.colorScheme.primary,
+            onClick = onOpenSystemSettings,
         )
-        GroupedDivider(startIndent = 54.dp)
-        GroupedRow(
-            title = "Quines notícies?",
-            subtitle = state.minimumInterest.settingsTitle,
-            enabled = status != HourByHourNotificationStatus.LOADING,
-            onClick = onOpenInterest,
-            trailing = { DisclosureIcon() },
-        )
-        if (status == HourByHourNotificationStatus.DENIED) {
-            GroupedDivider()
-            MessageRow(text = "Bloquejades per Android", color = CastellsTheme.colors.warning)
-            GroupedRow(
-                title = "Obre els ajustos del sistema",
-                titleColor = MaterialTheme.colorScheme.primary,
-                onClick = onOpenSystemSettings,
-            )
-        }
-        state.notificationErrorMessage?.let { message ->
-            GroupedDivider()
-            MessageRow(text = message, color = MaterialTheme.colorScheme.error)
-        }
+    }
+    state.notificationErrorMessage?.let { message ->
+        MessageRow(text = message, color = MaterialTheme.colorScheme.error)
     }
     when (status) {
         HourByHourNotificationStatus.NOT_DETERMINED, HourByHourNotificationStatus.DISABLED ->
-            GroupedSectionFooter("Pots triar què rebràs abans d’activar els avisos.")
+            SectionFooter("Pots triar què rebràs abans d’activar els avisos.")
         HourByHourNotificationStatus.UNAVAILABLE ->
-            GroupedSectionFooter("Els avisos no estan disponibles en aquesta versió de l’app.")
+            SectionFooter("Els avisos no estan disponibles en aquesta versió de l’app.")
         else -> Unit
     }
 }
@@ -184,7 +164,7 @@ private fun MessageRow(text: String, color: Color) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Icon(Icons.Filled.Warning, contentDescription = null, tint = color)
         Text(text = text, style = MaterialTheme.typography.bodyMedium, color = color)
@@ -201,7 +181,8 @@ private fun CopyIdentifierRow(identifier: String, onCopy: (String) -> Unit) {
             wasCopied = false
         }
     }
-    Row(
+    ListItem(
+        headlineContent = { Text(if (wasCopied) "Identificador copiat" else "Copia l'identificador") },
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
@@ -212,27 +193,21 @@ private fun CopyIdentifierRow(identifier: String, onCopy: (String) -> Unit) {
                 role = Role.Button
                 contentDescription = if (wasCopied) "Identificador tècnic copiat" else "Copia l'identificador tècnic complet"
                 stateDescription = identifier
-            }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Icon(
-            imageVector = if (wasCopied) Icons.Filled.CheckCircle else Icons.Outlined.ContentCopy,
-            contentDescription = null,
-            tint = if (wasCopied) CastellsTheme.colors.success else MaterialTheme.colorScheme.primary,
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(
-                text = if (wasCopied) "Identificador copiat" else "Copia l'identificador",
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            },
+        supportingContent = {
             Text(
                 text = identifier,
                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                color = CastellsTheme.colors.secondaryText,
                 maxLines = 2,
             )
-        }
-    }
+        },
+        leadingContent = {
+            Icon(
+                imageVector = if (wasCopied) Icons.Filled.CheckCircle else Icons.Outlined.ContentCopy,
+                contentDescription = null,
+                tint = if (wasCopied) CastellsTheme.colors.success else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+    )
 }

@@ -72,7 +72,6 @@ import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.core.common.CatalanNumbers
 import com.ahuguet.castellsenvena.core.designsystem.component.SkeletonBlock
 import com.ahuguet.castellsenvena.core.designsystem.component.rememberPulseAlpha
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 import com.ahuguet.castellsenvena.feature.calculator.presentation.CalculatorPrompts
 import com.ahuguet.castellsenvena.feature.calculator.presentation.ChatState
@@ -210,7 +209,7 @@ private fun ChatScreen(
 
 @Composable
 private fun Composer(draft: String, onDraftChange: (String) -> Unit, canSend: Boolean, onSend: () -> Unit) {
-    Surface(color = CastellsTheme.colors.groupedBackground) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -290,7 +289,7 @@ private fun AssistantResponseSkeleton() {
                 .widthIn(max = 360.dp)
                 .alpha(alpha),
             shape = RoundedCornerShape(16.dp),
-            color = CastellsTheme.colors.card,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Column(modifier = Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 SkeletonBlock(width = 205.dp, height = 17.dp)

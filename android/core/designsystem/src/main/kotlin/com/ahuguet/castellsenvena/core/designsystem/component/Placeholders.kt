@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 
 /** An empty, failed or unavailable state that fills the screen. */
@@ -52,7 +51,7 @@ fun ContentUnavailable(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = CastellsTheme.colors.secondaryText,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(48.dp),
         )
         Spacer(Modifier.height(16.dp))
@@ -67,7 +66,7 @@ fun ContentUnavailable(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = CastellsTheme.colors.secondaryText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
         }
@@ -102,6 +101,6 @@ fun SkeletonBlock(width: Dp, height: Dp, modifier: Modifier = Modifier) {
         modifier = modifier
             .size(width = width, height = height)
             .clip(RoundedCornerShape(min(height / 2, 6.dp)))
-            .background(CastellsTheme.colors.secondaryText.copy(alpha = 0.38f)),
+            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)),
     )
 }

@@ -34,9 +34,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.core.common.CatalanDates
 import com.ahuguet.castellsenvena.core.designsystem.component.ContentUnavailable
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedSectionHeader
-import com.ahuguet.castellsenvena.core.designsystem.component.groupedItemShape
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
+import com.ahuguet.castellsenvena.core.designsystem.component.SectionHeader
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 import com.ahuguet.castellsenvena.core.domain.hourbyhour.HourByHourItem
 import com.ahuguet.castellsenvena.feature.hourbyhour.presentation.HourByHourState
@@ -86,13 +84,8 @@ fun HourByHourScreen(
             LargeTopAppBar(
                 title = { Text("Hora a Hora") },
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = CastellsTheme.colors.groupedBackground,
-                    scrolledContainerColor = CastellsTheme.colors.groupedBackground,
-                ),
             )
         },
-        containerColor = CastellsTheme.colors.groupedBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         Box(
@@ -172,7 +165,7 @@ private fun HourByHourList(
 
         for (group in state.dayGroups) {
             item(key = group.id, contentType = "day") {
-                GroupedSectionHeader(
+                SectionHeader(
                     text = group.day?.let(CatalanDates::fullDate) ?: "Sense data",
                     modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
                 )
@@ -181,7 +174,6 @@ private fun HourByHourList(
                 HourByHourRow(
                     item = item,
                     zone = zone,
-                    shape = groupedItemShape(index, group.items.size),
                     showsDivider = index < group.items.lastIndex,
                     onClick = { onOpen(item) },
                     modifier = if (reduceMotion) Modifier else Modifier.animateItem(),

@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.core.common.CatalanNumbers
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.TabularNumbers
 import com.ahuguet.castellsenvena.core.domain.chat.ChatMessage
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRole
@@ -42,7 +41,7 @@ internal fun MessageBubble(message: ChatMessage, onRetry: () -> Unit, modifier: 
         Surface(
             modifier = Modifier.weight(1f, fill = false),
             shape = RoundedCornerShape(16.dp),
-            color = if (isUser) MaterialTheme.colorScheme.primary else CastellsTheme.colors.card,
+            color = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
             contentColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
         ) {
             Column(modifier = Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

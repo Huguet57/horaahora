@@ -28,7 +28,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.TabularNumbers
 import com.ahuguet.castellsenvena.core.domain.agenda.CastellEvent
 import com.ahuguet.castellsenvena.feature.agenda.presentation.googleMapsSearchUrl
@@ -47,7 +46,7 @@ internal fun AgendaEventCard(
                 if (isOutsideFilter) stateDescription = "Aquesta actuació no coincideix amb el filtre"
             },
         shape = RoundedCornerShape(14.dp),
-        color = CastellsTheme.colors.card,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -62,7 +61,7 @@ internal fun AgendaEventCard(
                 Text(
                     text = event.municipality,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CastellsTheme.colors.secondaryText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -105,7 +104,7 @@ internal fun AgendaEventCard(
                 Text(
                     text = event.notes,
                     style = MaterialTheme.typography.bodySmall,
-                    color = CastellsTheme.colors.secondaryText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -114,7 +113,7 @@ internal fun AgendaEventCard(
                 Text(
                     text = event.attribution,
                     style = MaterialTheme.typography.labelSmall,
-                    color = CastellsTheme.colors.secondaryText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = { onOpenLink(event.sourceUrl) }, modifier = Modifier.size(32.dp)) {

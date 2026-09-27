@@ -1,30 +1,27 @@
 package com.ahuguet.castellsenvena.feature.agenda.ui.calendar
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +42,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
@@ -52,7 +50,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarFold
 import com.ahuguet.castellsenvena.feature.agenda.presentation.calendar.AgendaCalendarMath
@@ -156,7 +153,7 @@ private fun AgendaCalendarHeader(
             Icon(
                 imageVector = if (isCollapsed) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
                 contentDescription = null,
-                tint = CastellsTheme.colors.secondaryText,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Spacer(Modifier.weight(1f))
@@ -164,10 +161,9 @@ private fun AgendaCalendarHeader(
     }
 }
 
-/** Filled while the agenda only shows some groups. */
+/** Shows how many groups the agenda follows while it only shows some. */
 @Composable
 private fun GroupFilterButton(isActive: Boolean, selectedGroupCount: Int, onClick: () -> Unit) {
-    val primary = MaterialTheme.colorScheme.primary
     IconButton(
         onClick = onClick,
         modifier = Modifier.semantics {
@@ -179,23 +175,18 @@ private fun GroupFilterButton(isActive: Boolean, selectedGroupCount: Int, onClic
             }
         },
     ) {
-        Box(
-            modifier = Modifier
-                .size(30.dp)
-                .then(
-                    if (isActive) {
-                        Modifier.background(primary, CircleShape)
-                    } else {
-                        Modifier.border(1.5.dp, primary, CircleShape)
-                    },
-                ),
-            contentAlignment = Alignment.Center,
+        BadgedBox(
+            badge = {
+                if (isActive) {
+                    // The state description already says it.
+                    Badge(modifier = Modifier.clearAndSetSemantics {}) { Text("$selectedGroupCount") }
+                }
+            },
         ) {
             Icon(
                 imageVector = Icons.Filled.FilterList,
                 contentDescription = null,
-                tint = if (isActive) MaterialTheme.colorScheme.onPrimary else primary,
-                modifier = Modifier.size(18.dp),
+                tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

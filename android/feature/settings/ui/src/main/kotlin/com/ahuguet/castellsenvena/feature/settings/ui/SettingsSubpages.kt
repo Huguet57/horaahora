@@ -1,14 +1,11 @@
 package com.ahuguet.castellsenvena.feature.settings.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -21,27 +18,24 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ahuguet.castellsenvena.core.designsystem.component.DisclosureIcon
 import com.ahuguet.castellsenvena.core.designsystem.component.ExternalLinkIcon
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedCard
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedDivider
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedRow
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedSectionFooter
-import com.ahuguet.castellsenvena.core.designsystem.component.GroupedSectionHeader
-import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
+import com.ahuguet.castellsenvena.core.designsystem.component.ListRow
+import com.ahuguet.castellsenvena.core.designsystem.component.SectionFooter
+import com.ahuguet.castellsenvena.core.designsystem.component.SectionHeader
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
 import com.ahuguet.castellsenvena.feature.settings.presentation.HourByHourNotificationStatus
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
@@ -60,59 +54,39 @@ internal fun NotificationInterestScreen(
 ) {
     val isEnabled = state.notificationStatus != HourByHourNotificationStatus.LOADING
     SettingsScaffold(title = "Notícies", onBack = onBack) {
-        Text(
-            text = "Quines notícies vols rebre?",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 12.dp),
-        )
-        GroupedCard {
-            val levels = NotificationInterestLevel.entries
-            levels.forEachIndexed { index, level ->
-                val isSelected = state.minimumInterest == level
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = isSelected,
-                            enabled = isEnabled,
-                            role = Role.RadioButton,
-                            onClick = { onSelect(level) },
-                        )
-                        .alpha(if (isEnabled) 1f else 0.38f)
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text(level.settingsTitle, style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            text = level.settingsDescription,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = CastellsTheme.colors.secondaryText,
-                        )
-                    }
+        SectionHeader("Quines notícies vols rebre?")
+        for (level in NotificationInterestLevel.entries) {
+            val isSelected = state.minimumInterest == level
+            ListItem(
+                headlineContent = { Text(level.settingsTitle) },
+                modifier = Modifier
+                    .selectable(
+                        selected = isSelected,
+                        enabled = isEnabled,
+                        role = Role.RadioButton,
+                        onClick = { onSelect(level) },
+                    )
+                    .alpha(if (isEnabled) 1f else 0.38f),
+                supportingContent = { Text(level.settingsDescription) },
+                trailingContent = {
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.alpha(if (isSelected) 1f else 0f),
                     )
-                }
-                if (index < levels.lastIndex) GroupedDivider()
-            }
-        }
-
-        GroupedSectionHeader("Les teves colles")
-        GroupedCard {
-            GroupedRow(
-                title = "Tria les colles a l’Agenda",
-                onClickLabel = "Obre el selector de colles de l’Agenda",
-                onClick = onChooseGroups,
-                trailing = { DisclosureIcon() },
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             )
         }
-        GroupedSectionFooter(
+
+        SectionHeader("Les teves colles")
+        ListRow(
+            title = "Tria les colles a l’Agenda",
+            onClickLabel = "Obre el selector de colles de l’Agenda",
+            onClick = onChooseGroups,
+        )
+        SectionFooter(
             if (hasFollowedGroups) {
                 "Fem servir les mateixes colles que segueixes a l’Agenda."
             } else {
@@ -140,31 +114,28 @@ internal fun SourcesAndCreditsScreen(
         Triple("Taula oficial del Concurs de Castells 2026", "Font de la Calculadora", configuration.concursCastellsUrl),
     )
     SettingsScaffold(title = "Fonts i crèdits", onBack = onBack) {
-        Spacer(Modifier.height(16.dp))
-        GroupedCard {
-            credits.forEachIndexed { index, (name, detail, url) ->
-                GroupedRow(
-                    title = name,
-                    subtitle = detail,
-                    onClick = url?.let { { onOpenUrl(it) } },
-                    trailing = if (url != null) {
-                        { ExternalLinkIcon() }
-                    } else {
-                        null
-                    },
-                )
-                if (index < credits.lastIndex) GroupedDivider()
-            }
+        Spacer(Modifier.height(8.dp))
+        for ((name, detail, url) in credits) {
+            ListRow(
+                title = name,
+                subtitle = detail,
+                onClick = url?.let { { onOpenUrl(it) } },
+                trailing = if (url != null) {
+                    { ExternalLinkIcon() }
+                } else {
+                    null
+                },
+            )
         }
-        GroupedSectionFooter(
+        SectionFooter(
             "Aquestes atribucions identifiquen les fonts de les dades i no impliquen cap col·laboració formal.",
         )
     }
 }
 
 /**
- * A grouped settings page: a large title on the root page, a back arrow on
- * the subpages. Scrolls as a whole, with room at the end.
+ * A settings page: a large title on the root page, a back arrow on the
+ * subpages. Scrolls as a whole, with room at the end.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,7 +150,6 @@ internal fun SettingsScaffold(
     } else {
         TopAppBarDefaults.pinnedScrollBehavior()
     }
-    val background = CastellsTheme.colors.groupedBackground
     val navigationIcon: @Composable () -> Unit = {
         if (onBack != null) {
             IconButton(onClick = onBack) {
@@ -191,28 +161,11 @@ internal fun SettingsScaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             if (largeTitle) {
-                LargeTopAppBar(
-                    title = { Text(title) },
-                    navigationIcon = navigationIcon,
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = background,
-                        scrolledContainerColor = background,
-                    ),
-                )
+                LargeTopAppBar(title = { Text(title) }, navigationIcon = navigationIcon, scrollBehavior = scrollBehavior)
             } else {
-                TopAppBar(
-                    title = { Text(title) },
-                    navigationIcon = navigationIcon,
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = background,
-                        scrolledContainerColor = background,
-                    ),
-                )
+                TopAppBar(title = { Text(title) }, navigationIcon = navigationIcon, scrollBehavior = scrollBehavior)
             }
         },
-        containerColor = background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         Column(

@@ -14,88 +14,111 @@ import androidx.compose.ui.graphics.Color
 /** The accent of Castells en vena, shared with the iOS app. */
 val BrandRed = Color(0xFFD32B1F)
 
+/*
+ * Material 3 schemes generated from BrandRed with Material Color Utilities:
+ * the brand's tonal palette for the accents and near-neutral surfaces
+ * (chroma 3, and 5 for the variants), so the app stays red on white instead
+ * of turning pink. The light scheme keeps BrandRed itself as its primary.
+ */
 private val LightColors = lightColorScheme(
     primary = BrandRed,
-    onPrimary = Color.White,
+    onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFFFDAD5),
-    onPrimaryContainer = Color(0xFF410001),
-    secondary = Color(0xFF6C6C70),
-    onSecondary = Color.White,
-    background = Color.White,
-    onBackground = Color(0xFF111111),
-    surface = Color.White,
-    onSurface = Color(0xFF111111),
-    surfaceVariant = Color(0xFFF2F2F7),
-    onSurfaceVariant = Color(0xFF6C6C70),
-    surfaceContainerLowest = Color.White,
-    surfaceContainerLow = Color(0xFFF7F7FA),
-    surfaceContainer = Color(0xFFF2F2F7),
-    surfaceContainerHigh = Color(0xFFEBEBF0),
-    surfaceContainerHighest = Color(0xFFE5E5EA),
-    outline = Color(0xFFC6C6C8),
-    outlineVariant = Color(0xFFE5E5EA),
-    error = Color(0xFFD70015),
+    onPrimaryContainer = Color(0xFF930002),
+    inversePrimary = Color(0xFFFFB4A9),
+    secondary = Color(0xFF775651),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFFFDAD5),
+    onSecondaryContainer = Color(0xFF5D3F3B),
+    tertiary = Color(0xFF705C2E),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFFCDFA6),
+    onTertiaryContainer = Color(0xFF574419),
+    background = Color(0xFFFFF8F6),
+    onBackground = Color(0xFF1F1A1A),
+    surface = Color(0xFFFFF8F6),
+    onSurface = Color(0xFF1F1A1A),
+    surfaceVariant = Color(0xFFEFDFDD),
+    onSurfaceVariant = Color(0xFF4F4443),
+    surfaceTint = BrandRed,
+    inverseSurface = Color(0xFF352F2E),
+    inverseOnSurface = Color(0xFFF9EEED),
+    error = Color(0xFFBA1A1A),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF93000A),
+    outline = Color(0xFF807473),
+    outlineVariant = Color(0xFFD2C3C1),
+    scrim = Color(0xFF000000),
+    surfaceBright = Color(0xFFFFF8F6),
+    surfaceDim = Color(0xFFE2D8D6),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFFCF1EF),
+    surfaceContainer = Color(0xFFF6EBEA),
+    surfaceContainerHigh = Color(0xFFF1E6E4),
+    surfaceContainerHighest = Color(0xFFEBE0DE),
 )
 
 private val DarkColors = darkColorScheme(
-    primary = BrandRed,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFF93000A),
+    primary = Color(0xFFFFB4A9),
+    onPrimary = Color(0xFF690001),
+    primaryContainer = Color(0xFF930002),
     onPrimaryContainer = Color(0xFFFFDAD5),
-    secondary = Color(0xFF98989F),
-    onSecondary = Color.Black,
-    background = Color.Black,
-    onBackground = Color(0xFFF2F2F7),
-    surface = Color.Black,
-    onSurface = Color(0xFFF2F2F7),
-    surfaceVariant = Color(0xFF1C1C1E),
-    onSurfaceVariant = Color(0xFF98989F),
-    surfaceContainerLowest = Color.Black,
-    surfaceContainerLow = Color(0xFF111113),
-    surfaceContainer = Color(0xFF1C1C1E),
-    surfaceContainerHigh = Color(0xFF2C2C2E),
-    surfaceContainerHighest = Color(0xFF3A3A3C),
-    outline = Color(0xFF545458),
-    outlineVariant = Color(0xFF38383A),
-    error = Color(0xFFFF453A),
+    inversePrimary = Color(0xFFBB1710),
+    secondary = Color(0xFFE7BDB6),
+    onSecondary = Color(0xFF442925),
+    secondaryContainer = Color(0xFF5D3F3B),
+    onSecondaryContainer = Color(0xFFFFDAD5),
+    tertiary = Color(0xFFDEC38C),
+    onTertiary = Color(0xFF3E2E04),
+    tertiaryContainer = Color(0xFF574419),
+    onTertiaryContainer = Color(0xFFFCDFA6),
+    background = Color(0xFF171212),
+    onBackground = Color(0xFFEBE0DE),
+    surface = Color(0xFF171212),
+    onSurface = Color(0xFFEBE0DE),
+    surfaceVariant = Color(0xFF4F4443),
+    onSurfaceVariant = Color(0xFFD2C3C1),
+    surfaceTint = Color(0xFFFFB4A9),
+    inverseSurface = Color(0xFFEBE0DE),
+    inverseOnSurface = Color(0xFF352F2E),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    outline = Color(0xFF9B8E8C),
+    outlineVariant = Color(0xFF4F4443),
+    scrim = Color(0xFF000000),
+    surfaceBright = Color(0xFF3E3837),
+    surfaceDim = Color(0xFF171212),
+    surfaceContainerLowest = Color(0xFF110D0D),
+    surfaceContainerLow = Color(0xFF1F1A1A),
+    surfaceContainer = Color(0xFF231E1E),
+    surfaceContainerHigh = Color(0xFF2E2928),
+    surfaceContainerHighest = Color(0xFF393333),
 )
 
-/** Colors the Material scheme has no role for, following the iOS system palette. */
+/** Colors the Material scheme has no role for. */
 @Immutable
 data class CastellsColors(
-    /** Behind grouped lists (Ajustos, Hora a Hora). */
-    val groupedBackground: Color,
-    /** Rows and cards on a grouped background. */
-    val groupedCard: Color,
-    /** Cards and bubbles on a plain background. */
-    val card: Color,
-    val secondaryText: Color,
-    val tertiaryText: Color,
+    /** Harmonized with BrandRed, like the Material custom colors. */
     val success: Color,
+    /** Harmonized with BrandRed, like the Material custom colors. */
     val warning: Color,
+    /** Featured groups and winning results, in the gold of starred items on Android. */
     val star: Color,
 )
 
 private val LightCastellsColors = CastellsColors(
-    groupedBackground = Color(0xFFF2F2F7),
-    groupedCard = Color.White,
-    card = Color(0xFFF2F2F5),
-    secondaryText = Color(0xFF6C6C70),
-    tertiaryText = Color(0xFFAEAEB2),
-    success = Color(0xFF248A3D),
-    warning = Color(0xFFC93400),
-    star = Color(0xFFFFCC00),
+    success = Color(0xFF386A00),
+    warning = Color(0xFFA83901),
+    star = Color(0xFFF4B400),
 )
 
 private val DarkCastellsColors = CastellsColors(
-    groupedBackground = Color.Black,
-    groupedCard = Color(0xFF1C1C1E),
-    card = Color(0xFF1C1C1E),
-    secondaryText = Color(0xFF98989F),
-    tertiaryText = Color(0xFF636366),
-    success = Color(0xFF30D158),
-    warning = Color(0xFFFF9F0A),
-    star = Color(0xFFFFD60A),
+    success = Color(0xFF9AD863),
+    warning = Color(0xFFFFB59A),
+    star = Color(0xFFFDD663),
 )
 
 private val LocalCastellsColors = staticCompositionLocalOf { LightCastellsColors }
