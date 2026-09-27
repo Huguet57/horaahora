@@ -35,6 +35,7 @@ def test_factory_registers_the_complete_delivery_surface() -> None:
         ("DELETE", "/v1/push-subscriptions/{installation_id}"),
         ("GET", "/internal/cron/hour-by-hour"),
         ("GET", "/internal/cron/maintenance"),
+        ("GET", "/internal/cron/x-posts"),
     }.issubset(routes)
 
     client = TestClient(app)

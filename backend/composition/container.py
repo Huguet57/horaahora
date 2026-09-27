@@ -8,6 +8,7 @@ from backend.application.chat import ChatService
 from backend.application.conversation_sharing import ConversationSharingService
 from backend.application.hour_by_hour import HourByHourService
 from backend.application.notifications import HourByHourNotificationCoordinator
+from backend.application.social_posts import SocialPostSync
 from backend.composition.providers import (
     build_agenda_repository,
     build_agenda_source,
@@ -22,6 +23,7 @@ from backend.composition.providers import (
     build_push_repository,
     build_rate_limiter,
     build_shared_conversation_repository,
+    build_social_post_sync,
 )
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
@@ -53,6 +55,7 @@ class ApplicationOverrides:
     notification_repository: NotificationRepository | None = None
     notification_coordinator: HourByHourNotificationCoordinator | None = None
     shared_conversation_repository: SharedConversationRepository | None = None
+    social_post_sync: SocialPostSync | None = None
 
 
 @dataclass(slots=True)
@@ -67,6 +70,7 @@ class ApplicationContainer:
     push_repository: PushSubscriptionRepository
     notification_repository: NotificationRepository
     notification_coordinator: HourByHourNotificationCoordinator | None
+    social_post_sync: SocialPostSync | None
 
 
 def build_container(
@@ -89,7 +93,7 @@ def build_container(
 
     hour_source = overrides.hour_by_hour_source
     if hour_source is None:
-        hour_source = build_hour_by_hour_source(settings)
+        hour_source = build_hour_by_hour_source(settings, database)
     agenda_source = overrides.agenda_source
     if agenda_source is None:
         agenda_source = build_agenda_source(settings)
@@ -103,6 +107,10 @@ def build_container(
             enabled=settings.can_deliver_push,
             ingestion_service=build_notification_ingestion(settings, notification_repository),
         )
+
+    social_post_sync = overrides.social_post_sync or build_social_post_sync(
+        settings, database, hour_repository
+    )
 
     return ApplicationContainer(
         settings=settings,
@@ -124,4 +132,5 @@ def build_container(
         push_repository=push_repository,
         notification_repository=notification_repository,
         notification_coordinator=coordinator,
+        social_post_sync=social_post_sync,
     )

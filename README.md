@@ -11,7 +11,7 @@ El nom visible i definitiu de l'app és **Castells en vena**. El Bundle ID d'iOS
 - `android`: app Android nativa (Kotlin i Jetpack Compose) amb mòduls `core` i `feature`; vegeu `android/README.md`.
 - `backend/domain`: models, ports i motor de puntuació determinista.
 - `backend/application`: casos d'ús.
-- `backend/adapters`: IA, Revista Castells, El Món Casteller, persistència i rate limiting.
+- `backend/adapters`: IA, Revista Castells, El Món Casteller, X, persistència i rate limiting.
 - `backend/api`: routers i esquemes HTTP separats per contracte.
 - `tests`: proves del domini, ingesta, contractes d'IA i API.
 - `openapi/partner-api.yaml`: contracte reduït per a clients i reunions amb socis.
@@ -62,6 +62,87 @@ fonts. La primera ingesta de cada mitjà crea una base sense avisos antics; les 
 només notifiquen articles nous. Si falla un mitjà, es conserva el contingut desat i
 s'actualitza l'altre, deixant constància de l'error al log. Les quatre categories d'El Món
 Casteller es carreguen conjuntament per evitar inicialitzar una base incompleta.
+
+### Posts virals de X
+
+L'Hora a Hora també pot recollir la conversa castellera de X que no surt als mitjans:
+opinions, crítiques, debats i polèmiques de castellers particulars o de comptes anònims.
+El cron `/internal/cron/x-posts` fa, cada cinc minuts, una cerca recent a l'API oficial de X
+amb els comptes i les etiquetes configurats:
+
+```text
+(from:compte1 OR from:compte2 OR #castells OR #castellers) min_likes:10 -is:retweet
+```
+
+`min_faves` només funciona al cercador web; l'API fa servir `min_likes`. La cerca inclou
+respostes i cites, i demana el post citat o respost perquè el titular tingui context. Cada
+post que arriba al llindar es desa a `social_posts` i passa una sola vegada per `AI_MODEL`
+(OpenRouter), que decideix si és publicable i n'escriu el titular. Es descarten els
+resultats i les convocatòries que ja cobreixen els mitjans, els temes aliens, la promoció,
+els insults o acusacions contra persones concretes i els posts que no s'entenen sense la
+imatge. L'entrada mostra el titular, el text literal i l'atribució «Nom a X · titular amb
+IA», i obre el post original.
+
+`X_POSTS_MODE` en controla el desplegament:
+
+- `disabled` (per defecte): no es consulta X.
+- `shadow`: es cerca i es decideix, però no es publica res.
+- `feed`: les entrades acceptades dels últims set dies surten a l'Hora a Hora, sense avisos.
+- `notify`: les entrades passen per la ingesta de l'Hora a Hora i, per tant, per Jev i pels
+  avisos segons les preferències de cada usuari. La primera ingesta crea una base sense avisos.
+
+La llista de seguiment és a `backend/data/x_watchlist.json`:
+
+```json
+{
+  "min_likes": 10,
+  "accounts": ["compte1", {"username": "compte2", "min_likes": 50}],
+  "hashtags": ["castells", "castellers"]
+}
+```
+
+`min_likes` és el llindar general i cada compte en pot tenir un de propi. Com que el
+repositori és públic, els comptes de persones particulars es poden definir al secret
+`X_WATCHLIST_JSON`, amb el mateix format, que substitueix el fitxer sencer. Amb el seguiment
+actiu, una llista buida o mal formada, la manca de `X_BEARER_TOKEN` o un `AI_PROVIDER`
+diferent d'`openrouter` impedeixen arrencar el backend.
+
+X cobra 0,005 $ per post llegit i 0,010 $ per usuari (autors i autors citats), i no torna a
+cobrar un recurs llegit el mateix dia UTC; per això la freqüència del cron no encareix la
+cerca. Cada titular costa uns 0,002 $ a OpenRouter. Amb uns 1.000 posts virals al mes, el
+total ronda els 15–20 $, gairebé tot de X.
+
+Desplegament:
+
+1. Crea una app a la consola de desenvolupadors de X, compra crèdits sense recàrrega
+   automàtica, perquè facin de límit de despesa, i desa el Bearer Token com a
+   `X_BEARER_TOKEN` només a Production.
+2. Aplica Alembic fins a `20260927_09` i desplega.
+3. Comprova la lectura i el criteri sense escriure res a la base de dades:
+
+```bash
+uv run --env-file .env.x.local python -m scripts.smoke_x_posts --hours 12 --limit 10
+```
+
+4. Activa `X_POSTS_MODE=shadow` unes dues setmanes i revisa les decisions:
+
+```sql
+SELECT published_at, author_username, like_count, status, headline, text
+FROM social_posts ORDER BY published_at DESC LIMIT 50;
+```
+
+5. Passa a `feed` i, quan el volum i la qualitat siguin els esperats, a `notify`.
+
+El job manual `python -m backend.jobs.sync_x_posts` fa el mateix que el cron. Una fallada de
+X no atura els titulars pendents, i un titular que falla tres vegades es descarta. Un post
+esborrat a X deixa de sortir a la cerca, però no es retira sol de l'Hora a Hora. Per retirar-lo
+(esborrat, correcció o petició de l'autor), cancel·lar els avisos que encara no s'hagin enviat
+i evitar que es torni a publicar:
+
+```bash
+vercel env run -e production -- \
+  uv run --frozen python -m backend.jobs.hide_x_post https://x.com/usuari/status/1970000000000000001
+```
 
 ### Agenda de la CCCC
 
@@ -262,9 +343,10 @@ vercel env run -e production -- \
 6. Desplega, comprova `/health/ready`, publica la beta que registra tokens i fes una prova
    dirigida abans d'activar `PUSH_DELIVERY_ENABLED=true`.
 
-Vercel Pro invoca `/internal/cron/hour-by-hour` cada minut i `/internal/cron/maintenance`
-diàriament. Tots dos exigeixen el `Bearer CRON_SECRET`; l'outbox, les restriccions úniques
-i l'advisory lock de PostgreSQL fan que execucions duplicades siguin idempotents.
+Vercel Pro invoca `/internal/cron/hour-by-hour` cada minut, `/internal/cron/x-posts` cada
+cinc minuts i `/internal/cron/maintenance` diàriament. Tots exigeixen el `Bearer CRON_SECRET`;
+l'outbox, les restriccions úniques i els advisory locks de PostgreSQL fan que execucions
+duplicades siguin idempotents.
 
 ## Notificacions personalitzades amb Jev
 

@@ -1,0 +1,1 @@
+"""Public social network adapters."""

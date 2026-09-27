@@ -16,6 +16,10 @@ class Settings:
     hour_by_hour_source_enabled: bool = True
     hour_by_hour_refresh_seconds: int = 300
     revista_castells_url: str = "https://revistacastells.cat/castells-hora-a-hora/"
+    x_posts_mode: str = "disabled"
+    x_bearer_token: str = ""
+    x_watchlist_path: str = "backend/data/x_watchlist.json"
+    x_watchlist_json: str = ""
     agenda_source: str = "disabled"
     agenda_refresh_seconds: int = 1_800
     agenda_refresh_on_request: bool = False
@@ -59,6 +63,10 @@ class Settings:
             hour_by_hour_source_enabled=_bool_env("HOUR_BY_HOUR_SOURCE_ENABLED", True),
             hour_by_hour_refresh_seconds=int(os.getenv("HOUR_BY_HOUR_REFRESH_SECONDS", "300")),
             revista_castells_url=os.getenv("REVISTA_CASTELLS_URL", defaults.revista_castells_url),
+            x_posts_mode=os.getenv("X_POSTS_MODE", defaults.x_posts_mode).strip().lower(),
+            x_bearer_token=os.getenv("X_BEARER_TOKEN", ""),
+            x_watchlist_path=os.getenv("X_WATCHLIST_PATH", defaults.x_watchlist_path),
+            x_watchlist_json=os.getenv("X_WATCHLIST_JSON", ""),
             agenda_source=os.getenv("AGENDA_SOURCE", defaults.agenda_source).lower(),
             agenda_refresh_seconds=int(os.getenv("AGENDA_REFRESH_SECONDS", "1800")),
             agenda_refresh_on_request=_bool_env("AGENDA_REFRESH_ON_REQUEST", False),

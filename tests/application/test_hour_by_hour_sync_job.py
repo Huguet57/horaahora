@@ -17,15 +17,16 @@ def test_manual_job_ingests_the_configured_sources_and_reports_the_result(monkey
     repository.database.advisory_lock.return_value = nullcontext(True)
     ingestion = Mock(ingest=Mock(return_value=NotificationIngestionResult(True, 0)))
     factory = Mock(return_value=source)
+    database = object()
     monkeypatch.setattr(sync_hour_by_hour, "build_hour_by_hour_source", factory)
-    monkeypatch.setattr(sync_hour_by_hour, "build_database", lambda _: object())
+    monkeypatch.setattr(sync_hour_by_hour, "build_database", lambda _: database)
     monkeypatch.setattr(sync_hour_by_hour, "build_notification_repository", lambda _: repository)
     monkeypatch.setattr(sync_hour_by_hour, "build_notification_ingestion", lambda *_: ingestion)
     settings = Settings()
 
     assert sync_hour_by_hour.sync_once(settings) == 0
 
-    factory.assert_called_once_with(settings)
+    factory.assert_called_once_with(settings, database)
     source.fetch.assert_called_once_with()
     ingestion.ingest.assert_called_once_with(items)
     assert json.loads(capsys.readouterr().out) == {
