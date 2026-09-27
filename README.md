@@ -58,10 +58,11 @@ les fonts per data de publicació. Es carreguen les entrades disponibles als fee
 no es recorre tot l'arxiu històric.
 
 `HOUR_BY_HOUR_SOURCES` tria quines d'aquestes fonts es llegeixen, separades per comes:
-`el-mon-casteller` i `revista-castells`. Per defecte només hi ha El Món Casteller, perquè
-Revista Castells està donada de baixa. Per donar de baixa una font o tornar-la a donar
-d'alta, canvia la llista a l'entorn de producció i torna a desplegar. Les notícies ja
-desades d'una font donada de baixa continuen a la llista amb la seva atribució.
+`el-mon-casteller` i `revista-castells`. Ara totes dues estan donades de baixa i la
+llista és buida per defecte: el cron no llegeix cap web, però continua enviant els avisos
+pendents. Per donar de baixa una font o tornar-la a donar d'alta, canvia la llista a
+l'entorn de producció (o al `.env` en local) i torna a desplegar. Les notícies ja desades
+d'una font donada de baixa continuen a la llista amb la seva atribució.
 Mentre una font està donada de baixa, cada sincronització n'oblida la base d'avisos.
 Així, la primera lectura després de tornar-la a donar d'alta crea una base nova: les
 notícies publicades entretant apareixen a la llista sense avisos i només es notifiquen

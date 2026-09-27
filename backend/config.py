@@ -15,7 +15,7 @@ class Settings:
     jev_model: str = "jev-1.13.0"
     hour_by_hour_source_enabled: bool = True
     hour_by_hour_refresh_seconds: int = 300
-    hour_by_hour_sources: tuple[str, ...] = ("el-mon-casteller",)
+    hour_by_hour_sources: tuple[str, ...] = ()
     revista_castells_url: str = "https://revistacastells.cat/castells-hora-a-hora/"
     agenda_source: str = "disabled"
     agenda_refresh_seconds: int = 1_800

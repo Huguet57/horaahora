@@ -47,6 +47,7 @@ def test_only_the_configured_sources_are_read(monkeypatch, source_ids, expected_
         (("el-mon-casteller",), {"revista-castells"}),
         (("revista-castells",), {"el-mon-casteller"}),
         (("revista-castells", "el-mon-casteller"), set()),
+        ((), {"revista-castells", "el-mon-casteller"}),
     ],
 )
 def test_the_sources_left_out_are_the_disabled_ones(source_ids, disabled) -> None:
@@ -63,7 +64,7 @@ def test_an_unknown_source_stops_the_configuration() -> None:
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (None, ("el-mon-casteller",)),
+        (None, ()),
         (
             " Revista-Castells, el-mon-casteller,revista-castells ",
             ("revista-castells", "el-mon-casteller"),
