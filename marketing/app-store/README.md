@@ -30,6 +30,10 @@ editar `screens.js` i tornar a executar el script.
 
 ## Com es tornen a capturar
 
+Les captures mostren dades reals, però les builds Debug apunten al backend local. Compila
+l'app contra producció amb `Debug.local.xcconfig` (vegeu el README principal) o passant
+`CASTELLS_API_BASE_URL=https://castells-superapp-poc.vercel.app` a `xcodebuild`.
+
 1. Simulador iPhone 17 Pro Max en català, mode clar i barra d'estat neta:
 
    ```bash
