@@ -4,7 +4,8 @@ Aquest document separa els controls de privacitat ja disponibles del treball fut
 
 ## Implementat
 
-- La quarta secció «Ajustos» centralitza les notificacions, la privacitat, el suport, les fonts i la informació de l'app.
+- «Ajustos» centralitza la privacitat, el suport, les fonts i la informació de l'app; a l'app interna, també les notificacions.
+- L'app pública no inclou avisos de notícies: no demana el permís, no registra tokens ni inclou Firebase. Si s'hi actualitza una instal·lació que els tenia activats, la primera vegada que s'obre en treu els avisos del sistema i dona de baixa la subscripció al backend, fins que el backend ho confirma. Els punts sobre tokens d'aquesta llista descriuen l'app interna i les versions anteriors.
 - «Política de privacitat» obre `/privacy`, que mostra la versió catalana i permet canviar a castellà o anglès amb enllaços HTML estàtics.
 - El contacte `tenimaletaapp@gmail.com` és accessible des d'Ajustos.
 - L'identificador tècnic aleatori de la instal·lació es mostra i es pot copiar.

@@ -1,18 +1,19 @@
 # La calculadora de l'Aleta
 
 App nativa per a iOS i Android centrada en una calculadora castellera conversacional i en la
-taula de puntuacions del Concurs de Castells 2026. Per defecte mostra tres pestanyes:
-Calculadora, Puntuacions i Ajustos. Hora a Hora i Agenda continuen a l'app com a seccions
-ocultes, amb els seus ajustos: set tocs seguits a la versió, a Ajustos, les mostren o les tornen
-a amagar. El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni
-infraestructura concreta al domini o al contracte HTTP.
+taula de puntuacions del Concurs de Castells 2026. L'app pública té tres pestanyes: Calculadora,
+Puntuacions i Ajustos. Hora a Hora, Agenda, els seus ajustos i els avisos de notícies només són a
+l'app interna de desenvolupament (vegeu [App pública i app interna](#app-pública-i-app-interna)).
+El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura
+concreta al domini o al contracte HTTP.
 
-El nom visible de l'app és **La calculadora de l'Aleta** (abans, Castells en vena). El Bundle ID
-d'iOS i l'`applicationId` d'Android es mantenen: `com.ahuguet.castellsenvena`.
+El nom visible de l'app pública és **La calculadora de l'Aleta** (abans, Castells en vena). El
+Bundle ID d'iOS i l'`applicationId` d'Android es mantenen: `com.ahuguet.castellsenvena`.
 
 ## Estructura
 
-- `HoraAHoraApp/HoraAHoraApp`: composició, navegació, notificacions i configuració iOS.
+- `HoraAHoraApp/HoraAHoraApp`: codi compartit de les dues apps iOS (configuració, arrencada,
+  navegació i dependències comunes); `Public/` i `Internal/` en tenen l'entrada i la composició.
 - `HoraAHoraApp/Packages/CastellsKit`: paquet Swift local amb domini, dades i features independents.
 - `android`: app Android nativa (Kotlin i Jetpack Compose) amb mòduls `core` i `feature`; vegeu `android/README.md`.
 - `backend/domain`: models, ports i motor de puntuació determinista.
@@ -24,6 +25,54 @@ d'iOS i l'`applicationId` d'Android es mantenen: `com.ahuguet.castellsenvena`.
 - `docs/architecture.md`: límits modulars i dependències permeses.
 - `docs/integracio-socis.md`: proposta de col·laboració amb Revista Castells i la CCCC.
 - `docs/testflight-readiness.md`: estat tècnic i passos manuals necessaris per distribuir la beta.
+
+## App pública i app interna
+
+El perfil de compilació tria quina app es genera. És `public` per defecte i no es pot canviar
+remotament ni des de l'app instal·lada:
+
+| | App pública (`public`) | App interna (`internal`) |
+| --- | --- | --- |
+| Per a | App Store, TestFlight i Google Play | Desenvolupament; mai no es puja a les botigues |
+| Identificador | `com.ahuguet.castellsenvena` | `com.ahuguet.castellsenvena.internal` |
+| Nom i icona | «La calculadora de l'Aleta» | «Aleta interna», icona fosca (a iOS, amb la franja «INTERNA») |
+| Seccions | Calculadora, Puntuacions i Ajustos | Les mateixes, més Hora a Hora i Agenda, ocultes fins al gest secret |
+| Avisos de notícies | Cap: sense permís, entitlement `aps-environment`, Firebase ni deep links | Com fins ara |
+| iOS | Target i esquema `HoraAHoraApp` | Target i esquema `HoraAHoraAppInternal` |
+| Android | Flavor `public` | Flavor `internal`, versió amb el sufix `-internal` |
+
+Les dues apps comparteixen la calculadora, la taula de puntuacions i els ajustos de la
+calculadora. L'app pública no enllaça els mòduls d'Hora a Hora, Agenda ni els ajustos interns, i
+no conté cap punt d'entrada cap a ells. Conserva, però, l'esquema complet de la base de dades
+local, amb les còpies d'Hora a Hora i Agenda de les versions anteriors, perquè les
+actualitzacions mantinguin les converses sense cap migració. Per això la capa de dades compartida
+(`CastellsData` i `:core:data`) encara conté el codi de dades d'aquestes seccions, que l'app
+interna fa servir i l'app pública no crida enlloc.
+
+Les ordres de `make` fan servir `CASTELLS_BUILD_PROFILE=public|internal` (també com a variable
+d'entorn); qualsevol altre valor atura la compilació:
+
+```bash
+make ios-build ios-verify                                  # app pública, Release sense signar
+make ios-build ios-verify CASTELLS_BUILD_PROFILE=internal  # app interna
+make android-build android-lint android-verify             # APK públics de depuració i publicació
+make android-install CASTELLS_BUILD_PROFILE=internal       # app interna al dispositiu connectat
+```
+
+`ios-verify` i `android-verify` inspeccionen el que s'acaba de compilar amb
+`scripts/app_profiles.py`: l'app pública no pot contenir els mòduls interns, els avisos ni
+Firebase, i l'app interna els ha de conservar amb el seu identificador. A Xcode, tria l'esquema
+`HoraAHoraApp` o `HoraAHoraAppInternal`. A Gradle i Android Studio, les variants que existeixen són
+les del perfil triat: passa `-Pcastells.buildProfile=internal`, defineix
+`CASTELLS_BUILD_PROFILE=internal` o afegeix `castells.buildProfile=internal` a
+`~/.gradle/gradle.properties`.
+
+Quan una instal·lació que tenia avisos de notícies passa a l'app pública, l'app els retira la
+primera vegada que s'obre: els treu del sistema (a iOS deixa de registrar-se a APNs i elimina les
+notificacions lliurades; a Android esborra el canal «Avisos de notícies») i dona de baixa la
+subscripció al backend. Si no hi ha connexió, ho torna a provar en cada arrencada i en tornar a
+primer pla fins que el backend ho confirma. No torna a subscriure mai, encara que quedin les
+preferències antigues o el permís del sistema. Les instal·lacions noves no fan cap petició.
 
 ## Backend local
 
@@ -164,7 +213,9 @@ uv run --frozen --no-sync python scripts/update_contest_rules.py --verified-at Y
 
 ## App iOS
 
-Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj`. El projecte referencia el paquet local `Packages/CastellsKit` i admet iPhone amb iOS 17 o posterior.
+Obre `HoraAHoraApp/HoraAHoraApp.xcodeproj` i tria l'esquema `HoraAHoraApp` (app pública) o
+`HoraAHoraAppInternal` (app interna). El projecte referencia el paquet local `Packages/CastellsKit`
+i admet iPhone amb iOS 17 o posterior.
 
 La URL del backend es resol en aquest ordre:
 
@@ -193,13 +244,13 @@ Des de la línia d'ordres també es pot passar `CASTELLS_API_BASE_URL=...` a `xc
 
 Les converses i les còpies de l'Hora a Hora i l'Agenda es desen amb SwiftData al dispositiu; el backend rep com a màxim els darrers 12 missatges. Amb «Millora la calculadora» activada (opció per defecte d'Ajustos), l'app marca `share_for_improvement` a les converses començades després de veure l'avís de la calculadora i el backend en desa els missatges i la resposta a `shared_conversations` durant 90 dies, sense identificador d'instal·lació ni IP. El cron diari de manteniment elimina les files caducades.
 
-Les notificacions de l'Hora a Hora no demanen permís en arrencar l'app. En una instal·lació nova, la secció mostra un onboarding descartable; «Configura-ho» obre la pestanya Ajustos. Des d'allà es poden activar o desactivar els avisos; si el permís s'havia denegat a iOS, l'app obre directament els ajustos del sistema per recuperar-lo. Quan APNs lliura o rota el token, l'app el registra al backend amb l'identificador aleatori d'instal·lació; en desactivar els avisos, en demana la revocació i reintenta si estava sense connexió. Les compilacions Debug indiquen l'entorn APNs `development`; TestFlight i Release indiquen `production`.
+A l'app interna, les notificacions de l'Hora a Hora no demanen permís en arrencar. En una instal·lació nova, la secció mostra un onboarding descartable; «Configura-ho» obre la pestanya Ajustos. Des d'allà es poden activar o desactivar els avisos; si el permís s'havia denegat a iOS, l'app obre directament els ajustos del sistema per recuperar-lo. Quan APNs lliura o rota el token, l'app el registra al backend amb l'identificador aleatori d'instal·lació; en desactivar els avisos, en demana la revocació i reintenta si estava sense connexió. Les compilacions Debug indiquen l'entorn APNs `development`; TestFlight i Release indiquen `production`.
 
 La política de privacitat es publica a `/privacy` en català, amb selector cap a `/privacy/ca`, `/privacy/es` i `/privacy/en`; són pàgines HTML estàtiques sense JavaScript, cookies ni analítica. Ajustos manté l'enllaç a `/privacy` i concentra el contacte de suport, l'identificador tècnic de la instal·lació, les fonts, els crèdits i la versió de l'app. El correu de suport és editable i mostra versió, build i identificador abans que l'usuari l'enviï manualment; no exporta converses.
 
 ### TestFlight
 
-El projecte inclou App Icon, privacy manifest, declaració d'exempció de xifrat i configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md), la [política de privacitat](docs/privacy-policy-ca.md) es publica des del backend i els [canvis futurs de privacitat de l'app](docs/privacy-app-followups.md) queden documentats separadament.
+TestFlight i l'App Store només reben l'app pública: `make deploy-testflight` arxiva l'esquema `HoraAHoraApp` i s'atura si `CASTELLS_BUILD_PROFILE` no és `public` o si l'arxiu no és `com.ahuguet.castellsenvena`. L'app pública no té l'entitlement `aps-environment`. El projecte inclou App Icon, privacy manifest i declaració d'exempció de xifrat, i l'app interna té la configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md), la [política de privacitat](docs/privacy-policy-ca.md) es publica des del backend i els [canvis futurs de privacitat de l'app](docs/privacy-app-followups.md) queden documentats separadament.
 
 Per provar, arxivar i pujar l'últim `origin/main` amb una versió de màrqueting explícita
 i un número de build únic:
@@ -290,7 +341,7 @@ Castells com d'El Món Casteller. La rellevància general és Low (rutinària), 
 (interessant) o High (fites històriques i breaking news). Una coincidència amb les colles
 seguides a l'Agenda puja un nivell, amb màxim High; «Totes» i una selecció buida no
 apliquen cap pujada.
-L'app ofereix el selector a Ajustos, amb High per a noves activacions i Low per als
+L'app interna ofereix el selector a Ajustos, amb High per a noves activacions i Low per als
 usuaris que ja tenien avisos actius. Els destacats de l'Agenda no afecten la regla.
 
 Els criteris són tres definicions generals, sense excepcions per notícia o colla:
@@ -341,7 +392,7 @@ El camp `platform` indica el servei del token: `ios` (APNs, per defecte i hexade
 `android` (Firebase Cloud Messaging, que conserva majúscules i minúscules). El `DELETE`
 rep la mateixa plataforma com a paràmetre `platform`.
 
-A iOS, Ajustos → «Quines notícies?» obre una pantalla amb tres opcions: **Totes**
+A l'app interna d'iOS, Ajustos → «Quines notícies?» obre una pantalla amb tres opcions: **Totes**
 (`low`), **Rellevants** (`medium`) i **Destacades** (`high`). Es poden triar abans
 d'activar els avisos i els canvis es desen en tocar l'opció. Les noves activacions
 comencen amb Destacades; els usuaris que ja tenien avisos conserven Totes.
@@ -404,6 +455,12 @@ uv run --frozen --no-sync python -m pytest -q
 cd HoraAHoraApp/Packages/CastellsKit
 swift test
 ```
+
+`tests/test_app_build_profiles.py` llegeix el projecte Xcode, el paquet Swift i el build de
+Gradle, i falla si un mòdul intern, un punt d'entrada, un permís o un entitlement de les
+seccions internes pot arribar a l'app pública, o si l'app interna pot substituir-la. Els
+workflows d'iOS i Android compilen i inspeccionen totes dues apps (vegeu
+[App pública i app interna](#app-pública-i-app-interna)).
 
 El CI crea PostgreSQL 17 i defineix `TEST_DATABASE_URL`; així valida les dues rutes
 d'Alembic, els `ON CONFLICT`, la concurrència del rate limiter, els advisory locks i

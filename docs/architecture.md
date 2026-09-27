@@ -2,6 +2,26 @@
 
 Aquest document defineix els límits que han de continuar sent estables quan el projecte creixi. La modularització no altera l'API HTTP, l'esquema PostgreSQL, els models SwiftData ni els productes públics de `CastellsKit`, i l'app Android segueix els mateixos contractes.
 
+## App pública i app interna
+
+Cada plataforma genera dues apps a partir del mateix codi, triades en compilar amb
+`CASTELLS_BUILD_PROFILE=public|internal` (`public` per defecte):
+
+- L'**app pública** (`com.ahuguet.castellsenvena`) té la calculadora, la taula de puntuacions i els
+  ajustos de la calculadora. És l'única que es publica.
+- L'**app interna** (`com.ahuguet.castellsenvena.internal`) hi afegeix Hora a Hora, Agenda, els seus
+  ajustos, el gest secret i els avisos de notícies. És una app diferent: s'instal·la al costat de la
+  pública i no la pot substituir.
+
+La separació es fa en temps de compilació i per mòduls, no amb un booleà en temps d'execució:
+l'app pública no depèn dels mòduls interns ni en conté cap punt d'entrada (pestanyes, deep links,
+delegat de notificacions, permisos o entitlements). Les dues apps fan servir el mateix esquema
+de base de dades local, sencer, perquè l'app pública es pugui actualitzar des de les versions que
+tenien les seccions internes sense perdre les converses.
+
+`tests/test_app_build_profiles.py` fa complir aquests límits llegint el projecte Xcode, el paquet
+Swift i el build de Gradle, i `scripts/app_profiles.py` inspecciona les apps compilades a CI.
+
 ## Backend
 
 El backend combina casos d'ús explícits amb ports i adaptadors:
@@ -34,12 +54,16 @@ el job i el contracte HTTP.
 
 ## Swift
 
-Es conserven els targets públics existents i s'organitza el codi intern per funcionalitat:
+Es conserven els targets públics existents i s'organitza el codi intern per funcionalitat. El
+projecte Xcode té dos targets d'app amb el seu esquema:
 
 ```text
-HoraAHoraApp ──> Feature* ──> CastellsDomain
+HoraAHoraApp (pública) ──> FeatureCalculator, FeatureScoreTable, FeatureSettings ──> CastellsDomain
       │
-      └────────> CastellsData ──> CastellsDomain
+      └─────────────────> CastellsData ──> CastellsDomain
+
+HoraAHoraAppInternal ──> el mateix, més FeatureHourByHour, FeatureAgenda i
+                         FeatureInternalSettings ──> FeatureSettings
 ```
 
 Les dependències permeses són:
@@ -47,15 +71,18 @@ Les dependències permeses són:
 - `CastellsDomain` defineix models i protocols d'Agenda, Hora a Hora i xat, més utilitats compartides. No depèn de dades, features ni de l'app.
 - `CastellsData` implementa els repositoris del domini i concentra xarxa, SwiftData i notificacions remotes. Pot dependre de `CastellsDomain`.
 - Cada `Feature*` conté presentació, vistes i utilitats pròpies. Pot dependre de `CastellsDomain`, però no de `CastellsData` ni del target principal.
-- `HoraAHoraApp` és l'arrel de composició. `AppDependencies` crea implementacions concretes i les injecta a les features; configuració, navegació i notificacions queden separades.
+- Els dos targets d'app compilen el codi compartit de `HoraAHoraApp/HoraAHoraApp` (configuració, arrencada, navegació i `CoreDependencies`, que crea l'emmagatzematge, el client de l'API i la calculadora). Cada un afegeix la seva entrada i la seva composició: `Public/` (`PublicAppDependencies`, `PublicContentView`) i `Internal/` (`InternalAppDependencies`, `InternalContentView`, el delegat d'avisos i el gestor de notificacions, i l'entitlement `aps-environment`).
+- El target `HoraAHoraApp` és l'app pública: només pot dependre de `CastellsDomain`, `CastellsData`, `FeatureCalculator`, `FeatureScoreTable` i `FeatureSettings`, i no té entitlements. El target `HoraAHoraAppInternal` és l'app interna.
 - `FeatureScoreTable` mostra la taula de puntuacions a partir d'una còpia en JSON que porta com a recurs. `scripts/export_score_table.py` la genera del CSV del backend, que continua sent l'única font dels punts, i una prova de Pytest comprova que no quedi desfasada.
-- Hora a Hora, Agenda i els seus ajustos són seccions ocultes. `HiddenSectionsPreferences` (domini) i `HiddenSectionsStore` (dades) en desen l'estat; `SettingsModel` compta el gest secret d'Ajustos i la navegació només les mostra quan estan desbloquejades. Qui ja tenia els avisos de notícies activats les conserva.
+- `FeatureSettings` conté els ajustos de la calculadora i ofereix punts d'extensió: seccions al principi, fonts addicionals i un gestor dels tocs a la versió. `FeatureInternalSettings`, només a l'app interna, els omple amb els avisos de notícies, les fonts d'Hora a Hora i Agenda i el gest secret. És l'única dependència entre features i sempre va en aquest sentit.
+- A l'app interna, Hora a Hora, Agenda i els seus ajustos són seccions ocultes. `HiddenSectionsPreferences` (domini) i `HiddenSectionsStore` (dades) en desen l'estat; `InternalSettingsModel` compta el gest secret d'Ajustos i la navegació només les mostra quan estan desbloquejades.
+- `CastellsData` conserva els models SwiftData i els repositoris d'Hora a Hora i Agenda, perquè l'esquema ha de continuar sent el mateix a les dues apps. L'app pública no els crida; només fa servir `LegacyNewsNotificationsRetirement` per retirar els avisos que hagués activat una versió anterior.
 
 Els noms dels targets, productes públics i models SwiftData són part de la compatibilitat del projecte. Moure implementació entre carpetes no ha de canviar aquests contractes.
 
 ## Android
 
-L'app Android (`android/`) reprodueix les mateixes funcionalitats i contractes que l'app iOS amb mòduls Gradle:
+L'app Android (`android/`) reprodueix les mateixes funcionalitats i contractes que l'app iOS amb mòduls Gradle. El mòdul `:app` té dos flavors, `public` i `internal`, i només existeixen les variants del perfil triat:
 
 ```text
 :app ──> :feature:*:ui ──> :feature:*:presentation ──> :core:domain ──> :core:common
@@ -72,8 +99,9 @@ Les dependències permeses són:
 - `:core:data` implementa els repositoris del domini amb xarxa i base local, i la sincronització de la subscripció push.
 - Cada `:feature:*:presentation` conté l'estat i la lògica de la pantalla (`StateFlow` i funcions `suspend`) en Kotlin pur, amb proves unitàries. Pot dependre del domini, però no de dades, d'Android ni d'altres features.
 - Cada `:feature:*:ui` conté només Compose. Depèn de la seva presentació i de `:core:designsystem`, no de dades.
-- `:app` és l'arrel de composició: `AppContainer` crea implementacions concretes, i el mòdul concentra Firebase, permisos, enllaços, arrencada i navegació.
-- `:feature:scoretable:presentation` porta la taula de puntuacions com a recurs JSON, la mateixa còpia que l'app iOS, i n'ordena les files i calcula l'escala de les barres. Com a iOS, `HiddenSectionsPreferences` (`:core:domain`) i `KeyValueHiddenSectionsStore` (`:core:data`) desen si Hora a Hora i Agenda es mostren.
+- `:app` és l'arrel de composició. `src/main` té el codi compartit (`CoreContainer`, configuració, enllaços, arrencada, la barra de navegació i el manifest sense avisos); `src/public` i `src/internal` tenen cadascun el seu `AppContainer`, l'activitat i la navegació. Només `src/internal` té Firebase, el permís de notificacions, el servei de missatges, el canal d'avisos i els enllaços des dels avisos.
+- `:feature:hourbyhour:*`, `:feature:agenda:*` i `:feature:internalsettings:*` són dependències `internalImplementation`: l'app pública no les inclou. `:feature:internalsettings` amplia `:feature:settings`, com a iOS.
+- `:feature:scoretable:presentation` porta la taula de puntuacions com a recurs JSON, la mateixa còpia que l'app iOS, i n'ordena les files i calcula l'escala de les barres. Com a iOS, `HiddenSectionsPreferences` (`:core:domain`) i `KeyValueHiddenSectionsStore` (`:core:data`) desen si Hora a Hora i Agenda es mostren a l'app interna, i `:core:data` i `:core:database` conserven el codi i l'esquema d'aquestes seccions per a totes dues apps.
 
 Els mòduls que no depenen d'Android es compilen i es proven en qualsevol JVM amb `-Pcastells.jvmOnly=true`. Les convencions de compilació viuen a `android/build-logic`.
 
@@ -93,12 +121,8 @@ cd HoraAHoraApp/Packages/CastellsKit
 swift test
 
 cd ../../..
-xcodebuild \
-  -project HoraAHoraApp/HoraAHoraApp.xcodeproj \
-  -scheme HoraAHoraApp \
-  -destination 'generic/platform=iOS Simulator' \
-  -configuration Debug \
-  CODE_SIGNING_ALLOWED=NO build
+make ios-build ios-verify                                  # app pública
+make ios-build ios-verify CASTELLS_BUILD_PROFILE=internal  # app interna
 ```
 
 Amb `TEST_DATABASE_URL`, Pytest també valida migracions i comportament específic de PostgreSQL.
@@ -106,5 +130,8 @@ Amb `TEST_DATABASE_URL`, Pytest també valida migracions i comportament específ
 ```bash
 cd android
 ./gradlew -Pcastells.jvmOnly=true test   # domini, dades i presentació, sense l'SDK d'Android
-./gradlew testDebugUnitTest assembleDebug   # tot el projecte, amb l'SDK d'Android
+./gradlew test                           # totes les proves, amb l'SDK d'Android
+cd ..
+make android-build android-lint android-verify                                  # app pública
+make android-build android-lint android-verify CASTELLS_BUILD_PROFILE=internal  # app interna
 ```
