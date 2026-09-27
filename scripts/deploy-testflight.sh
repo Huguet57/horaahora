@@ -7,6 +7,8 @@ DEPLOY_TEMPORARY_ROOT=''
 DEPLOY_SOURCE_DIRECTORY=''
 DEPLOY_WORKTREE_ADDED=false
 DEPLOY_KEEP_ARTIFACTS=false
+# Debug builds talk to a local backend; what reaches TestFlight must use production.
+PRODUCTION_API_BASE_URL='https://castells-superapp-poc.vercel.app'
 
 cleanup_deploy() {
   local exit_code=$?
@@ -252,6 +254,15 @@ main() {
   if [[ -n "$marketing_version" && "$archived_version" != "$marketing_version" ]]; then
     printf 'Error: archived version is %s; expected %s.\n' \
       "$archived_version" "$marketing_version" >&2
+    return 1
+  fi
+
+  local application_path api_base_url
+  application_path=$(/usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:ApplicationPath' "$archive_path/Info.plist")
+  api_base_url=$(/usr/libexec/PlistBuddy -c 'Print :CastellsAPIBaseURL' "$archive_path/Products/$application_path/Info.plist")
+  if [[ "$api_base_url" != "$PRODUCTION_API_BASE_URL" ]]; then
+    printf 'Error: the archived app talks to %s; TestFlight builds must use %s.\n' \
+      "$api_base_url" "$PRODUCTION_API_BASE_URL" >&2
     return 1
   fi
 

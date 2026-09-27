@@ -129,14 +129,16 @@ def test_invalid_marketing_version_is_rejected_before_building() -> None:
     assert "marketing version must contain two or three numeric components" in result.stderr
 
 
-@pytest.mark.skipif(sys.platform != "darwin", reason="TestFlight deploy requires macOS")
-def test_deploy_archives_uploads_and_removes_its_temporary_worktree(tmp_path: Path) -> None:
+def fake_xcodebuild_environment(tmp_path: Path, api_base_url: str) -> dict[str, str]:
+    """Put an xcodebuild on PATH that archives an app pointing at api_base_url."""
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     fake_xcodebuild = fake_bin / "xcodebuild"
     fake_xcodebuild.write_text(
-        """#!/usr/bin/env python3
-import pathlib
+        "#!/usr/bin/env python3\n"
+        f"API_BASE_URL = {api_base_url!r}\n"
+        f"EXPORT_MARKER = {str(tmp_path / 'exported')!r}\n"
+        """import pathlib
 import plistlib
 import sys
 
@@ -153,11 +155,13 @@ if "archive" in arguments:
         for argument in arguments
         if argument.startswith("MARKETING_VERSION=")
     )
-    archive_path.mkdir(parents=True)
+    application = archive_path / "Products" / "Applications" / "HoraAHoraApp.app"
+    application.mkdir(parents=True)
     with (archive_path / "Info.plist").open("wb") as plist:
         plistlib.dump(
             {
                 "ApplicationProperties": {
+                    "ApplicationPath": "Applications/HoraAHoraApp.app",
                     "CFBundleIdentifier": "com.ahuguet.castellsenvena",
                     "CFBundleShortVersionString": marketing_version,
                     "CFBundleVersion": build_number,
@@ -165,23 +169,21 @@ if "archive" in arguments:
             },
             plist,
         )
+    with (application / "Info.plist").open("wb") as plist:
+        plistlib.dump({"CastellsAPIBaseURL": API_BASE_URL}, plist)
 elif "-exportArchive" in arguments:
+    pathlib.Path(EXPORT_MARKER).touch()
     print("** EXPORT SUCCEEDED **")
 else:
     raise SystemExit(f"Unexpected xcodebuild arguments: {arguments}")
 """
     )
     fake_xcodebuild.chmod(0o755)
-    environment = os.environ | {"PATH": f"{fake_bin}:{os.environ['PATH']}"}
-    worktrees_before = subprocess.run(
-        ["git", "worktree", "list", "--porcelain"],
-        cwd=REPOSITORY_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
+    return os.environ | {"PATH": f"{fake_bin}:{os.environ['PATH']}"}
 
-    result = run_script(
+
+def run_fake_deploy(environment: dict[str, str]) -> subprocess.CompletedProcess[str]:
+    return run_script(
         "--skip-tests",
         "--ref",
         "HEAD",
@@ -191,6 +193,20 @@ else:
         "1774400000",
         env=environment,
     )
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="TestFlight deploy requires macOS")
+def test_deploy_archives_uploads_and_removes_its_temporary_worktree(tmp_path: Path) -> None:
+    environment = fake_xcodebuild_environment(tmp_path, "https://castells-superapp-poc.vercel.app")
+    worktrees_before = subprocess.run(
+        ["git", "worktree", "list", "--porcelain"],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+
+    result = run_fake_deploy(environment)
 
     worktrees_after = subprocess.run(
         ["git", "worktree", "list", "--porcelain"],
@@ -202,7 +218,25 @@ else:
     assert result.returncode == 0, result.stderr
     assert "Uploading com.ahuguet.castellsenvena 1.1 (1774400000)" in result.stdout
     assert "Upload accepted for TestFlight" in result.stdout
+    assert (tmp_path / "exported").exists()
     assert worktrees_after == worktrees_before
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="TestFlight deploy requires macOS")
+def test_deploy_refuses_an_archive_that_does_not_use_the_production_backend(
+    tmp_path: Path,
+) -> None:
+    environment = fake_xcodebuild_environment(tmp_path, "http://127.0.0.1:8000")
+
+    result = run_fake_deploy(environment)
+
+    errors = [line for line in result.stderr.splitlines() if line.startswith("Error:")]
+    assert result.returncode != 0
+    assert errors == [
+        "Error: the archived app talks to http://127.0.0.1:8000; "
+        "TestFlight builds must use https://castells-superapp-poc.vercel.app."
+    ]
+    assert not (tmp_path / "exported").exists()
 
 
 def test_deploy_script_is_documented() -> None:
