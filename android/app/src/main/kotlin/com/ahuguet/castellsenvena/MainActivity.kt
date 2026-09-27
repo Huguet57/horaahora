@@ -39,11 +39,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val container = container
-        splashScreen.setKeepOnScreenCondition {
-            container.startupGate.keepsLaunchScreen(
-                initialLoadHasCompleted = container.models.hourByHour.state.value.hasCompletedInitialLoad,
-            )
-        }
+        splashScreen.setKeepOnScreenCondition { container.startupGate.keepsLaunchScreen() }
         container.notificationPermissionRequester.attach(permissionLauncher)
         // A recreated activity already opened the link of its intent.
         if (savedInstanceState == null) takeLink(intent)

@@ -27,7 +27,7 @@ data class AppConfiguration(
         )
 
     companion object {
-        const val APP_NAME = "Castells en vena"
+        const val APP_NAME = "La calculadora de l'Aleta"
         const val SUPPORT_EMAIL = "tenimaletaapp@gmail.com"
         const val PUSH_PLATFORM = "android"
     }

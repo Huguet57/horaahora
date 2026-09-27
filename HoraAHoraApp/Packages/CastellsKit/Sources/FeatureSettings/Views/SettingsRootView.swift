@@ -4,6 +4,7 @@ import CastellsDomain
 public struct SettingsRootView: View {
     @Bindable private var model: SettingsModel
     @State private var identifierWasCopied = false
+    @State private var hiddenSectionsMessage: String?
 
     private let configuration: SettingsConfiguration
     private let hasFollowedGroups: Bool
@@ -33,7 +34,9 @@ public struct SettingsRootView: View {
     public var body: some View {
         NavigationStack {
             List {
-                notificationSection
+                if model.showsHiddenSections {
+                    notificationSection
+                }
                 privacySection
                 helpSection
                 aboutSection
@@ -163,13 +166,34 @@ public struct SettingsRootView: View {
         Section("Sobre \(configuration.appName)") {
             VStack(alignment: .leading, spacing: 3) {
                 Text(configuration.appName).font(.headline)
-                Text(configuration.versionAndBuild).font(.subheadline).foregroundStyle(.secondary)
+                Text(hiddenSectionsMessage ?? configuration.versionAndBuild)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
             .padding(.vertical, 5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            // The secret gesture: seven quick taps show or hide Hora a Hora and Agenda.
+            .onTapGesture {
+                guard model.registerSecretTap() else { return }
+                hiddenSectionsMessage = model.showsHiddenSections
+                    ? "S'han activat Hora a Hora i Agenda"
+                    : "S'han amagat Hora a Hora i Agenda"
+            }
+            .sensoryFeedback(.success, trigger: model.showsHiddenSections)
+            .task(id: hiddenSectionsMessage) {
+                guard hiddenSectionsMessage != nil else { return }
+                try? await Task.sleep(for: .seconds(2))
+                hiddenSectionsMessage = nil
+            }
             .accessibilityElement(children: .combine)
 
             NavigationLink {
-                SourcesAndCreditsView(configuration: configuration, onOpenURL: onOpenURL)
+                SourcesAndCreditsView(
+                    configuration: configuration,
+                    showsHiddenSections: model.showsHiddenSections,
+                    onOpenURL: onOpenURL
+                )
             } label: {
                 Label("Fonts i crèdits", systemImage: "text.book.closed")
             }

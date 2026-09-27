@@ -2,9 +2,11 @@ import SafariServices
 import SwiftUI
 
 enum AppSection: Hashable {
+    case calculator
+    case scoreTable
+    /// Hidden unless the secret gesture in Ajustos shows it, like `agenda`.
     case hourByHour
     case agenda
-    case calculator
     case settings
 }
 

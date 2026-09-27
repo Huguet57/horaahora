@@ -48,6 +48,8 @@ Les dependències permeses són:
 - `CastellsData` implementa els repositoris del domini i concentra xarxa, SwiftData i notificacions remotes. Pot dependre de `CastellsDomain`.
 - Cada `Feature*` conté presentació, vistes i utilitats pròpies. Pot dependre de `CastellsDomain`, però no de `CastellsData` ni del target principal.
 - `HoraAHoraApp` és l'arrel de composició. `AppDependencies` crea implementacions concretes i les injecta a les features; configuració, navegació i notificacions queden separades.
+- `FeatureScoreTable` mostra la taula de puntuacions a partir d'una còpia en JSON que porta com a recurs. `scripts/export_score_table.py` la genera del CSV del backend, que continua sent l'única font dels punts, i una prova de Pytest comprova que no quedi desfasada.
+- Hora a Hora, Agenda i els seus ajustos són seccions ocultes. `HiddenSectionsPreferences` (domini) i `HiddenSectionsStore` (dades) en desen l'estat; `SettingsModel` compta el gest secret d'Ajustos i la navegació només les mostra quan estan desbloquejades. Qui ja tenia els avisos de notícies activats les conserva.
 
 Els noms dels targets, productes públics i models SwiftData són part de la compatibilitat del projecte. Moure implementació entre carpetes no ha de canviar aquests contractes.
 
@@ -71,6 +73,7 @@ Les dependències permeses són:
 - Cada `:feature:*:presentation` conté l'estat i la lògica de la pantalla (`StateFlow` i funcions `suspend`) en Kotlin pur, amb proves unitàries. Pot dependre del domini, però no de dades, d'Android ni d'altres features.
 - Cada `:feature:*:ui` conté només Compose. Depèn de la seva presentació i de `:core:designsystem`, no de dades.
 - `:app` és l'arrel de composició: `AppContainer` crea implementacions concretes, i el mòdul concentra Firebase, permisos, enllaços, arrencada i navegació.
+- `:feature:scoretable:presentation` porta la taula de puntuacions com a recurs JSON, la mateixa còpia que l'app iOS, i n'ordena les files i calcula l'escala de les barres. Com a iOS, `HiddenSectionsPreferences` (`:core:domain`) i `KeyValueHiddenSectionsStore` (`:core:data`) desen si Hora a Hora i Agenda es mostren.
 
 Els mòduls que no depenen d'Android es compilen i es proven en qualsevol JVM amb `-Pcastells.jvmOnly=true`. Les convencions de compilació viuen a `android/build-logic`.
 

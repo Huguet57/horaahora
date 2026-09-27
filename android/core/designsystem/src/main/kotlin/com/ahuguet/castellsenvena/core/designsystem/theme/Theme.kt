@@ -11,7 +11,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-/** The accent of Castells en vena, shared with the iOS app. */
+/** The accent of La calculadora de l'Aleta, shared with the iOS app. */
 val BrandRed = Color(0xFFD32B1F)
 
 /*

@@ -28,7 +28,7 @@ final class SettingsConfigurationTests: XCTestCase {
         XCTAssertEqual(components.path, "suport+castells@example.test")
         XCTAssertEqual(
             components.queryItems?.first(where: { $0.name == "subject" })?.value,
-            "Suport Castells en vena"
+            "Suport La calculadora de l'Aleta"
         )
         let body = try XCTUnwrap(
             components.queryItems?.first(where: { $0.name == "body" })?.value
@@ -49,7 +49,7 @@ final class SettingsConfigurationTests: XCTestCase {
         SettingsConfiguration(
             apiBaseURL: apiBaseURL,
             supportEmail: supportEmail,
-            appName: "Castells en vena",
+            appName: "La calculadora de l'Aleta",
             appVersion: appVersion,
             buildNumber: buildNumber,
             technicalIdentifier: technicalIdentifier,

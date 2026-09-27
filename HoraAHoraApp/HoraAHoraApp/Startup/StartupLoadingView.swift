@@ -14,14 +14,11 @@ struct StartupLoadingView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 23, style: .continuous))
                     .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
 
-                Text("Castells en vena")
+                Text("La calculadora de l'Aleta")
                     .font(.title2.weight(.bold))
-
-                ProgressView()
-                    .tint(.red)
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Carregant l'Hora a Hora")
+        .accessibilityLabel("La calculadora de l'Aleta")
     }
 }

@@ -1,8 +1,9 @@
-# Castells en vena per a Android
+# La calculadora de l'Aleta per a Android
 
-App Android nativa en Kotlin i Jetpack Compose, amb les mateixes quatre seccions que l'app
-iOS: **Hora a Hora**, **Agenda**, **Calculadora** i **Ajustos**. Parla amb el mateix backend
-i en respecta els contractes HTTP, les preferències d'avisos i el comportament fora de línia.
+App Android nativa en Kotlin i Jetpack Compose, amb les mateixes seccions que l'app iOS:
+**Calculadora**, **Puntuacions** i **Ajustos**, més **Hora a Hora** i **Agenda** com a seccions
+ocultes. Parla amb el mateix backend i en respecta els contractes HTTP, les preferències d'avisos
+i el comportament fora de línia.
 
 ## Requisits
 
@@ -78,9 +79,14 @@ També es pot obrir la carpeta `android` amb Android Studio.
 - **Agenda:** calendari mensual que es plega fins a la setmana activa en desplaçar les
   actuacions, sis mesos precarregats al voltant del mes visible, filtre i colles destacades.
 - **Calculadora:** converses desades només al dispositiu. Les respostes en curs continuen encara
-  que es tanqui el xat, i en tornar-hi es mostren quan arriben.
-- **Ajustos:** avisos amb el llindar d'interès, política de privacitat, suport, identificador
-  tècnic i fonts. A Android 13 o posterior, el permís de notificacions només es demana quan
-  l'usuari activa els avisos.
+  que es tanqui el xat, i en tornar-hi es mostren quan arriben. És la pestanya inicial.
+- **Puntuacions:** la taula oficial del 2026 de més a menys punts, per grups. Les barres fan zoom
+  a les files visibles i, en tocar un castell, es ressalten els de sota que descarregats en
+  guanyen el carregat. La taula és un recurs del mòdul `:feature:scoretable:presentation`,
+  generat amb `scripts/export_score_table.py` a partir del CSV del backend.
+- **Ajustos:** política de privacitat, suport, identificador tècnic i fonts. Set tocs seguits a la
+  versió mostren o amaguen Hora a Hora, Agenda i els avisos de notícies (amb el llindar
+  d'interès); qui ja tenia els avisos activats les conserva. A Android 13 o posterior, el permís
+  de notificacions només es demana quan l'usuari activa els avisos.
 - **Accessibilitat:** etiquetes per a TalkBack, mida de text del sistema i, amb «Suprimeix les
   animacions», el calendari canvia d'estat sense animacions intermèdies.

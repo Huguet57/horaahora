@@ -42,6 +42,7 @@ include(
     ":feature:hourbyhour:presentation",
     ":feature:agenda:presentation",
     ":feature:calculator:presentation",
+    ":feature:scoretable:presentation",
     ":feature:settings:presentation",
 )
 
@@ -54,6 +55,7 @@ if (providers.gradleProperty("castells.jvmOnly").orNull != "true") {
         ":feature:hourbyhour:ui",
         ":feature:agenda:ui",
         ":feature:calculator:ui",
+        ":feature:scoretable:ui",
         ":feature:settings:ui",
     )
 }

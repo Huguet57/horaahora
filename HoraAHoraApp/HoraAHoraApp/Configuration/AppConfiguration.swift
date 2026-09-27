@@ -52,7 +52,7 @@ struct AppConfiguration {
         return AppConfiguration(
             apiBaseURL: apiBaseURL,
             supportEmail: "tenimaletaapp@gmail.com",
-            appName: "Castells en vena",
+            appName: "La calculadora de l'Aleta",
             appVersion: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
                 ?? "1.0",
             buildNumber: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1",

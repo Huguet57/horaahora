@@ -1,6 +1,7 @@
 package com.ahuguet.castellsenvena.feature.settings.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,11 +28,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -62,14 +68,17 @@ internal fun SettingsRoot(
     onOpenUrl: (String) -> Unit,
     onContactSupport: (String) -> Unit,
     onCopyIdentifier: (String) -> Unit,
+    onSecretTap: () -> Boolean?,
 ) {
     SettingsScaffold(title = "Ajustos") {
-        NotificationSection(
-            state = state,
-            onEnabledChange = onNotificationsEnabledChange,
-            onOpenInterest = onOpenNotificationInterest,
-            onOpenSystemSettings = onOpenSystemSettings,
-        )
+        if (state.showsHiddenSections) {
+            NotificationSection(
+                state = state,
+                onEnabledChange = onNotificationsEnabledChange,
+                onOpenInterest = onOpenNotificationInterest,
+                onOpenSystemSettings = onOpenSystemSettings,
+            )
+        }
 
         SectionHeader("Privacitat i dades")
         ListRow(
@@ -89,12 +98,7 @@ internal fun SettingsRoot(
         CopyIdentifierRow(identifier = configuration.technicalIdentifier, onCopy = onCopyIdentifier)
 
         SectionHeader("Sobre ${configuration.appName}")
-        ListRow(
-            title = configuration.appName,
-            subtitle = configuration.versionAndBuild,
-            leadingIcon = Icons.Outlined.Info,
-            modifier = Modifier.semantics(mergeDescendants = true) {},
-        )
+        VersionRow(configuration = configuration, onSecretTap = onSecretTap)
         ListRow(
             title = "Fonts i crèdits",
             leadingIcon = Icons.AutoMirrored.Outlined.MenuBook,
@@ -169,6 +173,38 @@ private fun MessageRow(text: String, color: Color) {
         Icon(Icons.Filled.Warning, contentDescription = null, tint = color)
         Text(text = text, style = MaterialTheme.typography.bodyMedium, color = color)
     }
+}
+
+/**
+ * The app and its version. It hides the secret gesture: seven quick taps show or
+ * hide Hora a Hora and Agenda, without the ripple that would give it away.
+ * [onSecretTap] returns whether the sections now show, or null if nothing changed.
+ */
+@Composable
+private fun VersionRow(configuration: SettingsConfiguration, onSecretTap: () -> Boolean?) {
+    var message by remember { mutableStateOf<String?>(null) }
+    val currentOnSecretTap by rememberUpdatedState(onSecretTap)
+    val haptics = LocalHapticFeedback.current
+    LaunchedEffect(message) {
+        if (message != null) {
+            delay(2_000)
+            message = null
+        }
+    }
+    ListRow(
+        title = configuration.appName,
+        subtitle = message ?: configuration.versionAndBuild,
+        leadingIcon = Icons.Outlined.Info,
+        modifier = Modifier
+            .semantics(mergeDescendants = true) {}
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    val shows = currentOnSecretTap() ?: return@detectTapGestures
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    message = if (shows) "S'han activat Hora a Hora i Agenda" else "S'han amagat Hora a Hora i Agenda"
+                }
+            },
+    )
 }
 
 /** Copies the identifier support asks for; confirms it for two seconds. */

@@ -27,6 +27,7 @@ final class AppDependencies {
         let agendaFilterStore = AgendaUserDefaultsStore(userDefaults: userDefaults)
         let notificationPreferenceStore = NotificationPreferenceStore(userDefaults: userDefaults)
         let conversationSharing = ConversationSharingStore(userDefaults: userDefaults)
+        let hiddenSections = HiddenSectionsStore(userDefaults: userDefaults)
         let pushSubscriptionCoordinator = PushSubscriptionCoordinator(
             remoteService: HTTPPushSubscriptionRemoteService(client: client),
             installationID: configuration.technicalIdentifier,
@@ -81,7 +82,8 @@ final class AppDependencies {
                     forKey: AppConfiguration.notificationOnboardingDismissedKey
                 )
             },
-            conversationSharing: conversationSharing
+            conversationSharing: conversationSharing,
+            hiddenSections: hiddenSections
         )
         settingsConfiguration = configuration.settingsConfiguration
         self.pushSubscriptionCoordinator = pushSubscriptionCoordinator

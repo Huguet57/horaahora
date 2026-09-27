@@ -1,8 +1,8 @@
-# Política de privacitat — Castells en vena
+# Política de privacitat — La calculadora de l'Aleta
 
 **Darrera actualització:** 27 de setembre de 2026
 
-Aquesta política explica com tracta les dades personals la versió actual de **Castells en vena**, una app gratuïta i sense compte d'usuari.
+Aquesta política explica com tracta les dades personals la versió actual de **La calculadora de l'Aleta**, una app gratuïta i sense compte d'usuari.
 
 ## 1. Responsable
 
@@ -16,14 +16,14 @@ No s'ha designat un delegat de protecció de dades perquè, atesa la naturalesa 
 ### Dades desades només al dispositiu
 
 - L'historial complet de les converses de la calculadora, inclosos els títols. Les consultes que es comparteixen per millorar la calculadora s'expliquen més avall.
-- Còpies locals de l'agenda i de l'Hora a Hora per millorar la disponibilitat i la lectura sense connexió.
+- Còpies locals del contingut consultat a l'app, com notícies i actuacions, per millorar la disponibilitat i la lectura sense connexió.
 - Preferències locals de visualització. Quan s'activen notificacions, el llindar d'interès i les colles seguides també es sincronitzen amb el backend, tal com s'explica a continuació.
 
 Les converses es poden eliminar individualment. Les dades locals restants desapareixen quan es desinstal·la l'app o se n'eliminen les dades des del sistema.
 
 ### Consultes de la calculadora
 
-Quan s'envia una consulta, l'app transmet al backend com a màxim els 12 darrers missatges necessaris per entendre el context, juntament amb l'identificador aleatori d'instal·lació. El backend processa la consulta i la deriva al proveïdor d'intel·ligència artificial configurat. Si no es comparteixen per millorar la calculadora, Castells en vena no desa aquestes converses al backend.
+Quan s'envia una consulta, l'app transmet al backend com a màxim els 12 darrers missatges necessaris per entendre el context, juntament amb l'identificador aleatori d'instal·lació. El backend processa la consulta i la deriva al proveïdor d'intel·ligència artificial configurat. Si no es comparteixen per millorar la calculadora, La calculadora de l'Aleta no desa aquestes converses al backend.
 
 > **No hi introdueixis dades personals.** La calculadora només necessita informació castellera per respondre.
 
@@ -43,7 +43,7 @@ En connectar-se al servei es poden processar l'adreça IP, la data i l'hora, la 
 
 Si s'activen voluntàriament les notificacions, el sistema operatiu gestiona el permís i el servei de notificacions de la plataforma assigna un token a aquesta instal·lació: a iOS, Apple Push Notification service (APNs), d'Apple; a Android, Firebase Cloud Messaging (FCM), de Google. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app, l'idioma i la plataforma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple o Google invaliden el token, el backend el substitueix immediatament per una marca de revocació. A Android, l'app només demana el token a FCM quan s'activen les notificacions i l'esborra quan es desactiven.
 
-Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'Agenda per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token de notificació, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.
+Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'app per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token de notificació, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.
 
 El llindar i la selecció de colles desats a la subscripció es buiden quan es revoca el token; la còpia local es conserva. Les còpies temporals utilitzades per preparar un avís s'eliminen en completar o ometre'n la classificació.
 
@@ -95,7 +95,7 @@ No hi ha publicitat, tracking entre apps o webs, perfilat comercial ni SDK addic
 
 ## 8. Enllaços externs
 
-Quan s'obre un enllaç de Revista Castells, CCCC, Google Maps o qualsevol servei extern, el servei de destinació tracta la connexió segons la seva pròpia política de privacitat. Castells en vena no controla aquests tractaments.
+Quan s'obre un enllaç de Revista Castells, CCCC, Google Maps o qualsevol servei extern, el servei de destinació tracta la connexió segons la seva pròpia política de privacitat. La calculadora de l'Aleta no controla aquests tractaments.
 
 ## 9. Drets
 
