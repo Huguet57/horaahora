@@ -65,7 +65,7 @@ public final class ChatViewModel {
         }
     }
 
-    public func followPendingResponse() async {
+    public func loadFollowingPendingResponse() async {
         while isSending && !Task.isCancelled {
             do {
                 try await sleep(.milliseconds(250))

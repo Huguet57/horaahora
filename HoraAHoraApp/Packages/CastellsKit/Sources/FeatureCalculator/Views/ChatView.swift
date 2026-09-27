@@ -102,7 +102,7 @@ public struct ChatView: View {
         }
         .navigationTitle(model.conversation?.title ?? "Conversa nova")
         .calculatorInlineNavigationTitle()
-        .task { await model.followPendingResponse() }
+        .task { await model.loadFollowingPendingResponse() }
     }
 }
 

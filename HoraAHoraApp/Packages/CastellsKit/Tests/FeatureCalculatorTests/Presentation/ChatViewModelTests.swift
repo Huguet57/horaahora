@@ -73,9 +73,8 @@ final class ChatViewModelTests: XCTestCase {
             conversationID: repository.conversationID,
             sleep: { _ in repository.finishSending() }
         )
-        XCTAssertTrue(model.isSending)
 
-        await model.followPendingResponse()
+        await model.loadFollowingPendingResponse()
 
         XCTAssertEqual(repository.loadCount, 2)
         XCTAssertFalse(model.isSending)

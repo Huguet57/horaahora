@@ -65,20 +65,15 @@ public struct CalculatorRootView: View {
     }
 
     private func select(_ destination: CalculatorDestination?) {
-        guard let destination else {
-            selectedDestination = nil
-            hidesTabBar = false
+        guard let destination, selectedDestination == nil else {
+            // Going back, or switching chats side by side.
+            selectedDestination = destination
+            hidesTabBar = destination != nil
             return
         }
-        guard !hidesTabBar else {
-            // A chat is already shown (side by side), so switch right away; a pending push keeps
-            // its destination.
-            if selectedDestination != nil { selectedDestination = destination }
-            return
-        }
-        // Hide the tab bar one update before pushing the chat. When both change together, the
-        // pushed chat can be laid out around the tab bar's inset and its composer drops once
-        // the transition ends.
+        guard !hidesTabBar else { return }
+        // Hide the tab bar one update before pushing the chat: when both change together, the
+        // chat is laid out above the tab bar and its composer drops once the transition ends.
         hidesTabBar = true
         Task { @MainActor in
             await Task.yield()
