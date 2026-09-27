@@ -5,14 +5,14 @@ on:
     paths:
       - "HoraAHoraApp/**"
       - "Makefile"
-      - "scripts/app_profiles.py"
+      - "scripts/app_profiles/**"
       - ".github/workflows/ios.yml"
   push:
     branches: [main]
     paths:
       - "HoraAHoraApp/**"
       - "Makefile"
-      - "scripts/app_profiles.py"
+      - "scripts/app_profiles/**"
       - ".github/workflows/ios.yml"
   workflow_dispatch:
 

@@ -5,13 +5,13 @@ on:
     paths:
       - "android/**"
       - "Makefile"
-      - "scripts/app_profiles.py"
+      - "scripts/app_profiles/**"
       - ".github/workflows/android.yml"
   push:
     paths:
       - "android/**"
       - "Makefile"
-      - "scripts/app_profiles.py"
+      - "scripts/app_profiles/**"
       - ".github/workflows/android.yml"
   workflow_dispatch:
 

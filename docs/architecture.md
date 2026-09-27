@@ -20,7 +20,8 @@ de base de dades local, sencer, perquè l'app pública es pugui actualitzar des 
 tenien les seccions internes sense perdre les converses.
 
 `tests/test_app_build_profiles.py` fa complir aquests límits llegint el projecte Xcode, el paquet
-Swift i el build de Gradle, i `scripts/app_profiles.py` inspecciona les apps compilades a CI.
+Swift i el build de Gradle amb `scripts/app_profiles`, que també inspecciona les apps compilades a
+CI (`tests/test_built_app_inspection.py` en prova la inspecció).
 
 ## Backend
 

@@ -59,8 +59,8 @@ make android-build android-lint android-verify             # APK públics de dep
 make android-install CASTELLS_BUILD_PROFILE=internal       # app interna al dispositiu connectat
 ```
 
-`ios-verify` i `android-verify` inspeccionen el que s'acaba de compilar amb
-`scripts/app_profiles.py`: l'app pública no pot contenir els mòduls interns, els avisos ni
+`ios-verify` i `android-verify` inspeccionen el que s'acaba de compilar amb el paquet
+`scripts/app_profiles`: l'app pública no pot contenir els mòduls interns, els avisos ni
 Firebase, i l'app interna els ha de conservar amb el seu identificador. A Xcode, tria l'esquema
 `HoraAHoraApp` o `HoraAHoraAppInternal`. A Gradle i Android Studio, les variants que existeixen són
 les del perfil triat: passa `-Pcastells.buildProfile=internal`, defineix
@@ -458,8 +458,9 @@ swift test
 
 `tests/test_app_build_profiles.py` llegeix el projecte Xcode, el paquet Swift i el build de
 Gradle, i falla si un mòdul intern, un punt d'entrada, un permís o un entitlement de les
-seccions internes pot arribar a l'app pública, o si l'app interna pot substituir-la. Els
-workflows d'iOS i Android compilen i inspeccionen totes dues apps (vegeu
+seccions internes pot arribar a l'app pública, o si l'app interna pot substituir-la.
+`tests/test_built_app_inspection.py` prova amb APK i apps falses la inspecció que els
+workflows d'iOS i Android fan de totes dues apps després de compilar-les (vegeu
 [App pública i app interna](#app-pública-i-app-interna)).
 
 El CI crea PostgreSQL 17 i defineix `TEST_DATABASE_URL`; així valida les dues rutes
