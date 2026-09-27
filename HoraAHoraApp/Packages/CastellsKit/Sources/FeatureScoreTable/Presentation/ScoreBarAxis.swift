@@ -53,18 +53,21 @@ struct ScoreBarAxis: Equatable {
         return min(max((Double(points) - lowerBound) / span, 0), 1)
     }
 
-    /// How much a castell counts in the scale, from where its bar is on screen. A bar in the
-    /// window counts whole, so it never overflows; outside it counts less and less over
-    /// `fadeAbove` or `fadeBelow` points, while it passes under the group header or the tab bar.
+    /// How much a castell counts in the scale, from where the top of its row is on screen. A row
+    /// in the window counts whole; outside it counts less and less over `fadeAbove` or
+    /// `fadeBelow` points, while it passes under the group header or the tab bar. A point of
+    /// slack keeps rounding from pushing a row at rest out of the window.
     static func weight(
-        ofBarAt y: CGFloat,
+        ofRowStartingAt y: CGFloat,
         in window: ClosedRange<CGFloat>,
         fadeAbove: CGFloat,
         fadeBelow: CGFloat
     ) -> Double {
-        if window.contains(y) { return 1 }
-        let distance = y < window.lowerBound ? window.lowerBound - y : y - window.upperBound
-        let fade = y < window.lowerBound ? fadeAbove : fadeBelow
+        let slack: CGFloat = 1
+        let top = window.lowerBound - slack
+        if y >= top, y <= window.upperBound { return 1 }
+        let distance = y < top ? top - y : y - window.upperBound
+        let fade = y < top ? fadeAbove : fadeBelow
         guard fade > 0 else { return 0 }
         return Double(max(1 - distance / fade, 0))
     }

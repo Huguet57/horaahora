@@ -1,7 +1,7 @@
 import CoreGraphics
 import Observation
 
-/// Where each bar of the table is on screen, and the scale that follows from it.
+/// Where each row of the table is on screen, and the bar scale that follows from it.
 @MainActor
 @Observable
 final class ScoreBarScale {
@@ -9,12 +9,12 @@ final class ScoreBarScale {
     private static let fadeBelow: CGFloat = 40
 
     private(set) var axis: ScoreBarAxis
-    /// The castells whose bars show. Bars that scrolled past the window would overflow it, so
-    /// they hide instead of showing through the navigation bar.
+    /// The castells whose rows are whole in the window, the only ones that draw their bar: a
+    /// row sliding under the group header counts less in the scale, so its bar could overflow.
     private(set) var castellsInWindow: Set<String> = []
 
     @ObservationIgnored private let castells: [String: ScoreTableCastell]
-    @ObservationIgnored private var barFrames: [String: CGRect] = [:]
+    @ObservationIgnored private var rowFrames: [String: CGRect] = [:]
     @ObservationIgnored private var viewport: CGRect = .null
     @ObservationIgnored private var pinnedHeaderHeight: CGFloat = 0
 
@@ -29,15 +29,15 @@ final class ScoreBarScale {
         update()
     }
 
-    /// The group header pinned at the top hides the bars under it.
+    /// The group header pinned at the top hides the rows under it.
     func setPinnedHeaderHeight(_ height: CGFloat) {
         pinnedHeaderHeight = height
         update()
     }
 
-    /// A bar's frame in global coordinates, or `nil` once its row leaves the screen.
-    func setBarFrame(_ frame: CGRect?, of notation: String) {
-        barFrames[notation] = frame
+    /// A row's frame in global coordinates, or `nil` once it leaves the screen.
+    func setRowFrame(_ frame: CGRect?, of notation: String) {
+        rowFrames[notation] = frame
         update()
     }
 
@@ -45,12 +45,12 @@ final class ScoreBarScale {
         guard !viewport.isNull else { return }
         let top = min(viewport.minY + pinnedHeaderHeight, viewport.maxY)
         let window = top...viewport.maxY
-        let weighted = barFrames.compactMap { notation, frame in
+        let weighted = rowFrames.compactMap { notation, frame in
             castells[notation].map {
                 (
                     castell: $0,
                     fraction: ScoreBarAxis.weight(
-                        ofBarAt: frame.midY,
+                        ofRowStartingAt: frame.minY,
                         in: window,
                         fadeAbove: pinnedHeaderHeight,
                         fadeBelow: Self.fadeBelow
@@ -61,7 +61,7 @@ final class ScoreBarScale {
         if let axis = ScoreBarAxis(visible: weighted), axis != self.axis {
             self.axis = axis
         }
-        let inWindow = Set(weighted.filter { $0.fraction > 0 }.map(\.castell.notation))
+        let inWindow = Set(weighted.filter { $0.fraction >= 1 }.map(\.castell.notation))
         if inWindow != castellsInWindow {
             castellsInWindow = inWindow
         }

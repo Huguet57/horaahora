@@ -80,6 +80,12 @@ struct ScoreTableRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .onGeometryChange(for: CGRect.self) { proxy in
+            proxy.frame(in: .global)
+        } action: { frame in
+            scale.setRowFrame(frame, of: castell.notation)
+        }
+        .onDisappear { scale.setRowFrame(nil, of: castell.notation) }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(castell.name), \(castell.notation)")
         .accessibilityValue(accessibilityValue)
@@ -136,12 +142,6 @@ private struct ScoreBar: View {
             }
         }
         .opacity(scale.castellsInWindow.contains(castell.notation) ? 1 : 0)
-        .onGeometryChange(for: CGRect.self) { proxy in
-            proxy.frame(in: .global)
-        } action: { frame in
-            scale.setBarFrame(frame, of: castell.notation)
-        }
-        .onDisappear { scale.setBarFrame(nil, of: castell.notation) }
         .accessibilityHidden(true)
     }
 }

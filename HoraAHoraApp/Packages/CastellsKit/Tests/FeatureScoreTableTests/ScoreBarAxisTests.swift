@@ -57,19 +57,20 @@ final class ScoreBarAxisTests: XCTestCase {
         XCTAssertEqual(axis.fraction(of: 250), ScoreBarAxis.leadingFraction, accuracy: 0.000_1)
     }
 
-    func testABarCountsWholeInsideTheWindowAndFadesOutsideIt() {
+    func testARowCountsWholeInsideTheWindowAndFadesOutsideIt() {
         let window: ClosedRange<CGFloat> = 200...700
 
         XCTAssertEqual(weight(at: 450, in: window), 1)
         XCTAssertEqual(weight(at: 200, in: window), 1)
-        XCTAssertEqual(weight(at: 180, in: window), 0.5, accuracy: 0.001)
+        XCTAssertEqual(weight(at: 199.5, in: window), 1, "Rounding does not hide a row at rest")
+        XCTAssertEqual(weight(at: 179, in: window), 0.5, accuracy: 0.001)
         XCTAssertEqual(weight(at: 150, in: window), 0)
         XCTAssertEqual(weight(at: 720, in: window), 0.5, accuracy: 0.001)
         XCTAssertEqual(weight(at: 800, in: window), 0)
     }
 
     private func weight(at y: CGFloat, in window: ClosedRange<CGFloat>) -> Double {
-        ScoreBarAxis.weight(ofBarAt: y, in: window, fadeAbove: 40, fadeBelow: 40)
+        ScoreBarAxis.weight(ofRowStartingAt: y, in: window, fadeAbove: 40, fadeBelow: 40)
     }
 
     private static func castell(_ notation: String, loaded: Int, unloaded: Int) -> ScoreTableCastell {
