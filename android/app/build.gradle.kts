@@ -3,9 +3,13 @@ plugins {
     id("castells.android.compose")
 }
 
-// The API the app talks to: CASTELLS_API_BASE_URL overrides gradle.properties.
-val apiBaseUrl: String = providers.environmentVariable("CASTELLS_API_BASE_URL")
-    .orElse(providers.gradleProperty("castells.apiBaseUrl"))
+// The API the app talks to. Release builds always use castells.apiBaseUrl (production).
+// Debug builds use castells.apiBaseUrl.debug, a local backend, so testing never reaches
+// production; CASTELLS_API_BASE_URL overrides it.
+val releaseApiBaseUrl: String = providers.gradleProperty("castells.apiBaseUrl").get()
+
+val debugApiBaseUrl: String = providers.environmentVariable("CASTELLS_API_BASE_URL")
+    .orElse(providers.gradleProperty("castells.apiBaseUrl.debug"))
     .get()
 
 // The upload key for Google Play, kept out of the repository. Without it,
@@ -22,7 +26,6 @@ android {
         applicationId = "com.ahuguet.castellsenvena"
         versionCode = providers.gradleProperty("castells.versionCode").orNull?.toInt() ?: 1
         versionName = "1.3"
-        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildFeatures {
@@ -42,12 +45,14 @@ android {
 
     buildTypes {
         debug {
+            buildConfigField("String", "API_BASE_URL", "\"$debugApiBaseUrl\"")
             buildConfigField("String", "PUSH_ENVIRONMENT", "\"development\"")
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            buildConfigField("String", "API_BASE_URL", "\"$releaseApiBaseUrl\"")
             buildConfigField("String", "PUSH_ENVIRONMENT", "\"production\"")
             signingConfig = signingConfigs.findByName("release")
         }

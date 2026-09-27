@@ -46,9 +46,14 @@ També es pot obrir la carpeta `android` amb Android Studio.
 
 ## Configuració
 
-- **Backend:** `castells.apiBaseUrl` a `gradle.properties`, o la variable d'entorn
-  `CASTELLS_API_BASE_URL`. Les builds de depuració accepten HTTP, per exemple
-  `http://10.0.2.2:8000` per al backend local des de l'emulador.
+- **Backend:** les builds de publicació fan servir `castells.apiBaseUrl` de
+  `gradle.properties`, que és producció. Les de depuració fan servir
+  `castells.apiBaseUrl.debug`, el backend local tal com el veu l'emulador
+  (`http://10.0.2.2:8000`), perquè les proves no arribin a producció. Per canviar-lo, fes
+  servir `-Pcastells.apiBaseUrl.debug=...`, `~/.gradle/gradle.properties` o la variable
+  d'entorn `CASTELLS_API_BASE_URL`, que només afecta les builds de depuració. En un
+  dispositiu físic, `adb reverse tcp:8000 tcp:8000` permet fer servir
+  `http://127.0.0.1:8000`. Les builds de depuració accepten HTTP.
 - **Avisos (Firebase Cloud Messaging):** el `google-services.json` del projecte Firebase
   `castells-en-vena` no es versiona perquè el repositori és públic. Per compilar en local,
   copia'l a `android/app/`. El workflow d'Android el crea a partir del secret de GitHub

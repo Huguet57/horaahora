@@ -1,0 +1,17 @@
+// Configuració de les builds Debug de l'app iOS.
+//
+// Les builds Debug parlen amb el backend local (uvicorn a http://127.0.0.1:8000) perquè les
+// proves no arribin a producció. El simulador hi arriba directament. Les builds Release
+// (TestFlight i App Store) sempre apunten a producció.
+//
+// Per fer servir un altre backend en aquest Mac, crea Debug.local.xcconfig al costat d'aquest
+// fitxer. No es versiona. Per exemple, per provar en un iPhone:
+//
+//   CASTELLS_API_BASE_URL = http:/$()/nom-del-mac.local:8000
+//   CASTELLS_API_BASE_URL = https:/$()/castells-superapp-poc.vercel.app
+//
+// «$()» evita que «//» es llegeixi com un comentari.
+
+CASTELLS_API_BASE_URL = http:/$()/127.0.0.1:8000
+
+#include? "Debug.local.xcconfig"
