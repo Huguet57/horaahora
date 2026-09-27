@@ -1,6 +1,6 @@
 import XCTest
 import CastellsDomain
-@testable import FeatureSettings
+@testable import FeatureInternalSettings
 
 @MainActor
 final class HiddenSectionsTests: XCTestCase {
@@ -24,6 +24,16 @@ final class HiddenSectionsTests: XCTestCase {
         XCTAssertFalse(preferences.isUnlocked)
     }
 
+    func testTheVersionRowSaysWhatTheGestureDid() {
+        let clock = TapClock(now: start)
+        let model = makeModel(preferences: HiddenSectionsStub(), clock: clock)
+
+        XCTAssertEqual(versionTaps(model, times: 6, clock: clock), [String?](repeating: nil, count: 6))
+        XCTAssertEqual(versionTaps(model, times: 1, clock: clock), ["S'han activat Hora a Hora i Agenda"])
+        XCTAssertEqual(versionTaps(model, times: 6, clock: clock), [String?](repeating: nil, count: 6))
+        XCTAssertEqual(versionTaps(model, times: 1, clock: clock), ["S'han amagat Hora a Hora i Agenda"])
+    }
+
     func testAPauseStartsTheSequenceAgain() {
         let clock = TapClock(now: start)
         let model = makeModel(preferences: HiddenSectionsStub(), clock: clock)
@@ -40,7 +50,7 @@ final class HiddenSectionsTests: XCTestCase {
 
     func testUsersWhoAlreadyGetNewsKeepTheHiddenSections() async {
         let preferences = HiddenSectionsStub()
-        let model = SettingsModel(
+        let model = InternalSettingsModel(
             notificationManager: StatusStub(status: .enabled),
             hiddenSections: preferences
         )
@@ -53,7 +63,7 @@ final class HiddenSectionsTests: XCTestCase {
 
     func testEverybodyElseStartsWithoutThem() async {
         let preferences = HiddenSectionsStub()
-        let model = SettingsModel(
+        let model = InternalSettingsModel(
             notificationManager: StatusStub(status: .notDetermined),
             hiddenSections: preferences
         )
@@ -72,19 +82,26 @@ final class HiddenSectionsTests: XCTestCase {
         XCTAssertFalse(model.showsHiddenSections)
     }
 
-    private func makeModel(preferences: HiddenSectionsStub?, clock: TapClock) -> SettingsModel {
-        SettingsModel(
+    private func makeModel(preferences: HiddenSectionsStub?, clock: TapClock) -> InternalSettingsModel {
+        InternalSettingsModel(
             notificationManager: StatusStub(status: .notDetermined),
             hiddenSections: preferences,
             now: clock.read
         )
     }
 
-    private func tap(_ model: SettingsModel, times: Int, clock: TapClock) -> [Bool] {
+    private func tap(_ model: InternalSettingsModel, times: Int, clock: TapClock) -> [Bool] {
         (0..<times).map { _ in tapOnce(model, clock: clock) }
     }
 
-    private func tapOnce(_ model: SettingsModel, clock: TapClock) -> Bool {
+    private func versionTaps(_ model: InternalSettingsModel, times: Int, clock: TapClock) -> [String?] {
+        (0..<times).map { _ in
+            clock.now += 0.4
+            return model.versionTapMessage()
+        }
+    }
+
+    private func tapOnce(_ model: InternalSettingsModel, clock: TapClock) -> Bool {
         clock.now += 0.4
         return model.registerSecretTap()
     }

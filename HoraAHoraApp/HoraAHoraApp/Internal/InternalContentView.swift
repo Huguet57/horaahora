@@ -3,22 +3,31 @@ import UIKit
 import FeatureAgenda
 import FeatureCalculator
 import FeatureHourByHour
+import FeatureInternalSettings
 import FeatureScoreTable
-import FeatureSettings
 
-struct ContentView: View {
-    let dependencies: AppDependencies
+enum InternalSection: Hashable {
+    case calculator
+    case scoreTable
+    /// Hidden unless the secret gesture in Ajustos shows it, like `agenda`.
+    case hourByHour
+    case agenda
+    case settings
+}
+
+struct InternalContentView: View {
+    let dependencies: InternalAppDependencies
 
     @State private var hourByHourModel: HourByHourViewModel
     @State private var agendaModel: AgendaViewModel
-    @State private var selectedSection = AppSection.calculator
+    @State private var selectedSection = InternalSection.calculator
     @State private var showsAgendaGroupFilter = false
     @State private var presentedLink: PresentedLink?
-    @State private var settingsModel: SettingsModel
+    @State private var internalSettings: InternalSettingsModel
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: InternalAppDependencies) {
         self.dependencies = dependencies
         _hourByHourModel = State(
             initialValue: HourByHourViewModel(repository: dependencies.hourByHourRepository)
@@ -30,7 +39,7 @@ struct ContentView: View {
                 filterStore: dependencies.agendaFilterStore
             )
         )
-        _settingsModel = State(initialValue: dependencies.settingsModel)
+        _internalSettings = State(initialValue: dependencies.internalSettingsModel)
     }
 
     var body: some View {
@@ -39,7 +48,7 @@ struct ContentView: View {
         }
         .task {
             agendaModel.preloadFromCache()
-            await settingsModel.refreshNotificationStatus()
+            await internalSettings.refreshNotificationStatus()
         }
         .hourByHourAutoRefresh(
             model: hourByHourModel,
@@ -57,9 +66,9 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
-            Task { await settingsModel.refreshNotificationStatus() }
+            Task { await internalSettings.refreshNotificationStatus() }
         }
-        .onChange(of: settingsModel.showsHiddenSections) { _, showsHiddenSections in
+        .onChange(of: internalSettings.showsHiddenSections) { _, showsHiddenSections in
             guard !showsHiddenSections, selectedSection == .hourByHour || selectedSection == .agenda
             else { return }
             selectedSection = .settings
@@ -73,23 +82,25 @@ struct ContentView: View {
     private var tabView: some View {
         TabView(selection: $selectedSection) {
             CalculatorRootView(
-                repository: dependencies.chatRepository,
-                sharing: dependencies.conversationSharing
+                repository: dependencies.core.chatRepository,
+                sharing: dependencies.core.conversationSharing
             )
-                .tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }
-                .tag(AppSection.calculator)
+                .calculatorTabItem()
+                .tag(InternalSection.calculator)
 
             ScoreTableRootView()
-                .tabItem { Label("Puntuacions", systemImage: "list.number") }
-                .tag(AppSection.scoreTable)
+                .scoreTableTabItem()
+                .tag(InternalSection.scoreTable)
 
-            if settingsModel.showsHiddenSections {
+            if internalSettings.showsHiddenSections {
                 hiddenSections
             }
 
-            SettingsRootView(
-                model: settingsModel,
-                configuration: dependencies.settingsConfiguration,
+            InternalSettingsRootView(
+                model: internalSettings,
+                settingsModel: dependencies.core.settingsModel,
+                configuration: dependencies.core.settingsConfiguration,
+                sources: InternalAppDependencies.sources,
                 hasFollowedGroups: agendaModel.isGroupFilterActive && agendaModel.selectedGroupCount > 0,
                 onChooseGroups: {
                     selectedSection = .agenda
@@ -99,8 +110,8 @@ struct ContentView: View {
                 onContactSupport: { url in openURL(url) },
                 onCopyIdentifier: { identifier in UIPasteboard.general.string = identifier }
             )
-            .tabItem { Label("Ajustos", systemImage: "gearshape") }
-            .tag(AppSection.settings)
+            .settingsTabItem()
+            .tag(InternalSection.settings)
         }
     }
 
@@ -108,9 +119,9 @@ struct ContentView: View {
     private var hiddenSections: some View {
         HourByHourRootView(
             model: hourByHourModel,
-            showsNotificationOnboarding: settingsModel.showsNotificationOnboarding,
+            showsNotificationOnboarding: internalSettings.showsNotificationOnboarding,
             onConfigureNotifications: {
-                settingsModel.handleNotificationOnboarding(.configure) {
+                internalSettings.handleNotificationOnboarding(.configure) {
                     Task { @MainActor in
                         await Task.yield()
                         selectedSection = .settings
@@ -118,22 +129,22 @@ struct ContentView: View {
                 }
             },
             onDismissNotificationOnboarding: {
-                settingsModel.handleNotificationOnboarding(.dismiss)
+                internalSettings.handleNotificationOnboarding(.dismiss)
             }
         ) { url in
             presentedLink = PresentedLink(url: url)
         }
         .tabItem { Label("Hora a Hora", systemImage: "clock") }
-        .tag(AppSection.hourByHour)
+        .tag(InternalSection.hourByHour)
 
         AgendaRootView(model: agendaModel, showsGroupFilter: $showsAgendaGroupFilter)
             .tabItem { Label("Agenda", systemImage: "calendar") }
-            .tag(AppSection.agenda)
+            .tag(InternalSection.agenda)
     }
 
     /// A tapped news notification opens its page, over Hora a Hora when it is shown.
     private func openHourByHourLink(_ url: URL) {
-        if settingsModel.showsHiddenSections {
+        if internalSettings.showsHiddenSections {
             selectedSection = .hourByHour
         }
         presentedLink = PresentedLink(url: url)

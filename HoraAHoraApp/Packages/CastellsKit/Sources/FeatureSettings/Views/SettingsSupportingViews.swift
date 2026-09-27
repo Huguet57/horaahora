@@ -1,34 +1,14 @@
 import SwiftUI
 
 struct SourcesAndCreditsView: View {
-    let configuration: SettingsConfiguration
-    let showsHiddenSections: Bool
+    let credits: [SettingsCredit]
     let onOpenURL: (URL) -> Void
 
     var body: some View {
         List {
             Section {
-                creditRow(
-                    name: "Taula oficial del Concurs de Castells 2026",
-                    detail: "Font de la calculadora i de les puntuacions",
-                    url: configuration.concursCastellsURL
-                )
-                if showsHiddenSections {
-                    creditRow(
-                        name: "Revista Castells",
-                        detail: "Font de l'Hora a Hora",
-                        url: configuration.revistaCastellsURL
-                    )
-                    creditRow(
-                        name: "El Món Casteller",
-                        detail: "Notícies, opinió, entrevistes i cròniques de l'Hora a Hora",
-                        url: configuration.elMonCastellerURL
-                    )
-                    creditRow(
-                        name: "Coordinadora de Colles Castelleres de Catalunya (CCCC)",
-                        detail: "Font de l'Agenda",
-                        url: configuration.ccccAgendaURL
-                    )
+                ForEach(credits, id: \.name) { credit in
+                    creditRow(credit)
                 }
             } footer: {
                 Text(
@@ -42,11 +22,11 @@ struct SourcesAndCreditsView: View {
     }
 
     @ViewBuilder
-    private func creditRow(name: String, detail: String, url: URL?) -> some View {
-        if let url {
+    private func creditRow(_ credit: SettingsCredit) -> some View {
+        if let url = credit.url {
             Button { onOpenURL(url) } label: {
                 HStack(alignment: .center, spacing: 12) {
-                    creditText(name: name, detail: detail)
+                    creditText(credit)
                     Spacer(minLength: 12)
                     Image(systemName: "arrow.up.right")
                         .font(.caption)
@@ -57,14 +37,14 @@ struct SourcesAndCreditsView: View {
             .buttonStyle(.plain)
             .accessibilityHint("Obre el web oficial")
         } else {
-            creditText(name: name, detail: detail)
+            creditText(credit)
         }
     }
 
-    private func creditText(name: String, detail: String) -> some View {
+    private func creditText(_ credit: SettingsCredit) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(name).foregroundStyle(.primary)
-            Text(detail).font(.subheadline).foregroundStyle(.secondary)
+            Text(credit.name).foregroundStyle(.primary)
+            Text(credit.detail).font(.subheadline).foregroundStyle(.secondary)
         }
         .padding(.vertical, 2)
     }
@@ -86,9 +66,10 @@ struct SettingsLinkLabel: View {
     }
 }
 
+/// The look of the settings pages, which the internal app's settings share.
 extension View {
     @ViewBuilder
-    func settingsListStyle() -> some View {
+    public func settingsListStyle() -> some View {
         #if os(iOS)
         listStyle(.insetGrouped)
         #else
@@ -97,7 +78,7 @@ extension View {
     }
 
     @ViewBuilder
-    func settingsLargeNavigationTitle() -> some View {
+    public func settingsLargeNavigationTitle() -> some View {
         #if os(iOS)
         navigationBarTitleDisplayMode(.large)
         #else
@@ -106,7 +87,7 @@ extension View {
     }
 
     @ViewBuilder
-    func settingsInlineNavigationTitle() -> some View {
+    public func settingsInlineNavigationTitle() -> some View {
         #if os(iOS)
         navigationBarTitleDisplayMode(.inline)
         #else

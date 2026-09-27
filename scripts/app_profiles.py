@@ -650,6 +650,32 @@ def read_ios_build_settings(profile: Profile, configuration: str) -> dict[str, A
     raise ValueError(f"xcodebuild did not report the target {profile.ios_scheme}")
 
 
+def verified_facts(platform: str, profile: Profile) -> list[str]:
+    """What a successful inspection of an app of the profile has established."""
+    kept = "keeps" if profile is INTERNAL else "has none of"
+    if platform == "android":
+        return [
+            f"application id {profile.android_application_id}",
+            f"the manifest {'declares' if profile is INTERNAL else 'does not declare'} "
+            + ", ".join(INTERNAL_MANIFEST_ENTRIES[: 2 if profile is INTERNAL else 3]),
+            f"the debug APK {kept} the classes of " + ", ".join(INTERNAL_KOTLIN_PACKAGES),
+            *(
+                ["the release APK's R8 mapping keeps none of those classes"]
+                if profile is PUBLIC
+                else []
+            ),
+            "the calculator, the score table and the settings are in",
+        ]
+    return [
+        f"bundle identifier {profile.ios_bundle_identifier}, named «{profile.display_name}»",
+        f"the executable {'links' if profile is INTERNAL else 'does not link'} "
+        + ", ".join(sorted(INTERNAL_SWIFT_MODULES)),
+        "the executable links " + ", ".join(sorted(SHARED_SWIFT_MODULES - {"CastellsDomain"})),
+        "entitlements for push notifications"
+        + (" (aps-environment)" if profile is INTERNAL else ": none"),
+    ]
+
+
 def main(arguments: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Inspect a built app of a build profile.")
     platforms = parser.add_subparsers(dest="platform", required=True)
@@ -679,6 +705,8 @@ def main(arguments: list[str] | None = None) -> int:
     if problems:
         return 1
     print(f"Checked {subject}: it contains what its profile allows and nothing else.")
+    for fact in verified_facts(options.platform, profile):
+        print(f"- {fact}")
     return 0
 
 

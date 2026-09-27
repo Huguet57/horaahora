@@ -1,42 +1,48 @@
 import SwiftUI
 import CastellsDomain
 
-public struct SettingsRootView: View {
+/// Ajustos: privacy, help and the app with the sources of its data.
+///
+/// An app can add its own sections at the top (`leadingSections`), more sources
+/// (`additionalCredits`) and a handler for taps on the version row (`onVersionTap`), which
+/// returns what the row says for a moment, or nil.
+public struct SettingsRootView<LeadingSections: View>: View {
     @Bindable private var model: SettingsModel
     @State private var identifierWasCopied = false
-    @State private var hiddenSectionsMessage: String?
+    @State private var versionMessage: String?
 
     private let configuration: SettingsConfiguration
-    private let hasFollowedGroups: Bool
-    private let onChooseGroups: () -> Void
+    private let additionalCredits: [SettingsCredit]
+    private let onVersionTap: (@MainActor () -> String?)?
     private let onOpenURL: (URL) -> Void
     private let onContactSupport: (URL) -> Void
     private let onCopyIdentifier: (String) -> Void
+    private let leadingSections: LeadingSections
 
     public init(
         model: SettingsModel,
         configuration: SettingsConfiguration,
-        hasFollowedGroups: Bool,
-        onChooseGroups: @escaping () -> Void,
+        additionalCredits: [SettingsCredit] = [],
+        onVersionTap: (@MainActor () -> String?)? = nil,
         onOpenURL: @escaping (URL) -> Void,
         onContactSupport: @escaping (URL) -> Void,
-        onCopyIdentifier: @escaping (String) -> Void
+        onCopyIdentifier: @escaping (String) -> Void,
+        @ViewBuilder leadingSections: () -> LeadingSections
     ) {
         self.model = model
         self.configuration = configuration
-        self.hasFollowedGroups = hasFollowedGroups
-        self.onChooseGroups = onChooseGroups
+        self.additionalCredits = additionalCredits
+        self.onVersionTap = onVersionTap
         self.onOpenURL = onOpenURL
         self.onContactSupport = onContactSupport
         self.onCopyIdentifier = onCopyIdentifier
+        self.leadingSections = leadingSections()
     }
 
     public var body: some View {
         NavigationStack {
             List {
-                if model.showsHiddenSections {
-                    notificationSection
-                }
+                leadingSections
                 privacySection
                 helpSection
                 aboutSection
@@ -46,56 +52,6 @@ public struct SettingsRootView: View {
             .settingsLargeNavigationTitle()
             .task {
                 model.refreshConversationSharing()
-                await model.refreshNotificationStatus()
-            }
-        }
-    }
-
-    private var notificationSection: some View {
-        Section {
-            Toggle(isOn: notificationsEnabledBinding) {
-                Label("Avisos de notícies", systemImage: "bell")
-            }
-            .disabled(
-                model.notificationStatus == .loading
-                    || model.notificationStatus == .denied
-                    || model.isUpdatingNotifications
-            )
-
-            NavigationLink {
-                NotificationInterestSettingsView(
-                    model: model,
-                    hasFollowedGroups: hasFollowedGroups,
-                    onChooseGroups: onChooseGroups
-                )
-            } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Quines notícies?")
-                    Text(model.minimumInterest.settingsTitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 2)
-            }
-            .disabled(model.notificationStatus == .loading)
-
-            if model.notificationStatus == .denied {
-                Label("Bloquejades per iOS", systemImage: "exclamationmark.triangle.fill")
-                    .font(.footnote)
-                    .foregroundStyle(.orange)
-                Button("Obre els ajustos de l'iPhone") {
-                    Task { await model.openSystemSettings() }
-                }
-            }
-            if let errorMessage = model.notificationErrorMessage {
-                Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.red)
-            }
-        } header: {
-            Text("Notificacions")
-        } footer: {
-            if model.notificationStatus == .notDetermined || model.notificationStatus == .disabled {
-                Text("Pots triar què rebràs abans d’activar els avisos.")
             }
         }
     }
@@ -164,34 +120,11 @@ public struct SettingsRootView: View {
 
     private var aboutSection: some View {
         Section("Sobre \(configuration.appName)") {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(configuration.appName).font(.headline)
-                Text(hiddenSectionsMessage ?? configuration.versionAndBuild)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.vertical, 5)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-            // The secret gesture: seven quick taps show or hide Hora a Hora and Agenda.
-            .onTapGesture {
-                guard model.registerSecretTap() else { return }
-                hiddenSectionsMessage = model.showsHiddenSections
-                    ? "S'han activat Hora a Hora i Agenda"
-                    : "S'han amagat Hora a Hora i Agenda"
-            }
-            .sensoryFeedback(.success, trigger: model.showsHiddenSections)
-            .task(id: hiddenSectionsMessage) {
-                guard hiddenSectionsMessage != nil else { return }
-                try? await Task.sleep(for: .seconds(2))
-                hiddenSectionsMessage = nil
-            }
-            .accessibilityElement(children: .combine)
+            versionRow
 
             NavigationLink {
                 SourcesAndCreditsView(
-                    configuration: configuration,
-                    showsHiddenSections: model.showsHiddenSections,
+                    credits: configuration.credits + additionalCredits,
                     onOpenURL: onOpenURL
                 )
             } label: {
@@ -200,19 +133,65 @@ public struct SettingsRootView: View {
         }
     }
 
+    /// The app and its version. Taps only do something when the app handles them.
+    @ViewBuilder
+    private var versionRow: some View {
+        if let onVersionTap {
+            versionLabel
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    guard let message = onVersionTap() else { return }
+                    versionMessage = message
+                }
+                .sensoryFeedback(.success, trigger: versionMessage) { _, message in message != nil }
+                .task(id: versionMessage) {
+                    guard versionMessage != nil else { return }
+                    try? await Task.sleep(for: .seconds(2))
+                    versionMessage = nil
+                }
+                .accessibilityElement(children: .combine)
+        } else {
+            versionLabel
+                .accessibilityElement(children: .combine)
+        }
+    }
+
+    private var versionLabel: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(configuration.appName).font(.headline)
+            Text(versionMessage ?? configuration.versionAndBuild)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 5)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private var conversationSharingBinding: Binding<Bool> {
         Binding(
             get: { model.isConversationSharingEnabled },
             set: { model.setConversationSharingEnabled($0) }
         )
     }
+}
 
-    private var notificationsEnabledBinding: Binding<Bool> {
-        Binding(
-            get: { model.notificationStatus == .enabled },
-            set: { enabled in
-                Task { await model.setHourByHourNotificationsEnabled(enabled) }
-            }
-        )
+extension SettingsRootView where LeadingSections == EmptyView {
+    /// Ajustos as the public app shows it: the calculator's settings only.
+    public init(
+        model: SettingsModel,
+        configuration: SettingsConfiguration,
+        onOpenURL: @escaping (URL) -> Void,
+        onContactSupport: @escaping (URL) -> Void,
+        onCopyIdentifier: @escaping (String) -> Void
+    ) {
+        self.init(
+            model: model,
+            configuration: configuration,
+            onOpenURL: onOpenURL,
+            onContactSupport: onContactSupport,
+            onCopyIdentifier: onCopyIdentifier
+        ) {
+            EmptyView()
+        }
     }
 }

@@ -1,32 +1,38 @@
 import Foundation
-import SwiftData
 import CastellsData
 import CastellsDomain
 import FeatureAgenda
-import FeatureSettings
+import FeatureInternalSettings
 
+/// The composition root of the internal app: the calculator and the score table of the public
+/// app, plus Hora a Hora, Agenda, their settings and the news notifications.
 @MainActor
-final class AppDependencies {
-    let modelContainer: ModelContainer
+final class InternalAppDependencies {
+    static let notificationOnboardingDismissedKey =
+        "castells.hour-by-hour.notification-onboarding-dismissed"
+    /// Where Hora a Hora and Agenda take their data from.
+    static let sources = InternalSources(
+        revistaCastellsURL: URL(string: "https://revistacastells.cat/castells-hora-a-hora/"),
+        elMonCastellerURL: URL(string: "https://www.elmoncasteller.cat/"),
+        ccccAgendaURL: URL(string: "https://castellscat.cat/public/ca/agenda")
+    )
+
+    let core: CoreDependencies
     let hourByHourRepository: any HourByHourRepository
     let agendaRepository: any AgendaRepository
     let groupDirectoryRepository: any GroupDirectoryRepository
     let agendaFilterStore: any AgendaFilterStoring
-    let chatRepository: any ChatRepository
-    let conversationSharing: any ConversationSharingPreferences
-    let settingsModel: SettingsModel
-    let settingsConfiguration: SettingsConfiguration
+    let internalSettingsModel: InternalSettingsModel
     let pushSubscriptionCoordinator: PushSubscriptionCoordinator
 
     init(
         configuration: AppConfiguration = .live(),
         userDefaults: UserDefaults = .standard
     ) throws {
-        let modelContainer = try DataStack.makeModelContainer()
-        let client = APIClient(baseURL: configuration.apiBaseURL)
+        let core = try CoreDependencies(configuration: configuration, userDefaults: userDefaults)
+        let client = core.apiClient
         let agendaFilterStore = AgendaUserDefaultsStore(userDefaults: userDefaults)
         let notificationPreferenceStore = NotificationPreferenceStore(userDefaults: userDefaults)
-        let conversationSharing = ConversationSharingStore(userDefaults: userDefaults)
         let hiddenSections = HiddenSectionsStore(userDefaults: userDefaults)
         let pushSubscriptionCoordinator = PushSubscriptionCoordinator(
             remoteService: HTTPPushSubscriptionRemoteService(client: client),
@@ -51,45 +57,33 @@ final class AppDependencies {
             Task { await notificationManager?.synchronizePreferences() }
         }
 
-        self.modelContainer = modelContainer
+        self.core = core
         hourByHourRepository = CachedHourByHourRepository(
-            container: modelContainer,
+            container: core.modelContainer,
             remoteService: HTTPHourByHourRemoteService(client: client)
         )
         agendaRepository = CachedAgendaRepository(
-            container: modelContainer,
+            container: core.modelContainer,
             remoteService: HTTPAgendaRemoteService(client: client)
         )
         groupDirectoryRepository = RemoteGroupDirectoryRepository(
             remoteService: HTTPGroupDirectoryRemoteService(client: client)
         )
         self.agendaFilterStore = agendaFilterStore
-        chatRepository = SwiftDataChatRepository(
-            container: modelContainer,
-            remoteService: HTTPChatRemoteService(client: client),
-            installationID: configuration.technicalIdentifier,
-            sharing: conversationSharing
-        )
-        self.conversationSharing = conversationSharing
-        settingsModel = SettingsModel(
+        internalSettingsModel = InternalSettingsModel(
             notificationManager: notificationManager,
             notificationOnboardingDismissed: userDefaults.bool(
-                forKey: AppConfiguration.notificationOnboardingDismissedKey
+                forKey: Self.notificationOnboardingDismissedKey
             ),
             persistNotificationOnboardingDismissal: { dismissed in
-                userDefaults.set(
-                    dismissed,
-                    forKey: AppConfiguration.notificationOnboardingDismissedKey
-                )
+                userDefaults.set(dismissed, forKey: Self.notificationOnboardingDismissedKey)
             },
-            conversationSharing: conversationSharing,
             hiddenSections: hiddenSections
         )
-        settingsConfiguration = configuration.settingsConfiguration
         self.pushSubscriptionCoordinator = pushSubscriptionCoordinator
-        Task { [settingsModel] in
-            await pushSubscriptionCoordinator.observeSynchronization { [weak settingsModel] pending in
-                settingsModel?.setNotificationSynchronizationPending(pending)
+        Task { [internalSettingsModel] in
+            await pushSubscriptionCoordinator.observeSynchronization { [weak internalSettingsModel] pending in
+                internalSettingsModel?.setNotificationSynchronizationPending(pending)
             }
         }
     }

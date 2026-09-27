@@ -39,6 +39,16 @@ final class SettingsConfigurationTests: XCTestCase {
         XCTAssertTrue(url.absoluteString.contains("%C3%A7"))
     }
 
+    func testTheCalculatorCreditsOnlyTheOfficialScoreTable() {
+        XCTAssertEqual(makeConfiguration().credits, [
+            SettingsCredit(
+                name: "Taula oficial del Concurs de Castells 2026",
+                detail: "Font de la calculadora i de les puntuacions",
+                url: nil
+            ),
+        ])
+    }
+
     private func makeConfiguration(
         apiBaseURL: URL = URL(string: "https://example.test")!,
         supportEmail: String = "support@example.test",
@@ -53,8 +63,6 @@ final class SettingsConfigurationTests: XCTestCase {
             appVersion: appVersion,
             buildNumber: buildNumber,
             technicalIdentifier: technicalIdentifier,
-            revistaCastellsURL: URL(string: "https://revistacastells.cat/castells-hora-a-hora/"),
-            ccccAgendaURL: URL(string: "https://castellscat.cat/public/ca/agenda"),
             concursCastellsURL: nil
         )
     }

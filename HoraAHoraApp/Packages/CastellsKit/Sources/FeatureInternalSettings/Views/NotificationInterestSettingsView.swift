@@ -1,8 +1,9 @@
 import SwiftUI
 import CastellsDomain
+import FeatureSettings
 
 struct NotificationInterestSettingsView: View {
-    let model: SettingsModel
+    let model: InternalSettingsModel
     let hasFollowedGroups: Bool
     let onChooseGroups: () -> Void
 

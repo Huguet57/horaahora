@@ -2,19 +2,16 @@ import Foundation
 import FeatureSettings
 
 struct AppConfiguration {
-    static let notificationOnboardingDismissedKey =
-        "castells.hour-by-hour.notification-onboarding-dismissed"
-
     let apiBaseURL: URL
     let supportEmail: String
+    /// The name on the home screen, which tells the public app and the internal one apart.
     let appName: String
     let appVersion: String
     let buildNumber: String
     let technicalIdentifier: String
+    /// Where the internal app subscribes to news notifications, and where the public app
+    /// unsubscribes the ones an earlier version turned on.
     let apnsEnvironment: String
-    let revistaCastellsURL: URL?
-    let elMonCastellerURL: URL?
-    let ccccAgendaURL: URL?
     let concursCastellsURL: URL?
 
     var settingsConfiguration: SettingsConfiguration {
@@ -25,9 +22,6 @@ struct AppConfiguration {
             appVersion: appVersion,
             buildNumber: buildNumber,
             technicalIdentifier: technicalIdentifier,
-            revistaCastellsURL: revistaCastellsURL,
-            elMonCastellerURL: elMonCastellerURL,
-            ccccAgendaURL: ccccAgendaURL,
             concursCastellsURL: concursCastellsURL
         )
     }
@@ -52,7 +46,8 @@ struct AppConfiguration {
         return AppConfiguration(
             apiBaseURL: apiBaseURL,
             supportEmail: "tenimaletaapp@gmail.com",
-            appName: "La calculadora de l'Aleta",
+            appName: bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+                ?? "La calculadora de l'Aleta",
             appVersion: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
                 ?? "1.0",
             buildNumber: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1",
@@ -60,11 +55,6 @@ struct AppConfiguration {
                 userDefaults: userDefaults
             ).currentIdentifier(),
             apnsEnvironment: apnsEnvironment,
-            revistaCastellsURL: URL(
-                string: "https://revistacastells.cat/castells-hora-a-hora/"
-            ),
-            elMonCastellerURL: URL(string: "https://www.elmoncasteller.cat/"),
-            ccccAgendaURL: URL(string: "https://castellscat.cat/public/ca/agenda"),
             // No hi ha encara una URL oficial versionada i estable per a la taula del 2026.
             concursCastellsURL: nil
         )

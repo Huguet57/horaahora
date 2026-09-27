@@ -2,7 +2,7 @@ import UIKit
 import UserNotifications
 import CastellsData
 import CastellsDomain
-import FeatureSettings
+import FeatureInternalSettings
 
 @MainActor
 final class IOSHourByHourNotificationManager: HourByHourNotificationManaging {

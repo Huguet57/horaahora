@@ -1,15 +1,6 @@
 import SafariServices
 import SwiftUI
 
-enum AppSection: Hashable {
-    case calculator
-    case scoreTable
-    /// Hidden unless the secret gesture in Ajustos shows it, like `agenda`.
-    case hourByHour
-    case agenda
-    case settings
-}
-
 struct PresentedLink: Identifiable {
     let id = UUID()
     let url: URL
@@ -23,4 +14,19 @@ struct InAppBrowser: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ viewController: SFSafariViewController, context: Context) {}
+}
+
+/// The tabs both apps share, with the same titles and icons.
+extension View {
+    func calculatorTabItem() -> some View {
+        tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }
+    }
+
+    func scoreTableTabItem() -> some View {
+        tabItem { Label("Puntuacions", systemImage: "list.number") }
+    }
+
+    func settingsTabItem() -> some View {
+        tabItem { Label("Ajustos", systemImage: "gearshape") }
+    }
 }

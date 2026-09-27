@@ -7,9 +7,6 @@ public struct SettingsConfiguration: Equatable, Sendable {
     public let appVersion: String
     public let buildNumber: String
     public let technicalIdentifier: String
-    public let revistaCastellsURL: URL?
-    public let elMonCastellerURL: URL?
-    public let ccccAgendaURL: URL?
     public let concursCastellsURL: URL?
 
     public init(
@@ -19,9 +16,6 @@ public struct SettingsConfiguration: Equatable, Sendable {
         appVersion: String,
         buildNumber: String,
         technicalIdentifier: String,
-        revistaCastellsURL: URL?,
-        elMonCastellerURL: URL? = nil,
-        ccccAgendaURL: URL?,
         concursCastellsURL: URL?
     ) {
         self.apiBaseURL = apiBaseURL
@@ -30,10 +24,18 @@ public struct SettingsConfiguration: Equatable, Sendable {
         self.appVersion = appVersion
         self.buildNumber = buildNumber
         self.technicalIdentifier = technicalIdentifier
-        self.revistaCastellsURL = revistaCastellsURL
-        self.elMonCastellerURL = elMonCastellerURL
-        self.ccccAgendaURL = ccccAgendaURL
         self.concursCastellsURL = concursCastellsURL
+    }
+
+    /// The sources of the calculator and the score table.
+    public var credits: [SettingsCredit] {
+        [
+            SettingsCredit(
+                name: "Taula oficial del Concurs de Castells 2026",
+                detail: "Font de la calculadora i de les puntuacions",
+                url: concursCastellsURL
+            ),
+        ]
     }
 
     public var privacyURL: URL {
