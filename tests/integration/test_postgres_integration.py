@@ -36,6 +36,7 @@ PUBLIC_TABLES = {
     "notification_sync_state",
     "push_subscriptions",
     "rate_limit_buckets",
+    "shared_conversations",
 }
 pytestmark = pytest.mark.skipif(
     not TEST_DATABASE_URL,
@@ -81,6 +82,7 @@ def test_postgres_migrations_create_the_complete_backend_schema(
         "notification_outbox",
         "notification_deliveries",
         "rate_limit_buckets",
+        "shared_conversations",
     } <= set(inspect(postgres_database.engine).get_table_names())
 
 

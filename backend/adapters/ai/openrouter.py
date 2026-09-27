@@ -135,7 +135,7 @@ class OpenRouterChatModel:
             "model": self.model,
             "messages": messages,
             "response_format": response_format,
-            "provider": {"require_parameters": True},
+            "provider": {"require_parameters": True, "data_collection": "deny"},
             "usage": {"include": True},
         }
         if self.reasoning_effort is not None:

@@ -61,7 +61,7 @@ def test_openrouter_uses_chat_completions_with_strict_schema_and_reasoning() -> 
     assert body["model"] == "google/gemini-3.7-flash"
     assert body["response_format"]["type"] == "json_schema"
     assert body["response_format"]["json_schema"]["strict"] is True
-    assert body["provider"] == {"require_parameters": True}
+    assert body["provider"] == {"require_parameters": True, "data_collection": "deny"}
     assert body["reasoning"] == {"effort": "low"}
 
 

@@ -60,6 +60,35 @@ final class SettingsModelTests: XCTestCase {
         XCTAssertFalse(model.showsNotificationOnboarding)
     }
 
+    func testConversationSharingToggleWritesThroughAndRefreshes() {
+        let sharing = SharingPreferencesStub()
+        let model = SettingsModel(
+            notificationManager: NotificationManagerStub(initialStatus: .notDetermined),
+            conversationSharing: sharing
+        )
+        XCTAssertTrue(model.showsConversationSharing)
+        XCTAssertTrue(model.isConversationSharingEnabled)
+
+        model.setConversationSharingEnabled(false)
+
+        XCTAssertFalse(sharing.isEnabled)
+        XCTAssertFalse(model.isConversationSharingEnabled)
+
+        sharing.setEnabled(true)
+        model.refreshConversationSharing()
+
+        XCTAssertTrue(model.isConversationSharingEnabled)
+    }
+
+    func testConversationSharingIsHiddenWithoutPreferences() {
+        let model = SettingsModel(
+            notificationManager: NotificationManagerStub(initialStatus: .notDetermined)
+        )
+
+        XCTAssertFalse(model.showsConversationSharing)
+        XCTAssertFalse(model.isConversationSharingEnabled)
+    }
+
     func testDisablingNotificationsUsesTheInjectedPort() async {
         let manager = NotificationManagerStub(
             initialStatus: .enabled,
@@ -196,4 +225,15 @@ private enum NotificationManagerStubError: LocalizedError {
     var errorDescription: String? {
         "No s'ha pogut canviar la configuració."
     }
+}
+
+@MainActor
+private final class SharingPreferencesStub: ConversationSharingPreferences {
+    private(set) var isEnabled = true
+    var isNoticeAcknowledged: Bool { false }
+
+    func setEnabled(_ enabled: Bool) { isEnabled = enabled }
+    func noticeWasShown() {}
+    func acknowledgeNotice() {}
+    func sharesConversation(createdAt: Date) -> Bool { isEnabled }
 }

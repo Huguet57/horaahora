@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Privacy policy</h1>
-  <p class="meta"><strong>Castells en vena</strong> · Last updated: 24 September 2026</p>
+  <p class="meta"><strong>Castells en vena</strong> · Last updated: 27 September 2026</p>
   <p>This policy explains how the current version of Castells en vena, a free app with no user accounts, processes personal data.</p>
 
   <h2>1. Controller</h2>
@@ -42,15 +42,20 @@
   <h2>2. Data processed</h2>
   <h3>Data stored only on the device</h3>
   <ul>
-    <li>Calculator conversations, including their titles and messages.</li>
+    <li>The full history of your calculator conversations, including their titles. The queries you share to improve the calculator are explained below.</li>
     <li>Local copies of the agenda and Hour by Hour content to improve availability and offline reading.</li>
     <li>Local display preferences. When notifications are enabled, the interest threshold and followed groups are also synchronized with the backend, as explained below.</li>
   </ul>
   <p>Conversations can be deleted individually. Other local data is removed when the app is uninstalled or its data is deleted through the operating system.</p>
 
   <h3>Calculator queries</h3>
-  <p>When you submit a query, the app sends the backend no more than the 12 most recent messages needed to understand the context, together with the random installation identifier. The backend processes the query and sends it to the configured artificial intelligence provider. Castells en vena does not store these conversations on its backend.</p>
+  <p>When you submit a query, the app sends the backend no more than the 12 most recent messages needed to understand the context, together with the random installation identifier. The backend processes the query and sends it to the configured artificial intelligence provider. Unless you share them to improve the calculator, Castells en vena does not store these conversations on its backend.</p>
   <p class="notice"><strong>Do not enter personal data.</strong> The calculator only needs information about castells to answer.</p>
+
+  <h3>Improving the calculator</h3>
+  <p>By default, the backend stores new calculator conversations to detect errors and improve answers. For each query it stores the messages sent (no more than the 12 most recent), the answer or error returned, the date and a random conversation identifier. They are not stored with the installation identifier or your IP address, so they cannot be linked to your device.</p>
+  <p>The first time you open a conversation, the app explains this and lets you opt out. You can change it at any time with the «Millora la calculadora» (Improve the calculator) option in Ajustos (Settings); once it is off, no query is shared. Only conversations you start after seeing this notice, or after turning the option back on, are shared; earlier conversations and those sent from app versions without this option are never stored.</p>
+  <p>Shared conversations are kept for 90 days and then deleted automatically. Only the controller reviews them, to investigate errors, evaluate changes and improve how queries are interpreted and answered. They are not used for advertising or profiling, and they are not disclosed to third parties.</p>
 
   <h3>Technical data</h3>
   <p>When you connect to the service, the IP address, date and time, requested path, response status and technical information strictly required to provide the service, limit abuse and diagnose incidents may be processed.</p>
@@ -68,15 +73,17 @@
   <ul>
     <li><strong>Providing the requested service:</strong> displaying content and answering calculator queries. The legal basis is performance of the service requested by the user.</li>
     <li><strong>Security and stability:</strong> limiting abusive requests, preventing fraud and diagnosing errors. The legal basis is the legitimate interest in protecting and maintaining the service, balanced against users' rights.</li>
+    <li><strong>Improving the calculator:</strong> storing shared conversations to detect errors and improve answers. The legal basis is the legitimate interest in improving a free service, balanced against your rights: you are told before it starts, only new conversations are stored, without device identifiers and for 90 days. Turning off «Millora la calculadora» in Ajustos (Settings) is the immediate way to exercise your right to object.</li>
     <li><strong>Optional features and support:</strong> managing notifications you enable and information you choose to send to support. The legal basis is your consent or voluntary action, which you may withdraw at any time.</li>
   </ul>
-  <p>Data needed to answer a query and protect the service is required to provide those features. Notifications and contacting support are optional.</p>
+  <p>Data needed to answer a query and protect the service is required to provide those features. Notifications, contacting support and sharing conversations to improve the calculator are optional.</p>
 
   <h2>4. Providers and recipients</h2>
   <ul>
     <li><strong>Vercel:</strong> backend hosting and execution. The primary function is configured in Paris (<code>cdg1</code>), although Vercel and its subprocessors may process data in other countries.</li>
-    <li><strong>Supabase:</strong> managed PostgreSQL database in the Paris region storing synchronized content, technical security counters and active notification subscriptions.</li>
-    <li><strong>OpenAI:</strong> linguistic interpretation of calculator queries through the API. Requests are sent with response storage disabled (<code>store: false</code>).</li>
+    <li><strong>Supabase:</strong> managed PostgreSQL database in the Paris region storing synchronized content, technical security counters, active notification subscriptions and conversations shared to improve the calculator.</li>
+    <li><strong>OpenRouter:</strong> routes calculator queries to the AI model. Requests are sent with <code>data_collection: "deny"</code> so they are not routed to providers that may use them to train models. OpenRouter keeps technical metadata for each request, such as token counts and latency, and may assign an anonymous topic category to a small sample of queries, but does not store their content.</li>
+    <li><strong>Google (Gemini):</strong> linguistic interpretation of calculator queries, received through OpenRouter.</li>
     <li><strong>TypeSafe AI (Jev):</strong> classifies public news content by relevance and the groups involved.</li>
     <li><strong>Apple:</strong> app distribution, system permissions and APNs when you enable notifications.</li>
     <li><strong>Google/Gmail:</strong> receiving and managing emails you voluntarily send to the support or privacy contact.</li>
@@ -89,10 +96,11 @@
   <h2>6. Retention</h2>
   <ul>
     <li><strong>Local data:</strong> until you delete each conversation or uninstall the app.</li>
+    <li><strong>Conversations shared to improve the calculator:</strong> 90 days from each query, after which they are deleted automatically.</li>
     <li><strong>Rate limiter:</strong> technical keys are kept for a 10-minute window.</li>
     <li><strong>Notification subscription:</strong> the token is retained while alerts are enabled and is revoked immediately when they are disabled or APNs rejects it. Installations not renewed for 180 days are invalidated; delivery records are kept for no more than 30 days.</li>
     <li><strong>Vercel logs:</strong> approximately 1 day under the current plan.</li>
-    <li><strong>OpenAI:</strong> API data is not used to train models by default; OpenAI may retain abuse-monitoring logs for up to 30 days unless a legal obligation requires a different period.</li>
+    <li><strong>Google (Gemini):</strong> does not use queries to train models. Depending on the Google service that handles the request, it may retain them for up to 55 days for abuse monitoring, unless a legal obligation requires a different period.</li>
     <li><strong>Support or privacy emails:</strong> for up to 12 months after the query is resolved, unless longer retention is needed to meet a legal obligation or defend legal claims.</li>
   </ul>
 
@@ -104,17 +112,17 @@
 
   <h2>9. Your rights</h2>
   <p>You may request access, rectification, erasure, restriction, objection or portability of your data, and withdraw consent without affecting earlier processing, by emailing <a href="mailto:tenimaletaapp@gmail.com">tenimaletaapp@gmail.com</a>. Requests will generally be answered within one month.</p>
-  <p>Because there are no accounts, much of the information exists only on your device and cannot be accessed by the controller. Additional technical information may be required to locate a request without mistakenly identifying another person.</p>
+  <p>Because there are no accounts, much of the information exists only on your device and cannot be accessed by the controller. Shared conversations carry no device identifier: to locate one, tell us its text and approximate date. Additional technical information may be required to locate a request without mistakenly identifying another person.</p>
   <p>You may also lodge a complaint with the <a href="https://www.aepd.es/" rel="noreferrer">Spanish Data Protection Agency (AEPD)</a>.</p>
 
   <h2>10. Children</h2>
   <p>The app is not specifically directed at children under 14. If a person under that age provides personal data where consent is the applicable legal basis, authorisation from their legal representative is required.</p>
 
   <h2>11. Security and changes</h2>
-  <p>Proportionate measures are applied, including HTTPS communications, restricted infrastructure access and no first-party chat persistence on the backend. No system is completely infallible.</p>
+  <p>Proportionate measures are applied: HTTPS communications, restricted infrastructure access and, for shared conversations, storage without device identifiers and automatic deletion after 90 days. No system is completely infallible.</p>
   <p>Material changes will be published at these same URLs and the date will be updated. If a change requires consent, it will be requested before the change applies.</p>
 
-  <footer>Castells en vena · Privacy policy · 24 September 2026</footer>
+  <footer>Castells en vena · Privacy policy · 27 September 2026</footer>
 </main>
 </body>
 </html>

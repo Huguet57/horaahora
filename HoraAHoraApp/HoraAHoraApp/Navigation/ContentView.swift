@@ -92,7 +92,10 @@ struct ContentView: View {
                 .tabItem { Label("Agenda", systemImage: "calendar") }
                 .tag(AppSection.agenda)
 
-            CalculatorRootView(repository: dependencies.chatRepository)
+            CalculatorRootView(
+                repository: dependencies.chatRepository,
+                sharing: dependencies.conversationSharing
+            )
                 .tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }
                 .tag(AppSection.calculator)
 

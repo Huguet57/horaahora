@@ -13,6 +13,7 @@ final class AppDependencies {
     let groupDirectoryRepository: any GroupDirectoryRepository
     let agendaFilterStore: any AgendaFilterStoring
     let chatRepository: any ChatRepository
+    let conversationSharing: any ConversationSharingPreferences
     let settingsModel: SettingsModel
     let settingsConfiguration: SettingsConfiguration
     let pushSubscriptionCoordinator: PushSubscriptionCoordinator
@@ -25,6 +26,7 @@ final class AppDependencies {
         let client = APIClient(baseURL: configuration.apiBaseURL)
         let agendaFilterStore = AgendaUserDefaultsStore(userDefaults: userDefaults)
         let notificationPreferenceStore = NotificationPreferenceStore(userDefaults: userDefaults)
+        let conversationSharing = ConversationSharingStore(userDefaults: userDefaults)
         let pushSubscriptionCoordinator = PushSubscriptionCoordinator(
             remoteService: HTTPPushSubscriptionRemoteService(client: client),
             installationID: configuration.technicalIdentifier,
@@ -64,8 +66,10 @@ final class AppDependencies {
         chatRepository = SwiftDataChatRepository(
             container: modelContainer,
             remoteService: HTTPChatRemoteService(client: client),
-            installationID: configuration.technicalIdentifier
+            installationID: configuration.technicalIdentifier,
+            sharing: conversationSharing
         )
+        self.conversationSharing = conversationSharing
         settingsModel = SettingsModel(
             notificationManager: notificationManager,
             notificationOnboardingDismissed: userDefaults.bool(
@@ -76,7 +80,8 @@ final class AppDependencies {
                     dismissed,
                     forKey: AppConfiguration.notificationOnboardingDismissedKey
                 )
-            }
+            },
+            conversationSharing: conversationSharing
         )
         settingsConfiguration = configuration.settingsConfiguration
         self.pushSubscriptionCoordinator = pushSubscriptionCoordinator

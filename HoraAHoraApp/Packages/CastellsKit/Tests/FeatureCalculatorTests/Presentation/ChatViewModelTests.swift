@@ -51,6 +51,59 @@ final class ChatViewModelTests: XCTestCase {
         await task.value
     }
 
+    func testSharingNoticeStaysVisibleUntilTheUserAnswers() {
+        let sharing = SharingPreferencesStub()
+        let model = ChatViewModel(
+            repository: SuspendedChatRepository(),
+            conversationID: nil,
+            sharing: sharing
+        )
+        XCTAssertTrue(model.showsSharingNotice)
+
+        model.sharingNoticeAppeared()
+        model.acceptSharing()
+
+        XCTAssertEqual(sharing.noticeShownCount, 1)
+        XCTAssertTrue(sharing.isNoticeAcknowledged)
+        XCTAssertTrue(sharing.isEnabled)
+        XCTAssertFalse(model.showsSharingNotice)
+    }
+
+    func testDecliningTheNoticeTurnsSharingOff() {
+        let sharing = SharingPreferencesStub()
+        let model = ChatViewModel(
+            repository: SuspendedChatRepository(),
+            conversationID: nil,
+            sharing: sharing
+        )
+
+        model.declineSharing()
+
+        XCTAssertFalse(sharing.isEnabled)
+        XCTAssertTrue(sharing.isNoticeAcknowledged)
+        XCTAssertFalse(model.showsSharingNotice)
+    }
+
+    func testNoticeIsHiddenOnceAnsweredOrWhenSharingIsOff() {
+        let acknowledged = SharingPreferencesStub()
+        acknowledged.acknowledgeNotice()
+        let disabled = SharingPreferencesStub()
+        disabled.setEnabled(false)
+
+        for sharing in [acknowledged, disabled] {
+            let model = ChatViewModel(
+                repository: SuspendedChatRepository(),
+                conversationID: nil,
+                sharing: sharing
+            )
+            XCTAssertFalse(model.showsSharingNotice)
+        }
+        XCTAssertFalse(
+            ChatViewModel(repository: SuspendedChatRepository(), conversationID: nil)
+                .showsSharingNotice
+        )
+    }
+
     func testReopeningAConversationHasItsContentBeforeTheViewAppears() {
         let repository = ReopenedChatRepository()
         repository.finishSending()
@@ -207,4 +260,16 @@ private final class ReopenedChatRepository: ChatRepository {
     func finishSending() {
         responseIsReady = true
     }
+}
+
+@MainActor
+private final class SharingPreferencesStub: ConversationSharingPreferences {
+    private(set) var isEnabled = true
+    private(set) var isNoticeAcknowledged = false
+    private(set) var noticeShownCount = 0
+
+    func setEnabled(_ enabled: Bool) { isEnabled = enabled }
+    func noticeWasShown() { noticeShownCount += 1 }
+    func acknowledgeNotice() { isNoticeAcknowledged = true }
+    func sharesConversation(createdAt: Date) -> Bool { isEnabled }
 }

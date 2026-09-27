@@ -1,4 +1,5 @@
-from typing import Annotated
+from collections.abc import Mapping
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 
@@ -29,5 +30,26 @@ async def chat(
     try:
         result = await container.chat_service.respond(history)
     except ValueError as error:
+        _share(container, payload, history, error=str(error))
         raise HTTPException(status_code=400, detail=str(error)) from error
-    return ChatResponseSchema.from_domain(result)
+    except Exception as error:
+        _share(container, payload, history, error=type(error).__name__)
+        raise
+    body = ChatResponseSchema.from_domain(result)
+    _share(container, payload, history, response=body.model_dump(mode="json"))
+    return body
+
+
+def _share(
+    container: ApplicationContainer,
+    payload: ChatRequestSchema,
+    history: list[ChatTurn],
+    *,
+    response: Mapping[str, Any] | None = None,
+    error: str | None = None,
+) -> None:
+    # Only the conversation's random ID travels with it: never the installation ID or IP.
+    if payload.share_for_improvement:
+        container.conversation_sharing.record(
+            payload.conversation_id, history, response=response, error=error
+        )

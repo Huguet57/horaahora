@@ -82,19 +82,22 @@ public struct ChatRequest: Codable, Sendable {
     public let locale: String
     public let ruleset: String
     public let messages: [ChatRequestMessage]
+    public let shareForImprovement: Bool
 
     public init(
         conversationID: UUID,
         installationID: String,
         locale: String = "ca-ES",
         ruleset: String = "concurs-2026",
-        messages: [ChatRequestMessage]
+        messages: [ChatRequestMessage],
+        shareForImprovement: Bool = false
     ) {
         self.conversationID = conversationID
         self.installationID = installationID
         self.locale = locale
         self.ruleset = ruleset
         self.messages = Array(messages.suffix(12))
+        self.shareForImprovement = shareForImprovement
     }
 }
 

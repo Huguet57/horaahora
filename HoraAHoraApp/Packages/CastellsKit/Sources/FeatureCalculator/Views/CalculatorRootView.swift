@@ -3,6 +3,7 @@ import CastellsDomain
 
 public struct CalculatorRootView: View {
     private let repository: any ChatRepository
+    private let sharing: (any ConversationSharingPreferences)?
     @State private var model: ConversationListViewModel
     @State private var selectedDestination: CalculatorDestination?
     @State private var hidesTabBar = false
@@ -10,8 +11,12 @@ public struct CalculatorRootView: View {
     @State private var renameTarget: ChatConversationSummary?
     @State private var renameText = ""
 
-    public init(repository: any ChatRepository) {
+    public init(
+        repository: any ChatRepository,
+        sharing: (any ConversationSharingPreferences)? = nil
+    ) {
         self.repository = repository
+        self.sharing = sharing
         _model = State(initialValue: ConversationListViewModel(repository: repository))
     }
 
@@ -27,13 +32,14 @@ public struct CalculatorRootView: View {
         } detail: {
             switch selectedDestination {
             case let .conversation(id):
-                ChatView(repository: repository, conversationID: id)
+                ChatView(repository: repository, conversationID: id, sharing: sharing)
                     .id(selectedDestination)
                     .onDisappear { model.reload() }
             case .newConversation:
                 ChatView(
                     repository: repository,
                     conversationID: nil,
+                    sharing: sharing,
                     onConversationCreated: { model.reload() }
                 )
                     .id(selectedDestination)

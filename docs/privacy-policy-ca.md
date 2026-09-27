@@ -1,6 +1,6 @@
 # Política de privacitat — Castells en vena
 
-**Darrera actualització:** 24 de setembre de 2026
+**Darrera actualització:** 27 de setembre de 2026
 
 Aquesta política explica com tracta les dades personals la versió actual de **Castells en vena**, una app gratuïta i sense compte d'usuari.
 
@@ -15,7 +15,7 @@ No s'ha designat un delegat de protecció de dades perquè, atesa la naturalesa 
 
 ### Dades desades només al dispositiu
 
-- Converses de la calculadora, inclosos els títols i missatges.
+- L'historial complet de les converses de la calculadora, inclosos els títols. Les consultes que es comparteixen per millorar la calculadora s'expliquen més avall.
 - Còpies locals de l'agenda i de l'Hora a Hora per millorar la disponibilitat i la lectura sense connexió.
 - Preferències locals de visualització. Quan s'activen notificacions, el llindar d'interès i les colles seguides també es sincronitzen amb el backend, tal com s'explica a continuació.
 
@@ -23,9 +23,17 @@ Les converses es poden eliminar individualment. Les dades locals restants desapa
 
 ### Consultes de la calculadora
 
-Quan s'envia una consulta, l'app transmet al backend com a màxim els 12 darrers missatges necessaris per entendre el context, juntament amb l'identificador aleatori d'instal·lació. El backend processa la consulta i la deriva al proveïdor d'intel·ligència artificial configurat. Castells en vena no desa aquestes converses al backend.
+Quan s'envia una consulta, l'app transmet al backend com a màxim els 12 darrers missatges necessaris per entendre el context, juntament amb l'identificador aleatori d'instal·lació. El backend processa la consulta i la deriva al proveïdor d'intel·ligència artificial configurat. Si no es comparteixen per millorar la calculadora, Castells en vena no desa aquestes converses al backend.
 
 > **No hi introdueixis dades personals.** La calculadora només necessita informació castellera per respondre.
+
+### Millora de la calculadora
+
+Per defecte, el backend desa les converses noves de la calculadora per detectar errors i millorar les respostes. De cada consulta es desen els missatges enviats (com a màxim els 12 darrers), la resposta o l'error obtingut, la data i un identificador aleatori de la conversa. No es desen amb l'identificador d'instal·lació ni amb l'adreça IP, de manera que no es poden associar al dispositiu.
+
+La primera vegada que s'obre una conversa, l'app ho explica i permet no compartir-les. L'opció «Millora la calculadora» d'Ajustos permet canviar-ho en qualsevol moment i, en desactivar-la, deixa de compartir-se cap consulta. Només es comparteixen les converses començades després de veure aquest avís o de tornar a activar l'opció; les anteriors i les enviades des de versions de l'app sense aquesta opció no es desen mai.
+
+Les converses compartides es conserven 90 dies i després s'eliminen automàticament. Només les consulta el responsable per revisar errors, avaluar canvis i millorar la interpretació i les respostes. No s'utilitzen per a publicitat ni per crear perfils, i no es cedeixen a tercers.
 
 ### Dades tècniques
 
@@ -49,15 +57,17 @@ Si l'usuari l'envia, es tractaran l'adreça de correu, el contingut del missatge
 
 - **Prestar el servei sol·licitat:** mostrar contingut i respondre consultes de la calculadora. La base és l'execució del servei demanat per l'usuari.
 - **Seguretat i estabilitat:** limitar peticions abusives, prevenir frau i diagnosticar errors. La base és l'interès legítim a protegir i mantenir el servei, ponderat amb els drets dels usuaris.
+- **Millorar la calculadora:** desar les converses compartides per detectar errors i millorar les respostes. La base és l'interès legítim a millorar un servei gratuït, ponderat amb els drets dels usuaris: s'informa abans de començar, només es desen converses noves, sense identificadors del dispositiu i durant 90 dies. Desactivar «Millora la calculadora» a Ajustos és la manera immediata d'exercir el dret d'oposició.
 - **Funcions opcionals i suport:** gestionar les notificacions activades i la informació enviada voluntàriament a suport. La base és el consentiment o l'acció voluntària, que es pot retirar en qualsevol moment.
 
-Les dades necessàries per respondre una consulta i protegir el servei són imprescindibles per oferir aquestes funcions. Les notificacions i el contacte amb suport són opcionals.
+Les dades necessàries per respondre una consulta i protegir el servei són imprescindibles per oferir aquestes funcions. Les notificacions, el contacte amb suport i la compartició de converses per millorar la calculadora són opcionals.
 
 ## 4. Proveïdors i destinataris
 
 - **Vercel:** allotjament i execució del backend. La funció principal es configura a París (`cdg1`), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.
-- **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat i les subscripcions de notificacions actives.
-- **OpenAI:** interpretació lingüística de les consultes de la calculadora mitjançant l'API. Les peticions s'envien amb l'opció de no emmagatzematge de resposta activada (`store: false`).
+- **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat, les subscripcions de notificacions actives i les converses compartides per millorar la calculadora.
+- **OpenRouter:** encamina les consultes de la calculadora cap al model d'intel·ligència artificial. Les peticions s'envien amb `data_collection: "deny"`, perquè no s'encaminin a proveïdors que les puguin utilitzar per entrenar models. OpenRouter conserva metadades tècniques de cada petició, com el nombre de tokens i la latència, i pot assignar una categoria temàtica anònima a una petita mostra de consultes, però no en desa el contingut.
+- **Google (Gemini):** interpretació lingüística de les consultes de la calculadora, rebudes a través d'OpenRouter.
 - **TypeSafe AI (Jev):** classificació de contingut públic de les notícies per rellevància i colles implicades.
 - **Apple:** distribució de l'app, permisos del sistema i APNs quan s'activen notificacions.
 - **Google/Gmail:** recepció i gestió dels correus enviats voluntàriament al contacte de suport o privacitat.
@@ -71,10 +81,11 @@ Alguns proveïdors o subencarregats poden tractar dades fora de l'Espai Econòmi
 ## 6. Conservació
 
 - **Dades locals:** fins que s'elimina cada conversa o es desinstal·la l'app.
+- **Converses compartides per millorar la calculadora:** 90 dies des de cada consulta; després s'eliminen automàticament.
 - **Limitador de peticions:** les claus tècniques es mantenen durant una finestra de 10 minuts.
 - **Subscripció de notificacions:** el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs el rebutja. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.
 - **Logs de Vercel:** aproximadament 1 dia amb el pla actual.
-- **OpenAI:** l'API no s'utilitza per entrenar models per defecte; OpenAI pot retenir logs de prevenció d'abús fins a 30 dies, llevat que una obligació legal exigeixi una altra conservació.
+- **Google (Gemini):** no utilitza les consultes per entrenar models. Segons el servei de Google que atengui la petició, les pot conservar fins a 55 dies per prevenir abusos, llevat que una obligació legal exigeixi una altra conservació.
 - **Correus de suport o privacitat:** fins a 12 mesos després de resoldre la consulta, tret que sigui necessari conservar-los més temps per complir una obligació legal o defensar reclamacions.
 
 ## 7. Publicitat, analítica i decisions automatitzades
@@ -89,7 +100,7 @@ Quan s'obre un enllaç de Revista Castells, CCCC, Google Maps o qualsevol servei
 
 Es pot demanar l'accés, rectificació, supressió, limitació, oposició o portabilitat de les dades, i retirar el consentiment sense afectar el tractament anterior, escrivint a [tenimaletaapp@gmail.com](mailto:tenimaletaapp@gmail.com). Es respondrà, amb caràcter general, en el termini d'un mes.
 
-Com que no hi ha comptes, molta informació només existeix al dispositiu i el responsable no hi pot accedir. Pot ser necessari demanar informació tècnica addicional per localitzar una petició sense identificar una altra persona per error.
+Com que no hi ha comptes, molta informació només existeix al dispositiu i el responsable no hi pot accedir. Les converses compartides no porten cap identificador del dispositiu: per localitzar-ne una cal indicar-ne el text i la data aproximada. Pot ser necessari demanar informació tècnica addicional per localitzar una petició sense identificar una altra persona per error.
 
 També es pot presentar una reclamació davant l'[Agència Espanyola de Protecció de Dades (AEPD)](https://www.aepd.es/).
 
@@ -99,7 +110,7 @@ L'app no està dirigida específicament a menors de 14 anys. Si una persona meno
 
 ## 11. Seguretat i canvis
 
-S'apliquen mesures proporcionades, com comunicacions HTTPS, accés restringit a la infraestructura i absència de persistència pròpia dels xats al backend. Cap sistema és completament infal·lible.
+S'apliquen mesures proporcionades: comunicacions HTTPS, accés restringit a la infraestructura i, per a les converses compartides, conservació sense identificadors del dispositiu amb eliminació automàtica als 90 dies. Cap sistema és completament infal·lible.
 
 Els canvis materials es publicaran a les mateixes URLs i se n'actualitzarà la data. Si un canvi requereix consentiment, es demanarà abans d'aplicar-lo.
 

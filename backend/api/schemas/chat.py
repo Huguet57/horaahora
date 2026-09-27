@@ -18,6 +18,8 @@ class ChatRequestSchema(BaseModel):
     locale: str = Field(default="ca-ES", max_length=16)
     ruleset: Literal["concurs-2026"] = "concurs-2026"
     messages: list[ChatMessageSchema] = Field(min_length=1, max_length=12)
+    # Older app versions never send it: their users were told nothing is stored.
+    share_for_improvement: bool = False
 
 
 class ScoredCastellSchema(BaseModel):

@@ -25,6 +25,7 @@ def test_migrations_create_all_backend_state_tables(tmp_path, monkeypatch) -> No
         "notification_outbox",
         "notification_deliveries",
         "rate_limit_buckets",
+        "shared_conversations",
     } <= tables
 
 

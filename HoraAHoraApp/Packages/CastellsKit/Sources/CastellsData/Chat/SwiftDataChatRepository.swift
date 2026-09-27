@@ -7,15 +7,18 @@ public final class SwiftDataChatRepository: ChatRepository {
     private let context: ModelContext
     private let remoteService: any ChatRemoteService
     private let installationID: String
+    private let sharing: (any ConversationSharingPreferences)?
 
     public init(
         container: ModelContainer,
         remoteService: any ChatRemoteService,
-        installationID: String
+        installationID: String,
+        sharing: (any ConversationSharingPreferences)? = nil
     ) {
         self.context = ModelContext(container)
         self.remoteService = remoteService
         self.installationID = installationID
+        self.sharing = sharing
     }
 
     public func listConversations() throws -> [ChatConversationSummary] {
@@ -79,7 +82,9 @@ public final class SwiftDataChatRepository: ChatRepository {
             messages: ordered.suffix(12).compactMap { message in
                 guard let role = ChatRole(rawValue: message.roleRaw) else { return nil }
                 return ChatRequestMessage(role: role, content: message.content)
-            }
+            },
+            shareForImprovement: sharing?.sharesConversation(createdAt: conversation.createdAt)
+                ?? false
         )
         do {
             let response = try await remoteService.send(request: request)
