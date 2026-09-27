@@ -20,6 +20,8 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 OUTPUTS = (
     REPOSITORY_ROOT
     / "HoraAHoraApp/Packages/CastellsKit/Sources/FeatureScoreTable/Resources/score-table-2026.json",
+    REPOSITORY_ROOT
+    / "android/feature/scoretable/presentation/src/main/resources/score-table-2026.json",
 )
 
 NOTATION = re.compile(r"(?P<structure>P|\d)de(?P<height>\d+)(?P<features>[a-z]*)")

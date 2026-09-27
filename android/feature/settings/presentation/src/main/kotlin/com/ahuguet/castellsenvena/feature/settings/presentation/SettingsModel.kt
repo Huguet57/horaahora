@@ -2,6 +2,7 @@ package com.ahuguet.castellsenvena.feature.settings.presentation
 
 import com.ahuguet.castellsenvena.core.common.userMessage
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
+import com.ahuguet.castellsenvena.core.domain.settings.HiddenSectionsPreferences
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,6 +47,8 @@ data class SettingsState(
     val isNotificationOnboardingDismissed: Boolean = false,
     val minimumInterest: NotificationInterestLevel = NotificationInterestLevel.HIGH,
     val isNotificationSynchronizationPending: Boolean = false,
+    /** Hora a Hora, Agenda and their settings, hidden unless a secret gesture shows them. */
+    val showsHiddenSections: Boolean = false,
 ) {
     val showsNotificationOnboarding: Boolean
         get() = notificationStatus == HourByHourNotificationStatus.NOT_DETERMINED && !isNotificationOnboardingDismissed
@@ -62,16 +65,39 @@ class SettingsModel(
     private val notificationManager: HourByHourNotificationManaging,
     notificationOnboardingDismissed: Boolean = false,
     private val persistNotificationOnboardingDismissal: (Boolean) -> Unit = {},
+    private val hiddenSections: HiddenSectionsPreferences? = null,
+    /** A monotonic clock, for the pauses between the taps of the secret gesture. */
+    private val nowMillis: () -> Long = { System.nanoTime() / 1_000_000 },
 ) {
     private val mutableState = MutableStateFlow(
-        SettingsState(isNotificationOnboardingDismissed = notificationOnboardingDismissed),
+        SettingsState(
+            isNotificationOnboardingDismissed = notificationOnboardingDismissed,
+            showsHiddenSections = hiddenSections?.isUnlocked ?: false,
+        ),
     )
     val state: StateFlow<SettingsState> = mutableState.asStateFlow()
+    private val secretTaps = SecretTapSequence()
 
     suspend fun refreshNotificationStatus() {
         val status = notificationManager.currentStatus()
         mutableState.update { it.copy(notificationStatus = status) }
+        hiddenSections?.let { preferences ->
+            preferences.resolveDefault(notificationsEnabled = status == HourByHourNotificationStatus.ENABLED)
+            mutableState.update { it.copy(showsHiddenSections = preferences.isUnlocked) }
+        }
         refreshPreferences()
+    }
+
+    /**
+     * Counts a tap on the version; the seventh quick one shows or hides the hidden
+     * sections. Returns whether this tap changed them.
+     */
+    fun registerSecretTap(): Boolean {
+        val preferences = hiddenSections ?: return false
+        if (!secretTaps.register(nowMillis())) return false
+        preferences.setUnlocked(!preferences.isUnlocked)
+        mutableState.update { it.copy(showsHiddenSections = preferences.isUnlocked) }
+        return true
     }
 
     suspend fun setMinimumInterest(value: NotificationInterestLevel) {

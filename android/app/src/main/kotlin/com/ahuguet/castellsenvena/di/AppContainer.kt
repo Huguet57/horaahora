@@ -11,6 +11,7 @@ import com.ahuguet.castellsenvena.core.data.groups.RemoteGroupDirectoryRepositor
 import com.ahuguet.castellsenvena.core.data.hourbyhour.CachedHourByHourRepository
 import com.ahuguet.castellsenvena.core.data.notifications.NotificationPreferenceStore
 import com.ahuguet.castellsenvena.core.data.notifications.PushSubscriptionCoordinator
+import com.ahuguet.castellsenvena.core.data.settings.KeyValueHiddenSectionsStore
 import com.ahuguet.castellsenvena.core.data.storage.InstallationIdentifierStore
 import com.ahuguet.castellsenvena.core.database.CastellsDatabase
 import com.ahuguet.castellsenvena.core.domain.agenda.AgendaGroupSelection
@@ -107,6 +108,8 @@ class AppContainer(context: Context) {
         persistNotificationOnboardingDismissal = { dismissed ->
             keyValueStore.putBoolean(NOTIFICATION_ONBOARDING_DISMISSED_KEY, dismissed)
         },
+        hiddenSections = KeyValueHiddenSectionsStore(keyValueStore),
+        nowMillis = SystemClock::uptimeMillis,
     )
 
     val models = CastellsAppModels(

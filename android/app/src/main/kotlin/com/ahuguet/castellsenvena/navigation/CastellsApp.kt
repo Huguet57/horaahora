@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -39,16 +40,24 @@ import com.ahuguet.castellsenvena.feature.calculator.presentation.ConversationLi
 import com.ahuguet.castellsenvena.feature.calculator.ui.CalculatorScreen
 import com.ahuguet.castellsenvena.feature.hourbyhour.presentation.HourByHourViewModel
 import com.ahuguet.castellsenvena.feature.hourbyhour.ui.HourByHourScreen
+import com.ahuguet.castellsenvena.feature.scoretable.ui.ScoreTableScreen
 import com.ahuguet.castellsenvena.feature.settings.presentation.NotificationOnboardingAction
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsModel
 import com.ahuguet.castellsenvena.feature.settings.ui.SettingsScreen
 import kotlinx.coroutines.CoroutineScope
 
-enum class AppSection(val title: String, val icon: ImageVector) {
-    HOUR_BY_HOUR("Hora a Hora", Icons.Filled.Schedule),
-    AGENDA("Agenda", Icons.Filled.CalendarMonth),
+/** The sections in the order of the navigation bar. */
+enum class AppSection(
+    val title: String,
+    val icon: ImageVector,
+    /** Shown only after the secret gesture in Ajustos. */
+    val isHidden: Boolean = false,
+) {
     CALCULATOR("Calculadora", Icons.Filled.Calculate),
+    SCORE_TABLE("Puntuacions", Icons.Filled.FormatListNumbered),
+    HOUR_BY_HOUR("Hora a Hora", Icons.Filled.Schedule, isHidden = true),
+    AGENDA("Agenda", Icons.Filled.CalendarMonth, isHidden = true),
     SETTINGS("Ajustos", Icons.Filled.Settings),
 }
 
@@ -65,10 +74,12 @@ class CastellsAppModels(
 )
 
 /**
- * The four sections behind a bottom navigation bar. Each section keeps its
- * scroll and navigation state while another one is shown.
+ * The sections behind a bottom navigation bar: Calculadora, Puntuacions and
+ * Ajustos, plus Hora a Hora and Agenda once the secret gesture shows them. Each
+ * section keeps its scroll and navigation state while another one is shown.
  *
- * [pendingLink] comes from a tapped notification: it opens over Hora a Hora.
+ * [pendingLink] comes from a tapped notification: it opens over Hora a Hora when
+ * that section shows.
  */
 @Composable
 fun CastellsApp(
@@ -79,7 +90,7 @@ fun CastellsApp(
     onPendingLinkOpened: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var selectedSection by rememberSaveable { mutableStateOf(AppSection.HOUR_BY_HOUR) }
+    var selectedSection by rememberSaveable { mutableStateOf(AppSection.CALCULATOR) }
     var showsAgendaGroupFilter by rememberSaveable { mutableStateOf(false) }
     var isChatVisible by remember { mutableStateOf(false) }
     val settingsState by models.settings.state.collectAsState()
@@ -97,13 +108,16 @@ fun CastellsApp(
     }
     LaunchedEffect(pendingLink) {
         val link = pendingLink ?: return@LaunchedEffect
-        selectedSection = AppSection.HOUR_BY_HOUR
+        if (settingsState.showsHiddenSections) selectedSection = AppSection.HOUR_BY_HOUR
         links.openInApp(link)
         onPendingLinkOpened()
     }
-    // Back from another section returns to Hora a Hora before leaving the app.
-    BackHandler(enabled = selectedSection != AppSection.HOUR_BY_HOUR) {
-        selectedSection = AppSection.HOUR_BY_HOUR
+    LaunchedEffect(settingsState.showsHiddenSections) {
+        if (!settingsState.showsHiddenSections && selectedSection.isHidden) selectedSection = AppSection.SETTINGS
+    }
+    // Back from another section returns to the calculator before leaving the app.
+    BackHandler(enabled = selectedSection != AppSection.CALCULATOR) {
+        selectedSection = AppSection.CALCULATOR
     }
 
     Scaffold(
@@ -115,7 +129,7 @@ fun CastellsApp(
                 exit = if (reduceMotion) ExitTransition.None else shrinkVertically(),
             ) {
                 NavigationBar {
-                    for (section in AppSection.entries) {
+                    for (section in AppSection.entries.filter { settingsState.showsHiddenSections || !it.isHidden }) {
                         NavigationBarItem(
                             selected = section == selectedSection,
                             onClick = { selectedSection = section },
@@ -162,6 +176,8 @@ fun CastellsApp(
                         actionScope = models.actionScope,
                         onChatVisibilityChange = { isChatVisible = it },
                     )
+
+                    AppSection.SCORE_TABLE -> ScoreTableScreen()
 
                     AppSection.SETTINGS -> SettingsScreen(
                         model = models.settings,

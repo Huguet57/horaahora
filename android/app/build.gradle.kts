@@ -71,6 +71,7 @@ dependencies {
     implementation(projects.feature.hourbyhour.ui)
     implementation(projects.feature.agenda.ui)
     implementation(projects.feature.calculator.ui)
+    implementation(projects.feature.scoretable.ui)
     implementation(projects.feature.settings.ui)
 
     implementation(libs.androidx.activity.compose)

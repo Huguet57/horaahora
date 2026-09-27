@@ -79,6 +79,9 @@ fun SettingsScreen(
                 onOpenUrl = onOpenUrl,
                 onContactSupport = onContactSupport,
                 onCopyIdentifier = onCopyIdentifier,
+                onSecretTap = {
+                    if (model.registerSecretTap()) model.state.value.showsHiddenSections else null
+                },
             )
 
             SettingsDestination.NOTIFICATION_INTEREST -> NotificationInterestScreen(
@@ -91,6 +94,7 @@ fun SettingsScreen(
 
             SettingsDestination.SOURCES -> SourcesAndCreditsScreen(
                 configuration = configuration,
+                showsHiddenSections = state.showsHiddenSections,
                 onOpenUrl = onOpenUrl,
                 onBack = { destination = SettingsDestination.ROOT },
             )

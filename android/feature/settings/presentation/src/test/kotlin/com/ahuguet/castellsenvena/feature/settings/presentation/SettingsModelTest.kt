@@ -185,7 +185,7 @@ class SettingsModelTest {
         val query = url.substringAfter('?').split('&').associate { parameter ->
             parameter.substringBefore('=') to URLDecoder.decode(parameter.substringAfter('='), Charsets.UTF_8)
         }
-        assertEquals("Suport Castells en vena", query["subject"])
+        assertEquals("Suport La calculadora de l'Aleta", query["subject"])
         assertTrue(query.getValue("body").contains("Versió: 2.4 (91)"))
         assertTrue(query.getValue("body").contains("Identificador tècnic: ABC 123/ç"))
         assertTrue(url.contains("%0A"))
@@ -203,7 +203,7 @@ class SettingsModelTest {
     ) = SettingsConfiguration(
         apiBaseUrl = apiBaseUrl,
         supportEmail = supportEmail,
-        appName = "Castells en vena",
+        appName = "La calculadora de l'Aleta",
         appVersion = appVersion,
         buildNumber = buildNumber,
         technicalIdentifier = technicalIdentifier,

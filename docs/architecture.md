@@ -73,6 +73,7 @@ Les dependències permeses són:
 - Cada `:feature:*:presentation` conté l'estat i la lògica de la pantalla (`StateFlow` i funcions `suspend`) en Kotlin pur, amb proves unitàries. Pot dependre del domini, però no de dades, d'Android ni d'altres features.
 - Cada `:feature:*:ui` conté només Compose. Depèn de la seva presentació i de `:core:designsystem`, no de dades.
 - `:app` és l'arrel de composició: `AppContainer` crea implementacions concretes, i el mòdul concentra Firebase, permisos, enllaços, arrencada i navegació.
+- `:feature:scoretable:presentation` porta la taula de puntuacions com a recurs JSON, la mateixa còpia que l'app iOS, i n'ordena les files i calcula l'escala de les barres. Com a iOS, `HiddenSectionsPreferences` (`:core:domain`) i `KeyValueHiddenSectionsStore` (`:core:data`) desen si Hora a Hora i Agenda es mostren.
 
 Els mòduls que no depenen d'Android es compilen i es proven en qualsevol JVM amb `-Pcastells.jvmOnly=true`. Les convencions de compilació viuen a `android/build-logic`.
 

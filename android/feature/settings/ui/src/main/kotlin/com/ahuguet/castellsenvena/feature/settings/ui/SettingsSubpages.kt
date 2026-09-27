@@ -99,19 +99,36 @@ internal fun NotificationInterestScreen(
 @Composable
 internal fun SourcesAndCreditsScreen(
     configuration: SettingsConfiguration,
+    showsHiddenSections: Boolean,
     onOpenUrl: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val credits = listOf(
-        Triple("Revista Castells", "Font de l'Hora a Hora", configuration.revistaCastellsUrl),
-        Triple(
-            "El Món Casteller",
-            "Notícies, opinió, entrevistes i cròniques de l'Hora a Hora",
-            configuration.elMonCastellerUrl,
-        ),
-        Triple("Coordinadora de Colles Castelleres de Catalunya (CCCC)", "Font de l'Agenda", configuration.ccccAgendaUrl),
-        Triple("Taula oficial del Concurs de Castells 2026", "Font de la Calculadora", configuration.concursCastellsUrl),
-    )
+    val credits = buildList {
+        add(
+            Triple(
+                "Taula oficial del Concurs de Castells 2026",
+                "Font de la calculadora i de les puntuacions",
+                configuration.concursCastellsUrl,
+            ),
+        )
+        if (showsHiddenSections) {
+            add(Triple("Revista Castells", "Font de l'Hora a Hora", configuration.revistaCastellsUrl))
+            add(
+                Triple(
+                    "El Món Casteller",
+                    "Notícies, opinió, entrevistes i cròniques de l'Hora a Hora",
+                    configuration.elMonCastellerUrl,
+                ),
+            )
+            add(
+                Triple(
+                    "Coordinadora de Colles Castelleres de Catalunya (CCCC)",
+                    "Font de l'Agenda",
+                    configuration.ccccAgendaUrl,
+                ),
+            )
+        }
+    }
     SettingsScaffold(title = "Fonts i crèdits", onBack = onBack) {
         Spacer(Modifier.height(8.dp))
         for ((name, detail, url) in credits) {
