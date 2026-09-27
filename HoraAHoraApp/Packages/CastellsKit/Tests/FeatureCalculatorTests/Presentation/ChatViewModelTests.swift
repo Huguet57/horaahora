@@ -51,6 +51,21 @@ final class ChatViewModelTests: XCTestCase {
         await task.value
     }
 
+    func testReopeningAConversationHasItsContentBeforeTheViewAppears() {
+        let repository = ReopenedChatRepository()
+        repository.finishSending()
+
+        let model = ChatViewModel(
+            repository: repository,
+            conversationID: repository.conversationID,
+            sleep: { _ in }
+        )
+
+        XCTAssertEqual(model.conversation?.title, "Què val el 5d9f?")
+        XCTAssertEqual(model.displayedMessages.map(\.role), [.user, .assistant])
+        XCTAssertFalse(model.showsPromptSuggestions)
+    }
+
     func testReopeningAConversationRefreshesUntilThePendingResponseArrives() async {
         let repository = ReopenedChatRepository()
         let model = ChatViewModel(
@@ -58,8 +73,9 @@ final class ChatViewModelTests: XCTestCase {
             conversationID: repository.conversationID,
             sleep: { _ in repository.finishSending() }
         )
+        XCTAssertTrue(model.isSending)
 
-        await model.loadFollowingPendingResponse()
+        await model.followPendingResponse()
 
         XCTAssertEqual(repository.loadCount, 2)
         XCTAssertFalse(model.isSending)

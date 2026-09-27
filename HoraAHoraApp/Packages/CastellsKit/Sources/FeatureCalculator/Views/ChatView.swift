@@ -51,6 +51,7 @@ public struct ChatView: View {
                             isComposerFocused = false
                         })
                     }
+                    .defaultScrollAnchor(.bottom)
                     .scrollDismissesKeyboard(.interactively)
                     .scrollBounceBehavior(.always, axes: .vertical)
                 }
@@ -101,7 +102,7 @@ public struct ChatView: View {
         }
         .navigationTitle(model.conversation?.title ?? "Conversa nova")
         .calculatorInlineNavigationTitle()
-        .task { await model.loadFollowingPendingResponse() }
+        .task { await model.followPendingResponse() }
     }
 }
 

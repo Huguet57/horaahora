@@ -40,6 +40,8 @@ public final class ChatViewModel {
         self.conversationID = conversationID
         self.sleep = sleep
         self.onConversationCreated = onConversationCreated
+        // Loaded up front so the pushed chat renders its title and messages from the first frame.
+        load()
     }
 
     public var displayedMessages: [ChatMessage] {
@@ -63,8 +65,7 @@ public final class ChatViewModel {
         }
     }
 
-    public func loadFollowingPendingResponse() async {
-        load()
+    public func followPendingResponse() async {
         while isSending && !Task.isCancelled {
             do {
                 try await sleep(.milliseconds(250))
