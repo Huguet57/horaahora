@@ -36,6 +36,30 @@ jobs:
         working-directory: HoraAHoraApp/Packages/CastellsKit
         run: swift test
 
+      - name: Run iOS UI regression tests
+        run: |
+          IOS_UI_TEST_DEVICE=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          print(next(device["udid"] for runtime, entries in devices.items()
+                     if "iOS" in runtime for device in entries
+                     if device["name"].startswith("iPhone")))')
+          xcodebuild test \
+            -project HoraAHoraApp/HoraAHoraApp.xcodeproj \
+            -scheme HoraAHoraApp \
+            -destination "platform=iOS Simulator,id=$IOS_UI_TEST_DEVICE" \
+            -resultBundlePath "$RUNNER_TEMP/ios-ui-tests.xcresult" \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload UI test failure screenshots and results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ui-test-results
+          path: ${{ runner.temp }}/ios-ui-tests.xcresult
+          if-no-files-found: ignore
+
       # Each app is built unsigned in Release and inspected: the public one must not link the
       # internal sections or have push entitlements, and the internal one must keep them under
       # its own bundle identifier.
