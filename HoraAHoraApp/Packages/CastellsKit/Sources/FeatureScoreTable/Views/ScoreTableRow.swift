@@ -80,6 +80,16 @@ struct ScoreTableRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .background {
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear {
+                        // Returning to a tab can reuse the same geometry, so onGeometryChange
+                        // won't restore the row frame that onDisappear removed.
+                        scale.setRowFrame(proxy.frame(in: .global), of: castell.notation)
+                    }
+            }
+        }
         .onGeometryChange(for: CGRect.self) { proxy in
             proxy.frame(in: .global)
         } action: { frame in
