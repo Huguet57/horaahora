@@ -20,6 +20,9 @@ struct PublicContentView: View {
                 )
                 .calculatorTabItem()
 
+                ComparatorRootView()
+                    .comparatorTabItem()
+
                 ScoreTableRootView()
                     .scoreTableTabItem()
 

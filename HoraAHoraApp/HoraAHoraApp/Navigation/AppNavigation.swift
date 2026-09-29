@@ -32,6 +32,10 @@ extension View {
         tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }
     }
 
+    func comparatorTabItem() -> some View {
+        tabItem { Label("Comparador", systemImage: "tablecells") }
+    }
+
     func scoreTableTabItem() -> some View {
         tabItem { Label("Puntuacions", systemImage: "list.number") }
     }
