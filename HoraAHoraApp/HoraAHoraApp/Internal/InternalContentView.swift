@@ -8,6 +8,7 @@ import FeatureScoreTable
 
 enum InternalSection: Hashable {
     case calculator
+    case comparator
     case scoreTable
     /// Hidden unless the secret gesture in Ajustos shows it, like `agenda`.
     case hourByHour
@@ -84,6 +85,10 @@ struct InternalContentView: View {
             )
                 .calculatorTabItem()
                 .tag(InternalSection.calculator)
+
+            ComparatorRootView()
+                .comparatorTabItem()
+                .tag(InternalSection.comparator)
 
             ScoreTableRootView()
                 .scoreTableTabItem()

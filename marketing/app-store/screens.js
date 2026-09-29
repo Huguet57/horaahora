@@ -19,4 +19,10 @@ window.SCREENS = [
     title: "Tota l’actualitat,<br>hora a hora",
     subtitle: "Revista Castells i El Món Casteller,<br>en un sol lloc.",
   },
+  {
+    id: "04-comparador",
+    raw: "raw/04-comparador.png",
+    title: "Compara actuacions,<br>ronda a ronda",
+    subtitle: "Canvia un castell i mira<br>qui guanya al moment.",
+  },
 ];
