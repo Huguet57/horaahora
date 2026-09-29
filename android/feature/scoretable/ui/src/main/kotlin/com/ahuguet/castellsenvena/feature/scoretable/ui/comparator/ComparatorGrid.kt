@@ -174,7 +174,7 @@ private fun GridCell(
             contentAlignment = Alignment.Center,
         ) {
             if (castell == null) {
-                EmptyCell(isCompact)
+                EmptyCell()
             } else {
                 FilledCell(castell, roundScore, restriction, isCompact, onTapOutcome)
             }
@@ -192,18 +192,13 @@ private fun GridCell(
 }
 
 @Composable
-private fun EmptyCell(isCompact: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(
-            Icons.Filled.Add,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp),
-        )
-        if (!isCompact) {
-            Text("castell", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
+private fun EmptyCell() {
+    Icon(
+        Icons.Filled.Add,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.size(18.dp),
+    )
 }
 
 @Composable
