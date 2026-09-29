@@ -185,14 +185,21 @@ class ComparatorViewModel(val rules: ComparatorRules, private val storage: Compa
 
     fun colla(id: String): ComparatorColla? = current.colles.firstOrNull { it.id == id }
 
+    /** Whether another colla of the scenario on screen is already called [name]. */
+    fun isCollaTaken(name: String, exceptId: String? = null): Boolean =
+        current.colles.any { it.id != exceptId && it.name.equals(name.trim(), ignoreCase = true) }
+
+    /** Adds a column, unless the scenario is full or already has that colla. */
     fun addColla(known: KnownColla) {
-        if (current.colles.size >= MAX_COLLES) return
+        if (current.colles.size >= MAX_COLLES || isCollaTaken(known.name)) return
         updateScenario(current.id) {
             it.copy(colles = it.colles + ComparatorColla(id = newId(), name = known.name, shortName = known.shortName))
         }
     }
 
+    /** Changes a column's colla, unless another column already has it. */
     fun replaceColla(id: String, known: KnownColla) {
+        if (isCollaTaken(known.name, exceptId = id)) return
         updateColla(id) { it.copy(name = known.name, shortName = known.shortName) }
     }
 

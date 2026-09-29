@@ -199,6 +199,20 @@ class ComparatorViewModelTest {
     }
 
     @Test
+    fun aCollaCannotBeInTheScenarioTwice() {
+        val model = makeModel()
+        val vella = model.current.colles.last()
+
+        model.addColla(KnownColla.custom(" vilafranca "))
+        model.replaceColla(vella.id, KnownColla("Vilafranca", "VERDS"))
+        assertEquals(listOf("VERDS", "VELLA"), model.current.colles.map { it.shortName })
+
+        // A colla may keep its own name.
+        model.replaceColla(vella.id, KnownColla("Colla Vella", "VELLA"))
+        assertEquals(listOf("Vilafranca", "Colla Vella"), model.current.colles.map { it.name })
+    }
+
+    @Test
     fun aCustomCollaIsShortenedToItsLastWord() {
         assertEquals(KnownColla("Castellers de la Vila", "VILA"), KnownColla.custom(" Castellers de la Vila "))
         assertEquals("MINYO", KnownColla.custom("Minyons").shortName)

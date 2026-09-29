@@ -91,8 +91,12 @@ internal fun ComparatorCollaPicker(
         scope.launch { sheetState.hide() }.invokeOnCompletion { onPick(colla) }
     }
 
+    // Typed by hand, a colla already in the comparison would be a second column for it.
+    val isCustomTaken = takenNames.any { it.equals(customName.trim(), ignoreCase = true) }
+    val canPickCustom = customName.isNotBlank() && !isCustomTaken
+
     fun pickCustom() {
-        if (customName.isNotBlank()) pick(KnownColla.custom(customName))
+        if (canPickCustom) pick(KnownColla.custom(customName))
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
@@ -113,12 +117,14 @@ internal fun ComparatorCollaPicker(
                     value = customName,
                     onValueChange = { customName = it },
                     label = { Text("Una altra colla") },
+                    supportingText = if (isCustomTaken) ({ Text("Ja és a la comparació") }) else null,
+                    isError = isCustomTaken,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { pickCustom() }),
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = ::pickCustom, enabled = customName.isNotBlank()) { Text("Afegeix") }
+                TextButton(onClick = ::pickCustom, enabled = canPickCustom) { Text("Afegeix") }
             }
             SectionHeader("Colles")
             LazyColumn(modifier = Modifier.heightIn(max = 480.dp)) {
