@@ -1,9 +1,10 @@
 # La calculadora de l'Aleta
 
 App nativa per a iOS i Android centrada en una calculadora castellera conversacional i en la
-taula de puntuacions del Concurs de Castells 2026. L'app pública té tres pestanyes: Calculadora,
-Puntuacions i Ajustos. Hora a Hora, Agenda, els seus ajustos i els avisos de notícies només són a
-l'app interna de desenvolupament (vegeu [App pública i app interna](#app-pública-i-app-interna)).
+taula de puntuacions del Concurs de Castells 2026. L'app pública té quatre pestanyes: Calculadora,
+Comparador, Puntuacions i Ajustos. Hora a Hora, Agenda, els seus ajustos i els avisos de notícies
+només són a l'app interna de desenvolupament (vegeu
+[App pública i app interna](#app-pública-i-app-interna)).
 El backend és una aplicació ASGI portable i no exposa cap proveïdor d'IA ni infraestructura
 concreta al domini o al contracte HTTP.
 
@@ -36,7 +37,7 @@ remotament ni des de l'app instal·lada:
 | Per a | App Store, TestFlight i Google Play | Desenvolupament; mai no es puja a les botigues |
 | Identificador | `com.ahuguet.castellsenvena` | `com.ahuguet.castellsenvena.internal` |
 | Nom i icona | «La calculadora de l'Aleta» | «Aleta interna», icona fosca (a iOS, amb la franja «INTERNA») |
-| Seccions | Calculadora, Puntuacions i Ajustos | Les mateixes, més Hora a Hora i Agenda, ocultes fins al gest secret |
+| Seccions | Calculadora, Comparador, Puntuacions i Ajustos | Les mateixes, més Hora a Hora i Agenda, ocultes fins al gest secret |
 | Avisos de notícies | Cap: sense permís, entitlement `aps-environment`, Firebase ni deep links | Com fins ara |
 | iOS | Target i esquema `HoraAHoraApp` | Target i esquema `HoraAHoraAppInternal` |
 | Android | Flavor `public` | Flavor `internal`, versió amb el sufix `-internal` |

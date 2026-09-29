@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,7 +17,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRepository
 import com.ahuguet.castellsenvena.feature.calculator.presentation.ConversationListViewModel
 import com.ahuguet.castellsenvena.feature.calculator.ui.CalculatorScreen
+import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorViewModel
 import com.ahuguet.castellsenvena.feature.scoretable.ui.ScoreTableScreen
+import com.ahuguet.castellsenvena.feature.scoretable.ui.comparator.ComparatorScreen
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
 import com.ahuguet.castellsenvena.feature.settings.ui.SettingsScreen
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 /** The sections in the order of the navigation bar. */
 enum class AppSection(override val title: String, override val icon: ImageVector) : NavigationSection {
     CALCULATOR("Calculadora", Icons.Filled.Calculate),
+    COMPARATOR("Comparador", Icons.Filled.TableChart),
     SCORE_TABLE("Puntuacions", Icons.Filled.FormatListNumbered),
     SETTINGS("Ajustos", Icons.Filled.Settings),
 }
@@ -31,6 +35,8 @@ enum class AppSection(override val title: String, override val icon: ImageVector
 /** The long-lived models and settings the sections share. */
 class CastellsAppModels(
     val conversationList: ConversationListViewModel,
+    /** `null` if the bundled score table cannot be read. */
+    val comparator: ComparatorViewModel?,
     val chatRepository: ChatRepository,
     val settingsConfiguration: SettingsConfiguration,
     /** Outlives the screens: sends and deletions run here. */
@@ -39,7 +45,7 @@ class CastellsAppModels(
     val onForeground: () -> Unit,
 )
 
-/** The public app: Calculadora, Puntuacions and Ajustos. */
+/** The public app: Calculadora, Comparador, Puntuacions and Ajustos. */
 @Composable
 fun CastellsApp(
     models: CastellsAppModels,
@@ -69,6 +75,8 @@ fun CastellsApp(
                 actionScope = models.actionScope,
                 onChatVisibilityChange = { isChatVisible = it },
             )
+
+            AppSection.COMPARATOR -> ComparatorScreen(model = models.comparator)
 
             AppSection.SCORE_TABLE -> ScoreTableScreen()
 

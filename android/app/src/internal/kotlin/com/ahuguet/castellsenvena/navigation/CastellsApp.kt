@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,7 +28,9 @@ import com.ahuguet.castellsenvena.feature.internalsettings.presentation.Internal
 import com.ahuguet.castellsenvena.feature.internalsettings.presentation.InternalSources
 import com.ahuguet.castellsenvena.feature.internalsettings.presentation.NotificationOnboardingAction
 import com.ahuguet.castellsenvena.feature.internalsettings.ui.InternalSettingsScreen
+import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorViewModel
 import com.ahuguet.castellsenvena.feature.scoretable.ui.ScoreTableScreen
+import com.ahuguet.castellsenvena.feature.scoretable.ui.comparator.ComparatorScreen
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
 import kotlinx.coroutines.CoroutineScope
 
@@ -39,6 +42,7 @@ enum class AppSection(
     val isHidden: Boolean = false,
 ) : NavigationSection {
     CALCULATOR("Calculadora", Icons.Filled.Calculate),
+    COMPARATOR("Comparador", Icons.Filled.TableChart),
     SCORE_TABLE("Puntuacions", Icons.Filled.FormatListNumbered),
     HOUR_BY_HOUR("Hora a Hora", Icons.Filled.Schedule, isHidden = true),
     AGENDA("Agenda", Icons.Filled.CalendarMonth, isHidden = true),
@@ -50,6 +54,8 @@ class CastellsAppModels(
     val hourByHour: HourByHourViewModel,
     val agenda: AgendaViewModel,
     val conversationList: ConversationListViewModel,
+    /** `null` if the bundled score table cannot be read. */
+    val comparator: ComparatorViewModel?,
     val chatRepository: ChatRepository,
     val settings: InternalSettingsModel,
     val settingsConfiguration: SettingsConfiguration,
@@ -59,8 +65,8 @@ class CastellsAppModels(
 )
 
 /**
- * The internal app: Calculadora, Puntuacions and Ajustos, plus Hora a Hora and Agenda once
- * the secret gesture shows them.
+ * The internal app: Calculadora, Comparador, Puntuacions and Ajustos, plus Hora a Hora and
+ * Agenda once the secret gesture shows them.
  *
  * [pendingLink] comes from a tapped notification: it opens over Hora a Hora when that
  * section shows.
@@ -134,6 +140,8 @@ fun CastellsApp(
                 actionScope = models.actionScope,
                 onChatVisibilityChange = { isChatVisible = it },
             )
+
+            AppSection.COMPARATOR -> ComparatorScreen(model = models.comparator)
 
             AppSection.SCORE_TABLE -> ScoreTableScreen()
 

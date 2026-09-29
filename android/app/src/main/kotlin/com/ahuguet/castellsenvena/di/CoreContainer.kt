@@ -12,6 +12,10 @@ import com.ahuguet.castellsenvena.core.network.ApiClient
 import com.ahuguet.castellsenvena.core.network.service.HttpChatRemoteService
 import com.ahuguet.castellsenvena.core.network.service.HttpPushSubscriptionRemoteService
 import com.ahuguet.castellsenvena.feature.calculator.presentation.ConversationListViewModel
+import com.ahuguet.castellsenvena.feature.scoretable.presentation.ScoreTable
+import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorRules
+import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorViewModel
+import com.ahuguet.castellsenvena.platform.KeyValueComparatorStorage
 import com.ahuguet.castellsenvena.platform.SharedPreferencesKeyValueStore
 import com.ahuguet.castellsenvena.startup.StartupGate
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +24,8 @@ import kotlinx.coroutines.SupervisorJob
 
 /**
  * What both apps build once per process: the preferences, the local database, the API
- * clients and the calculator. Each app's `AppContainer` adds its own sections on top.
+ * clients, the calculator and the comparator. Each app's `AppContainer` adds its own
+ * sections on top.
  */
 class CoreContainer(context: Context) {
     private val appContext = context.applicationContext
@@ -67,6 +72,11 @@ class CoreContainer(context: Context) {
     )
 
     val conversationList = ConversationListViewModel(chatRepository)
+
+    /** The comparator and its scenarios, or `null` if the bundled score table cannot be read. */
+    val comparator: ComparatorViewModel? = runCatching { ScoreTable.bundled() }.getOrNull()?.let { table ->
+        ComparatorViewModel(ComparatorRules(table), KeyValueComparatorStorage(keyValueStore))
+    }
 
     private companion object {
         const val PREFERENCES_NAME = "castells"
