@@ -28,6 +28,7 @@ class AppContainer(context: Context) {
 
     val models = CastellsAppModels(
         conversationList = core.conversationList,
+        comparator = core.comparator,
         chatRepository = core.chatRepository,
         settingsConfiguration = core.configuration.settingsConfiguration,
         actionScope = core.applicationScope,

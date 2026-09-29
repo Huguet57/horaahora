@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 
 /** A section of the navigation bar. */
@@ -61,7 +62,9 @@ fun <S> SectionScaffold(
                             selected = section == selectedSection,
                             onClick = { onSelectSection(section) },
                             icon = { Icon(section.icon, contentDescription = null) },
-                            label = { Text(section.title) },
+                            // One line even with six sections, as the internal app has with its
+                            // hidden ones shown.
+                            label = { Text(section.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         )
                     }
                 }

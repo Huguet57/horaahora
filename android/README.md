@@ -105,6 +105,14 @@ pública. Per treballar amb l'app interna, afegeix `castells.buildProfile=intern
   les actuacions, sis mesos precarregats al voltant del mes visible, filtre i colles destacades.
 - **Calculadora:** converses desades només al dispositiu. Les respostes en curs continuen encara
   que es tanqui el xat, i en tornar-hi es mostren quan arriben. És la pestanya inicial.
+- **Comparador:** escenaris de fins a quatre colles i cinc rondes, puntuats amb les normes del
+  Concurs: compten les tres millors construccions, com a màxim dos carregats, i els empats es
+  desfan per penalitzacions i pel millor castell. Tocar una ronda obre un full inferior amb els
+  castells per punts (els que la colla no pot intentar, desactivats i amb el motiu) i després el
+  resultat; la insígnia D/C obre directament el resultat, i mantenir premuda la ronda en mostra el
+  menú. Els escenaris es desen només al dispositiu, amb els favorits a dalt; en mantenir-ne premut
+  un es pot arrossegar, i eliminar-lo o buidar-ne les rondes es pot desfer des de l'avís de sota.
+  La lògica i les proves són a `:feature:scoretable:presentation`, al costat de la taula.
 - **Puntuacions:** la taula oficial del 2026 de més a menys punts, per grups. Les barres fan zoom
   a les files visibles i, en tocar un castell, es ressalten els de sota que descarregats en
   guanyen el carregat. La taula és un recurs del mòdul `:feature:scoretable:presentation`,

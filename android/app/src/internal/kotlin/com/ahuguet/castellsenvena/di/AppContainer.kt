@@ -94,6 +94,7 @@ class AppContainer(context: Context) {
             filterStore = agendaFilterStore,
         ),
         conversationList = core.conversationList,
+        comparator = core.comparator,
         chatRepository = core.chatRepository,
         settings = settingsModel,
         settingsConfiguration = configuration.settingsConfiguration,
