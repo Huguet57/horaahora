@@ -147,26 +147,29 @@ def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> No
         "creator",
         "contest_router",
     ]
-    # The prompt states the situation and the domain facts; a new rule per reported
+    # The prompt states the situation and the casteller jargon; a new rule per reported
     # failure belongs in the evaluation fixtures, not here.
-    assert len(INTERPRETATION_PROMPT) < 9_000
+    assert len(INTERPRETATION_PROMPT) < 12_000
     assert "<resultats_anteriors>" not in INTERPRETATION_PROMPT
     assert "<coneixement_normatiu>" not in INTERPRETATION_PROMPT
     assert "16.337 punts" not in INTERPRETATION_PROMPT
+    assert "`escenari_vigent`" in INTERPRETATION_PROMPT
 
 
 @pytest.mark.parametrize(
     "guidance",
     [
-        # What the scoring engine cannot infer from the notation it receives.
-        "`2d8`, `3d9`, `4d9` i `pd7` sense cap sufix són la variant sense folre",
-        "«tres de nou» és `3d9f`",
-        "`4d10f` o `td9f` volen dir sense manilles",
-        "bèstia indomable `2d8sf`",
-        "`escenari_vigent`",
+        "«torre» i «dos»",
+        "«net», «neta» i «sense folre»",
+        "`4d9fp`",
+        "`td8sf`",
+        "`d`, `de`, `/`, `x` i `×`",
+        "`2d8` escrit exactament així",
+        "| «torre/dos de vuit» sense modificadors | `2d8f` |",
+        "variants rares",
     ],
 )
-def test_interpretation_prompt_keeps_casteller_domain_knowledge(guidance: str) -> None:
+def test_interpretation_prompt_keeps_casteller_notation_rules(guidance: str) -> None:
     assert guidance in INTERPRETATION_PROMPT
 
 
