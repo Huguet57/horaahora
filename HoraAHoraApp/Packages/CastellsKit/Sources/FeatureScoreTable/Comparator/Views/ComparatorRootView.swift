@@ -49,6 +49,8 @@ struct ComparatorScreen: View {
     /// How much of the grid the castell modal covers, beyond the tab bar.
     @State private var sheetCover: CGFloat = 0
     @State private var viewportWidth: CGFloat = 402
+    /// A fresh copy shows as a placeholder for a moment, as it looks just like the original.
+    @State private var revealsCopy = false
 
     var body: some View {
         let scenario = store.current
@@ -81,6 +83,7 @@ struct ComparatorScreen: View {
                     }
                     .padding(.horizontal, ComparatorLayout.horizontalPadding)
                     .padding(.top, 4)
+                    .duplicateSkeleton(revealsCopy)
                 }
                 .scrollIndicators(.hidden)
                 .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
@@ -126,6 +129,11 @@ struct ComparatorScreen: View {
         .toolbar { toolbar }
         .scenarioRenameAlert(store: store, scenario: $renaming)
         .onDisappear { store.selection = nil }
+        .task(id: revealsCopy) {
+            guard revealsCopy else { return }
+            try? await Task.sleep(for: duplicateSkeletonDuration)
+            withAnimation(.easeOut(duration: 0.25)) { revealsCopy = false }
+        }
         .sheet(item: $outcomeTarget) { cell in
             ComparatorOutcomeSheet(store: store, cell: cell)
                 .presentationDetents([.height(270)])
@@ -149,6 +157,7 @@ struct ComparatorScreen: View {
                 }
                 Button("Duplica l'escenari", systemImage: "plus.square.on.square") {
                     store.duplicateCurrent()
+                    revealsCopy = true
                 }
                 if store.current.colles.count < ComparatorStore.maxColles {
                     Button("Afegeix una colla", systemImage: "person.badge.plus") {

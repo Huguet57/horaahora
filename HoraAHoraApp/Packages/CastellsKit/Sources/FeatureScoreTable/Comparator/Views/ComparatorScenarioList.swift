@@ -10,6 +10,8 @@ struct ComparatorScenarioList: View {
 
     @State private var deleting: ComparatorScenario?
     @State private var renaming: ComparatorScenario?
+    /// A fresh copy shows as a placeholder for a moment, as it looks just like the original.
+    @State private var revealingID: UUID?
 
     var body: some View {
         List {
@@ -29,6 +31,11 @@ struct ComparatorScenarioList: View {
             }
         }
         .animation(.snappy, value: store.scenarios.map(\.id))
+        .task(id: revealingID) {
+            guard revealingID != nil else { return }
+            try? await Task.sleep(for: duplicateSkeletonDuration)
+            withAnimation(.easeOut(duration: 0.25)) { revealingID = nil }
+        }
         .navigationTitle("Comparador")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
@@ -64,7 +71,7 @@ struct ComparatorScenarioList: View {
                         }
                     }
                     Button("Duplica", systemImage: "plus.square.on.square") {
-                        store.duplicate(scenario)
+                        revealingID = store.duplicate(scenario).id
                     }
                     .tint(.gray)
                 }
@@ -129,7 +136,7 @@ struct ComparatorScenarioList: View {
                     renaming = scenario
                 }
                 Button("Duplica", systemImage: "plus.square.on.square") {
-                    store.duplicate(scenario)
+                    revealingID = store.duplicate(scenario).id
                 }
                 if store.scenarios.count > 1 {
                     Button("Elimina", systemImage: "trash", role: .destructive) {
@@ -146,6 +153,7 @@ struct ComparatorScenarioList: View {
             .tint(.secondary)
             .accessibilityLabel("Opcions de l'escenari")
         }
+        .duplicateSkeleton(revealingID == scenario.id)
         .accessibilityElement(children: .contain)
         .accessibilityLabel([scenario.name, summary.title].compactMap { $0 }.joined(separator: ", "))
     }
