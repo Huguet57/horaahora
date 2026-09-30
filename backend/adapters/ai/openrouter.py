@@ -10,7 +10,7 @@ from backend.adapters.ai.prompts import (
     INTERPRETATION_PROMPT,
     compose_contest_resolution_prompt,
 )
-from backend.adapters.ai.scenario import message_with_scenario
+from backend.adapters.ai.scenario import history_messages, message_with_scenario
 from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
 from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery, ParsedPerformance
 
@@ -127,7 +127,7 @@ class OpenRouterChatModel:
                 + "\n</esquema_json>\nRespon exclusivament amb un objecte que compleixi l'esquema."
             )
         messages = [{"role": "system", "content": instructions}]
-        messages.extend({"role": turn.role, "content": turn.content} for turn in history[-11:])
+        messages.extend(history_messages(history))
         messages.append({"role": "user", "content": message})
         if self.schema_mode == "json_schema":
             response_format = {

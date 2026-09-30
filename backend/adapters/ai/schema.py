@@ -223,16 +223,28 @@ class ResolvedQueryPayload(StrictPayloadModel):
         )
 
 
-# Under a strict JSON schema some models close a sentence and then emit stray closing
-# punctuation (`}`, `'}`, `',`) before the string really ends. A lone `"` or `”` is kept:
-# it can close a quotation.
-_STRAY_TAIL = re.compile(r"(?<=[.!?»)])[\s'\"”`}\],]*[}\],'`][\s'\"”`}\],]*$")
+# Under a strict JSON schema some models close a sentence and then keep writing inside the
+# string: stray closing punctuation (`}`, `'}`, `',`), a code-like fragment (`'.replace`), a
+# short word glued to the full stop (`.abre`, `..gif`) or a symbol on a line of its own. A
+# lone `"` or `”` is kept: it can close a quotation.
+_STRAY_TAILS = (
+    re.compile(r"(?<=[.!?»)])[\s'\"”`}\],]*[}\],'`]\S{0,32}$"),
+    re.compile(r"(?<=[a-zà-ÿ][.!?])\.?(?!(?:cat|com|org|net|es|eu|info|app)$)[a-z]{2,5}$"),
+    re.compile(r"(?<=[.!?»)…])[ \t]*\n[\s.…✗✘×'\"”`}\],]*$"),
+)
+_CLOSING_WHITESPACE = re.compile(r"\s+$")
+
+
+def written_text(text: str) -> str:
+    """Remove the stray tail a model can leave after the last sentence of its reply."""
+    cleaned = text.strip()
+    for pattern in _STRAY_TAILS:
+        cleaned = _CLOSING_WHITESPACE.sub("", pattern.sub("", cleaned))
+    return cleaned
 
 
 def _written_text(text: str | None) -> str | None:
-    if text is None:
-        return None
-    return _STRAY_TAIL.sub("", text.strip())
+    return None if text is None else written_text(text)
 
 
 def _to_domain(

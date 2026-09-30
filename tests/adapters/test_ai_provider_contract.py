@@ -6,6 +6,7 @@ import pytest
 
 from backend.adapters.ai.anthropic import AnthropicChatModel
 from backend.adapters.ai.openai import OpenAIChatModel
+from backend.adapters.ai.openrouter import OpenRouterChatModel
 from backend.adapters.ai.prompts.composer import (
     INTERPRETATION_MODULES,
     INTERPRETATION_PROMPT,
@@ -16,6 +17,7 @@ from backend.adapters.ai.schema import (
     QueryRoutingPayload,
     ResolvedQueryPayload,
 )
+from backend.domain.calculator.models import ChatTurn
 
 CALCULATION_ROUTE = {
     "intent": "comparació",
@@ -279,11 +281,27 @@ def test_resolution_payload_keeps_information_and_calculation_exclusive() -> Non
         ('actuacions concretes."}', "actuacions concretes."),
         ("dubtes del Concurs.'", "dubtes del Concurs."),
         ("Bona sort amb els castells.','", "Bona sort amb els castells."),
+        ("què faria cadascuna.”,", "què faria cadascuna."),
+        # Tails that go on with code-like fragments or a glued word.
+        ("què faria cadascuna.'.replace", "què faria cadascuna."),
+        ("què faria cadascuna.abre", "què faria cadascuna."),
+        ("què faria cadascuna.ge", "què faria cadascuna."),
+        ("què faria cadascuna..gif", "què faria cadascuna."),
+        ("Bona sort!ge", "Bona sort!"),
+        ("què faria cadascuna.\n ... ✗", "què faria cadascuna."),
+        ("què faria cadascuna.\n\n\n\n", "què faria cadascuna."),
         # Legitimate endings stay untouched.
         ("el 3d10fm val 4.525", "el 3d10fm val 4.525"),
         ("Ha dit «segons la normativa publicada per al 2024».", None),
         ('Es diu "carro gros."', None),
+        ("Es diu “carro gros.”", None),
         ("47. 2de6: 250 / 300", None),
+        ("1. 4d10fm: 4.525\n2. pd9fmp: 4.350", None),
+        ("Ho trobaràs a castells.cat", None),
+        ("Són les 5 p.m", None),
+        ("Fins aviat! 😊", None),
+        ("Et puc ajudar amb:\n- punts\n- normativa", None),
+        ("Ho diu la normativa.\n\nFont: bases 2026", None),
     ],
 )
 def test_model_written_text_drops_stray_closing_punctuation(
@@ -295,6 +313,44 @@ def test_model_written_text_drops_stray_closing_punctuation(
     expected = written if shown is None else shown
     assert ResolvedQueryPayload.model_validate(conversation).to_domain().answer == expected
     assert QueryRoutingPayload.model_validate(clarification).to_domain().clarification == expected
+
+
+@pytest.mark.parametrize("adapter", [OpenRouterChatModel, OpenAIChatModel, AnthropicChatModel])
+def test_history_sent_to_the_model_drops_stray_tails_from_earlier_replies(adapter) -> None:
+    # Conversations saved before replies were cleaned still carry the tails, and a tail in
+    # the history makes the model repeat it in the next reply.
+    requests: list[dict] = []
+    answer = dict(CALCULATION_ROUTE)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(json.loads(request.content))
+        if adapter is AnthropicChatModel:
+            return _anthropic_output(answer)
+        if adapter is OpenAIChatModel:
+            return _openai_output(answer)
+        return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(answer)}}]})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = adapter("key", "model", client=client)
+    history = [
+        ChatTurn("user", "Ets una IA?"),
+        ChatTurn("assistant", "Sí, soc una IA.'.replace"),
+        ChatTurn("user", "Quin castell val més? '}"),
+        ChatTurn("assistant", "El 3d10fm val 4.525"),
+    ]
+    asyncio.run(model.interpret(history, "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())
+
+    body = requests[0]
+    messages = body["input"] if adapter is OpenAIChatModel else body["messages"]
+    sent = [(m["role"], m["content"]) for m in messages if m["role"] != "system"]
+    assert sent == [
+        ("user", "Ets una IA?"),
+        ("assistant", "Sí, soc una IA."),
+        ("user", "Quin castell val més? '}"),
+        ("assistant", "El 3d10fm val 4.525"),
+        ("user", "5d9f o 4d9fa?"),
+    ]
 
 
 def test_openai_uses_routing_then_dynamic_resolution_prompts() -> None:

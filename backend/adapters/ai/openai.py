@@ -9,7 +9,7 @@ from backend.adapters.ai.prompts import (
     INTERPRETATION_PROMPT,
     compose_contest_resolution_prompt,
 )
-from backend.adapters.ai.scenario import message_with_scenario
+from backend.adapters.ai.scenario import history_messages, message_with_scenario
 from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
 from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery, ParsedPerformance
 
@@ -80,7 +80,7 @@ class OpenAIChatModel:
         schema: type[BaseModel],
         schema_name: str,
     ) -> str:
-        input_messages = [{"role": turn.role, "content": turn.content} for turn in history[-11:]]
+        input_messages = history_messages(history)
         input_messages.append({"role": "user", "content": message})
         response = await self.client.post(
             f"{self.base_url}/v1/responses",

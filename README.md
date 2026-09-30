@@ -208,6 +208,12 @@ càlcul ni un aclariment obligatori. Les peticions fora d'àmbit també reben un
 pertinent. Les respostes factuals del Concurs continuen exigint les fonts recuperades i
 els punts els continua calculant exclusivament el motor determinista.
 
+Amb sortida estructurada, Claude Sonnet 5.5 de vegades continua escrivint dins de la cadena
+després de l'última frase (`.'}`, `.'.replace`, `.abre`, un `✗` en una línia a part). El text
+redactat es neteja en validar-lo i, abans d'enviar l'historial al model, també es netegen les
+respostes anteriors, perquè una cua a l'historial fa que el model la repeteixi. Els finals
+legítims (xifres, notacions, llistes, cometes de citació, dominis) es conserven.
+
 En una conversa de càlcul, les modificacions parteixen de l'últim escenari vigent i
 conserven les colles, els castells i els resultats no modificats. Una consulta independent
 o un reinici explícit inicia un escenari nou. Aquesta interpretació es basa en els darrers
