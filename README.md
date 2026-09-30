@@ -213,6 +213,9 @@ superar-lo?» consulten la taula i reben exemples amb punts abans de demanar act
 completes. La resposta distingeix superar el castell indicat de guanyar tota l'actuació.
 No estima probabilitats ni optimitza combinacions: les comparacions concretes continuen
 passant pel motor de càlcul.
+El perfil del creador és al mòdul `backend/adapters/ai/prompts/creator.py`: el xat pot
+explicar qui és Andreu Huguet («Mates») i la seva trajectòria, mantenint la seva pròpia
+identitat com a assistent d'IA.
 
 La comparativa de models usa escenaris sintètics de conversa, modificacions successives
 i controls de càlcul i consulta històrica. Executa el mateix servei del xat, sense base de

@@ -1,6 +1,8 @@
 # Preguntes obertes sobre opcions de puntuació
 
 PR #71, sobre la PR #70. Implementació provada: `63265ce`.
+El perfil d'autoria s'ha afegit després d'aquesta comparativa; la seva comprovació
+específica figura al final d'aquest document.
 
 El cas reportat era «Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar
 amb alguna combinacio?». Abans exigia actuacions completes o rebutjava la pregunta com
@@ -83,3 +85,28 @@ Les empremtes de les fixtures i les dades d'ús de cada crida es conserven al re
 
 Validació del codi: 363 proves locals passades, 6 d'integració PostgreSQL al CI,
 Ruff i format correctes. El prompt d'interpretació continua per sota de 17.000 caràcters.
+
+## Perfil del creador
+
+El commit `ae6412d` afegeix un mòdul separat amb la informació facilitada per l'autor:
+Andreu Huguet («Mates»), creador de l'Aleta i autor de la calculadora, exmembre de la
+junta dels Arreplegats de la Zona Universitària i membre actual dels Castellers de
+Vilafranca. Inclou les tasques de subvencions, actuacions comercials per a empreses,
+gestió de discoteques i la contribució a superar els 100.000 € d'ingressos anuals.
+
+El perfil s'inclou tant en l'encaminament com en la resolució, i permet respondre amb
+`conversation` sense consultar resultats del Concurs. Distingeix explícitament el
+creador de l'assistent d'IA. El pressupost dels mòduls anteriors es manté sota 17.000
+caràcters, amb un màxim separat de 1.000 per al perfil i 18.000 per al conjunt.
+
+Amb el perfil, les comprovacions reals addicionals passen **9/9 amb Gemini 3.8** i
+**9/9 amb Gemini 3.7**, una passada per model: àlies, nom complet, trajectòria,
+colla actual, identitat de l'assistent i quatre regressions de salutació, pregunta
+oberta, probabilitat i comparació concreta. «Tu ets Mates o Andreu Huguet?» rep una
+negació explícita i explica que l'assistent és una IA.
+
+[Fixture del perfil](../tests/fixtures/chat_creator_cases.json) ·
+[Registre complet](evaluations/chat-creator-20260930.jsonl).
+Es pot repetir amb l'avaluador i `--dataset tests/fixtures/chat_creator_cases.json`.
+Empremta de prompts/esquemes amb el perfil:
+`e6b409e6a99c7b2352dd4091f03fb8ba1251da153eee59d8aed1365afc22ba1f`.
