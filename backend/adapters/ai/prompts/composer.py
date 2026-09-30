@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from backend.adapters.ai.prompts.calculator import CALCULATOR_PROMPT
 from backend.adapters.ai.prompts.contest_router import CONTEST_ROUTER_PROMPT
+from backend.adapters.ai.prompts.creator import CREATOR_PROMPT
 from backend.adapters.ai.prompts.response_policy import RESPONSE_POLICY_PROMPT
 
 
@@ -13,6 +14,7 @@ class PromptModule:
 
 INTERPRETATION_MODULES = (
     PromptModule("calculator", CALCULATOR_PROMPT),
+    PromptModule("creator", CREATOR_PROMPT),
     PromptModule("contest_router", CONTEST_ROUTER_PROMPT),
 )
 
@@ -22,6 +24,7 @@ INTERPRETATION_PROMPT = "\n\n".join(module.content for module in INTERPRETATION_
 def compose_contest_resolution_prompt(retrieved_context: str) -> str:
     modules = (
         PromptModule("calculator", CALCULATOR_PROMPT),
+        PromptModule("creator", CREATOR_PROMPT),
         PromptModule("response_policy", RESPONSE_POLICY_PROMPT),
         PromptModule("retrieved_contest_context", retrieved_context),
     )
