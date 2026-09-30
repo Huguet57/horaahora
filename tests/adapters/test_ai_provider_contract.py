@@ -64,6 +64,43 @@ INFORMATION_RESOLUTION = {
     "resposta": "La Colla Joves Xiquets de Valls va quedar quarta amb 16.337 punts.",
 }
 
+PARTIAL_SCENARIO_ROUTE = {
+    **SCORE_RANKING_ROUTE,
+    "consulta_concurs": {
+        **SCORE_RANKING_ROUTE["consulta_concurs"],
+        "resultat_puntuacions": "descarregat",
+        "selecció_rànquing": "per_sobre",
+        "límit_rànquing": None,
+        "castell_rànquing": "3d10fm",
+    },
+}
+
+
+def test_partial_scenario_routes_to_scores_above_the_known_castell() -> None:
+    query = QueryRoutingPayload.model_validate(PARTIAL_SCENARIO_ROUTE).to_domain()
+
+    assert query.intent == "contest_info"
+    assert query.performances == []
+    assert query.knowledge_query is not None
+    assert query.knowledge_query.ranking_selection == "above"
+    assert query.knowledge_query.ranking_notation == "3d10fm"
+    assert query.knowledge_query.score_outcome == "unloaded"
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [{"castell_rànquing": None}, {"límit_rànquing": 3}],
+)
+def test_above_routing_requires_a_reference_and_no_arbitrary_limit(changes: dict) -> None:
+    invalid = {
+        **PARTIAL_SCENARIO_ROUTE,
+        "consulta_concurs": {**PARTIAL_SCENARIO_ROUTE["consulta_concurs"], **changes},
+    }
+
+    with pytest.raises(ValueError):
+        QueryRoutingPayload.model_validate(invalid)
+
+
 RECALCULATION_RESOLUTION = {
     "intent": "total",
     "actuacions": [

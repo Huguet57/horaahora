@@ -4,7 +4,7 @@ import subprocess
 import pytest
 
 from scripts import smoke_score_ranking_api
-from scripts.smoke_score_ranking_api import SmokeCase, _post_question, _validate
+from scripts.smoke_score_ranking_api import CASES, SmokeCase, _post_question, _validate
 
 
 def test_smoke_validation_accepts_localized_point_separators() -> None:
@@ -104,7 +104,7 @@ def test_smoke_validation_uses_a_ranking_for_a_single_row() -> None:
 
 
 def test_smoke_request_can_use_the_authenticated_vercel_transport(monkeypatch) -> None:
-    case = SmokeCase("highest", "Quin dona més punts?", "contest_info", ("3de10sm",))
+    case = next(case for case in CASES if case.name == "partial-victory-scenario")
     captured: list[str] = []
 
     def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
@@ -128,3 +128,23 @@ def test_smoke_request_can_use_the_authenticated_vercel_transport(monkeypatch) -
         "--deployment",
         "https://preview.example",
     ]
+    payload = json.loads(captured[captured.index("--data-binary") + 1])
+    assert payload["messages"] == [
+        *({"role": role, "content": content} for role, content in case.history),
+        {"role": "user", "content": case.question},
+    ]
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        {"needs_clarification": True},
+        {"winner_label": "Vilafranca"},
+        {"performances": [{"label": "Vilafranca", "total": 4930}]},
+    ],
+)
+def test_partial_scenario_smoke_rejects_clarifications_and_invented_winners(invalid) -> None:
+    case = SmokeCase("partial", "Poden guanyar?", "contest_info", ())
+
+    with pytest.raises(AssertionError):
+        _validate(case, {"intent": "contest_info", "reply": "Resposta", **invalid})

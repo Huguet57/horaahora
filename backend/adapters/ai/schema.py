@@ -34,7 +34,9 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
     abast_resultats: Literal["edicions", "guanyadors", "classificació"] | None
     abast_puntuacions: Literal["rànquing"] | None
     resultat_puntuacions: Literal["carregat", "descarregat", "tots_dos"] | None
-    selecció_rànquing: Literal["primers", "últims", "posició", "veïns", "complet"] | None
+    selecció_rànquing: (
+        Literal["primers", "últims", "posició", "veïns", "per_sobre", "complet"] | None
+    )
     límit_rànquing: int | None = Field(ge=1, le=47)
     castell_rànquing: str | None = Field(min_length=1, max_length=32)
 
@@ -75,9 +77,9 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
         elif self.selecció_rànquing in {"primers", "últims"}:
             if self.límit_rànquing is None or self.castell_rànquing is not None:
                 raise ValueError("primers i últims exigeixen límit i no permeten castell")
-        elif self.selecció_rànquing in {"posició", "veïns"}:
+        elif self.selecció_rànquing in {"posició", "veïns", "per_sobre"}:
             if self.castell_rànquing is None or self.límit_rànquing is not None:
-                raise ValueError("posició i veïns exigeixen castell i no permeten límit")
+                raise ValueError("posició, veïns i per_sobre exigeixen castell i no permeten límit")
         elif self.límit_rànquing is not None or self.castell_rànquing is not None:
             raise ValueError("el rànquing complet no permet límit ni castell")
         return self
@@ -103,6 +105,7 @@ class ContestKnowledgeQueryPayload(StrictPayloadModel):
             "últims": "bottom",
             "posició": "position",
             "veïns": "neighbors",
+            "per_sobre": "above",
             "complet": "full",
         }
         return ContestKnowledgeQuery(

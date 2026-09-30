@@ -1,6 +1,8 @@
 import pytest
 
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
+from backend.domain.calculator.models import Outcome
+from backend.domain.calculator.table import ScoreTable
 from backend.domain.contest.models import ContestKnowledgeQuery
 
 
@@ -257,3 +259,102 @@ def test_unknown_result_filter_returns_an_explicit_empty_context() -> None:
     assert "1900" in context
     assert "Colla Inexistent" in context
     assert "No completis aquesta absència" in context
+
+
+@pytest.mark.parametrize("outcome", ["loaded", "unloaded", "both"])
+def test_above_ranking_includes_every_higher_score_and_the_reference(outcome: str) -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+    query = ContestKnowledgeQuery(
+        source="scores",
+        score_scope="ranking",
+        score_outcome=outcome,
+        ranking_selection="above",
+        ranking_notation="3d10fm",
+    )
+
+    presentation = repository.score_presentation(query)
+    context = repository.retrieve(query)
+
+    assert presentation is not None
+    assert presentation.focus_notation == "3de10fm"
+    assert presentation.title == "Castells per sobre del 3de10fm"
+    assert [row.notation for row in presentation.rows] == [
+        "3de10sm",
+        "4de10sm",
+        "2de10fmp",
+        "Pde7sf",
+        "3de9sf",
+        "Pde9fmp",
+        "2de9sm",
+        "9de9f",
+        "4de10fm",
+        "3de10fm",
+    ]
+    assert [row.position for row in presentation.rows] == list(range(1, 11))
+    assert "Referència: 3de10fm" in context
+    assert "No són probabilitats" in context
+    assert "2de8sf" not in context
+
+
+def test_above_ranking_keeps_the_reference_when_nothing_scores_higher() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+    query = ContestKnowledgeQuery(
+        source="scores",
+        score_scope="ranking",
+        score_outcome="unloaded",
+        ranking_selection="above",
+        ranking_notation="3d10sm",
+    )
+
+    presentation = repository.score_presentation(query)
+
+    assert presentation is not None
+    assert [row.notation for row in presentation.rows] == ["3de10sm"]
+    assert "Cap castell té més punts" in repository.retrieve(query)
+
+
+def test_above_ranking_does_not_fall_back_to_the_full_table_for_unknown_castells() -> None:
+    repository = SnapshotContestKnowledgeRepository.default()
+    query = ContestKnowledgeQuery(
+        source="scores",
+        score_scope="ranking",
+        score_outcome="unloaded",
+        ranking_selection="above",
+        ranking_notation="inventat",
+    )
+
+    assert repository.score_presentation(query) is None
+    assert "No hi ha cap castell coincident" in repository.retrieve(query)
+
+
+@pytest.mark.parametrize(
+    ("outcome", "expected"),
+    [("loaded", ["4de7", "3de7"]), ("unloaded", ["2de7", "3de7"]), ("both", ["2de7", "3de7"])],
+)
+def test_above_ranking_uses_strictly_higher_points_for_the_requested_outcome(
+    outcome: str,
+    expected: list[str],
+) -> None:
+    repository = SnapshotContestKnowledgeRepository(
+        rules={},
+        results={},
+        score_table=ScoreTable(
+            {
+                "4de7": {Outcome.LOADED: 200, Outcome.UNLOADED: 150},
+                "2de7": {Outcome.LOADED: 100, Outcome.UNLOADED: 300},
+                "3de7": {Outcome.LOADED: 100, Outcome.UNLOADED: 150},
+            }
+        ),
+    )
+    query = ContestKnowledgeQuery(
+        source="scores",
+        score_scope="ranking",
+        score_outcome=outcome,
+        ranking_selection="above",
+        ranking_notation="3d7",
+    )
+
+    presentation = repository.score_presentation(query)
+
+    assert presentation is not None
+    assert [row.notation for row in presentation.rows] == expected

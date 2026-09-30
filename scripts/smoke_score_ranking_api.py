@@ -22,6 +22,7 @@ class SmokeCase:
     expected_presentation_type: str | None = None
     expected_rows: tuple[str, ...] = ()
     expected_outcome: str | None = None
+    history: tuple[tuple[str, str], ...] = ()
 
 
 CASES = (
@@ -96,6 +97,54 @@ CASES = (
         "lookup",
         ("5de9f", "3125"),
     ),
+    SmokeCase(
+        "partial-victory-scenario",
+        "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?",
+        "contest_info",
+        ("3de10fm", "4525", "4de10fm", "4930"),
+        ("Guanya Vilafranca",),
+        expected_presentation_type="score_ranking",
+        expected_rows=(
+            "3de10sm",
+            "4de10sm",
+            "2de10fmp",
+            "Pde7sf",
+            "3de9sf",
+            "Pde9fmp",
+            "2de9sm",
+            "9de9f",
+            "4de10fm",
+            "3de10fm",
+        ),
+        expected_outcome="unloaded",
+        history=(
+            ("user", "Ets una IA?"),
+            ("assistant", "Quin castell vols calcular?"),
+            ("user", "Diguem com de probable es que es descarregui el 3d10sm"),
+            ("assistant", "Quin castell vols calcular?"),
+        ),
+    ),
+    SmokeCase(
+        "partial-victory-paraphrase",
+        "Els Minyons fan el quatre de deu descarregat. Els Capgrossos encara tenen "
+        "opcions de quedar per davant? Què els podria servir?",
+        "contest_info",
+        ("4de10fm", "4930", "9de9f", "5180"),
+        ("Guanya Capgrossos",),
+        expected_presentation_type="score_ranking",
+        expected_rows=(
+            "3de10sm",
+            "4de10sm",
+            "2de10fmp",
+            "Pde7sf",
+            "3de9sf",
+            "Pde9fmp",
+            "2de9sm",
+            "9de9f",
+            "4de10fm",
+        ),
+        expected_outcome="unloaded",
+    ),
 )
 
 
@@ -117,7 +166,10 @@ def _post_question(
         "installation_id": installation_id,
         "locale": "ca-ES",
         "ruleset": "concurs-2026",
-        "messages": [{"role": "user", "content": case.question}],
+        "messages": [
+            *({"role": role, "content": content} for role, content in case.history),
+            {"role": "user", "content": case.question},
+        ],
     }
     encoded_payload = json.dumps(payload)
     if vercel_auth:
@@ -172,6 +224,12 @@ def _validate(case: SmokeCase, response: dict[str, object]) -> str:
         raise AssertionError(
             f"{case.name}: expected intent {case.expected_intent!r}, received {intent!r}"
         )
+    if response.get("needs_clarification") is True:
+        raise AssertionError(f"{case.name}: expected an answer, received a clarification")
+    if intent == "contest_info" and (
+        response.get("winner_label") is not None or response.get("performances")
+    ):
+        raise AssertionError(f"{case.name}: information must not declare a winner or performances")
     reply = response.get("reply")
     if not isinstance(reply, str):
         raise AssertionError(f"{case.name}: response has no textual reply")

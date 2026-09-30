@@ -177,6 +177,12 @@ la taula de puntuacions 2026, ordenada determinísticament des del CSV versionat
 Aquestes respostes inclouen també una presentació tipada (`score_ranking`)
 perquè els clients puguin mostrar files, posicions i punts sense analitzar la prosa; el camp
 `reply` es conserva com a fallback compatible.
+Els escenaris parcials com «si la Vella i la Joves descarreguen 3d10fm, Vilafranca
+pot guanyar?» també consulten la taula abans de demanar més dades. La selecció
+`per_sobre` recupera tots els castells amb més punts i el castell de referència.
+La resposta orienta amb punts i condicions; no inventa actuacions, probabilitats
+ni un guanyador. Per calcular una combinació concreta, cal especificar els altres
+castells. Les comparacions ja especificades continuen passant pel motor de càlcul.
 No es consulta cap web durant una petició de xat. Els canvis confirmats del 2026 tenen
 prioritat; quan una regla només consta als documents del 2024, la resposta n'indica
 explícitament l'any.
