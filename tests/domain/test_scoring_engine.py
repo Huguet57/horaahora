@@ -1,3 +1,5 @@
+import pytest
+
 from backend.domain.calculator.models import (
     Outcome,
     ParsedCastell,
@@ -136,6 +138,59 @@ def test_only_best_result_for_same_structure_counts() -> None:
     assert (
         next(item for item in castells if item.canonical == "4de9f").reason == "duplicate_structure"
     )
+
+
+@pytest.mark.parametrize("without_manilles", ["2d9sm", "2d9f", "td9f"])
+def test_nine_storey_towers_with_and_without_manilles_count_together(
+    without_manilles: str,
+) -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="total",
+            performances=[
+                performance(
+                    "Colla",
+                    ("4d9net", Outcome.UNLOADED),
+                    ("td9fm", Outcome.UNLOADED),
+                    (without_manilles, Outcome.LOADED),
+                )
+            ],
+        )
+    )
+
+    [scored] = result.performances
+    assert scored.total == 11520
+    assert all(item.counted and item.reason is None for item in scored.castells)
+    assert "2de9fm descarregat (2.730 punts)" in result.reply
+    assert "2de9sm carregat (4.685 punts)" in result.reply
+
+
+@pytest.mark.parametrize(
+    ("notation", "alias", "expected_total"),
+    [("2d9fm", "td9fm", 2730), ("2d9sm", "td9f", 5645)],
+)
+def test_repeated_nine_storey_tower_only_counts_its_best_result(
+    notation: str, alias: str, expected_total: int
+) -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="total",
+            performances=[
+                performance(
+                    "Colla",
+                    (notation, Outcome.LOADED),
+                    (alias, Outcome.UNLOADED),
+                )
+            ],
+        )
+    )
+
+    [scored] = result.performances
+    assert scored.total == expected_total
+    loaded, unloaded = scored.castells
+    assert not loaded.counted
+    assert loaded.reason == "duplicate_structure"
+    assert unloaded.counted
 
 
 def test_attempt_scores_zero_and_unknown_prevents_a_winner() -> None:
