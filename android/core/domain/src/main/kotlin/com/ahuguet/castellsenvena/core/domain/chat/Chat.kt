@@ -55,6 +55,16 @@ data class ChatRequestMessage(
     val content: String,
 )
 
+/** Calculation inputs, including every uncounted castell and attempt. */
+data class ScenarioCastell(val notation: String, val outcome: String)
+
+data class ScenarioPerformance(val label: String, val castells: List<ScenarioCastell>) {
+    constructor(performance: PerformanceResponse) : this(
+        label = performance.label,
+        castells = performance.castells.map { ScenarioCastell(it.canonical ?: it.input, it.outcome) },
+    )
+}
+
 /**
  * The backend only reads the latest [MAX_MESSAGES] messages of a conversation
  * and rejects messages longer than [MAX_MESSAGE_LENGTH] characters.
@@ -65,6 +75,7 @@ data class ChatRequest(
     val messages: List<ChatRequestMessage>,
     val locale: String = "ca-ES",
     val ruleset: String = "concurs-2026",
+    val scenario: List<ScenarioPerformance> = emptyList(),
 ) {
     companion object {
         const val MAX_MESSAGES = 12

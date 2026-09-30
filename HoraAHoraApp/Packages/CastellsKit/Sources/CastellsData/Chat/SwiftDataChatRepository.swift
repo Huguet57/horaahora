@@ -76,6 +76,14 @@ public final class SwiftDataChatRepository: ChatRepository {
 
     private func deliver(_ userMessage: MessageRecord, in conversation: ConversationRecord) async throws -> ChatConversation {
         let ordered = conversation.messages.sorted { $0.createdAt < $1.createdAt }
+        // Search the entire saved conversation before trimming prose. Non-calculation
+        // replies do not replace the last calculation, and reopening uses the same data.
+        let scenario = ordered.reversed().lazy.compactMap { message -> ChatResponse? in
+            guard message.roleRaw == ChatRole.assistant.rawValue else { return nil }
+            return message.calculationData.flatMap {
+                try? JSONDecoder.castellsAPI.decode(ChatResponse.self, from: $0)
+            }
+        }.first { !$0.performances.isEmpty }?.performances.map(ScenarioPerformance.init) ?? []
         let request = ChatRequest(
             conversationID: conversation.id,
             installationID: installationID,
@@ -84,7 +92,8 @@ public final class SwiftDataChatRepository: ChatRepository {
                 return ChatRequestMessage(role: role, content: message.content)
             },
             shareForImprovement: sharing?.sharesConversation(createdAt: conversation.createdAt)
-                ?? false
+                ?? false,
+            scenario: scenario
         )
         do {
             let response = try await remoteService.send(request: request)

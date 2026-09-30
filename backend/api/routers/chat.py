@@ -28,7 +28,9 @@ async def chat(
 
     history = [ChatTurn(role=message.role, content=message.content) for message in payload.messages]
     try:
-        result = await container.chat_service.respond(history)
+        result = await container.chat_service.respond(
+            history, scenario=[performance.to_domain() for performance in payload.scenario]
+        )
     except ValueError as error:
         _share(container, payload, history, error=str(error))
         raise HTTPException(status_code=400, detail=str(error)) from error

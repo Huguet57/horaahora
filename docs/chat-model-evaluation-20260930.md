@@ -128,3 +128,21 @@ Validació local: 361 proves passades, 6 proves PostgreSQL omeses per manca de b
 Ruff i format correctes. Les proves d'integració s'executen al CI amb PostgreSQL.
 La PR també actualitza exclusivament PyJWT 2.13.0 → 2.14.0 al lockfile per resoldre
 les alertes de seguretat detectades pel CI en la dependència existent.
+
+
+## Correcció posterior: estat complet fora de la finestra
+
+Les mesures anteriors corresponen a la versió que només enviava text. La correcció
+posterior afegeix `scenario` a la petició: colles, notacions i resultats de tots els
+castells de l'últim càlcul, independentment dels 12 missatges. iOS i Android el
+recuperen de les respostes completes ja persistides, també en reobrir la conversa.
+Les respostes sense càlcul el conserven; el següent càlcul el substitueix. No es
+reutilitzen punts ni indicadors de còmput: el motor els torna a calcular.
+
+El camp és opcional per mantenir la compatibilitat amb apps antigues, que continuen
+amb el seu historial de text. L'avaluador també envia aquest estat a partir d'ara;
+els percentatges d'aquest informe no són una nova mesura amb aquesta correcció.
+Les regressions locals cobreixen la finestra esgotada, intents, castells fora dels
+tres millors, el límit de carregats, reobertura, substitució de l'escenari i separació
+entre converses. Els tres adaptadors inclouen l'estat tant en la interpretació com
+en la resolució amb fonts, sense elevar aquestes dades a instruccions de sistema.

@@ -10,8 +10,9 @@ from backend.adapters.ai.prompts import (
     INTERPRETATION_PROMPT,
     compose_contest_resolution_prompt,
 )
+from backend.adapters.ai.scenario import message_with_scenario
 from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
-from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery
+from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery, ParsedPerformance
 
 _UNSUPPORTED_SCHEMA_KEYWORDS = {
     "title",
@@ -70,10 +71,16 @@ class OpenRouterChatModel:
             timeout=180,
         )
 
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self,
+        history: list[ChatTurn],
+        message: str,
+        *,
+        scenario: list[ParsedPerformance] | None = None,
+    ) -> ParsedCastellQuery:
         raw = await self._request(
             history,
-            message,
+            message_with_scenario(message, scenario),
             instructions=INTERPRETATION_PROMPT,
             schema=QueryRoutingPayload,
             schema_name="consulta_castellera",
@@ -88,10 +95,12 @@ class OpenRouterChatModel:
         history: list[ChatTurn],
         message: str,
         context: str,
+        *,
+        scenario: list[ParsedPerformance] | None = None,
     ) -> ParsedCastellQuery:
         raw = await self._request(
             history,
-            message,
+            message_with_scenario(message, scenario),
             instructions=compose_contest_resolution_prompt(context),
             schema=ResolvedQueryPayload,
             schema_name="resolucio_concurs",
