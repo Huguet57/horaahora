@@ -28,7 +28,8 @@ def test_scenario_is_sent_with_current_turn_after_history_trimming(adapter, reso
         requests.append(body)
         if adapter is AnthropicChatModel:
             payload = {
-                "content": [{"type": "tool_use", "name": body["tools"][0]["name"], "input": answer}]
+                "content": [{"type": "text", "text": json.dumps(answer)}],
+                "stop_reason": "end_turn",
             }
         elif adapter is OpenAIChatModel:
             payload = {

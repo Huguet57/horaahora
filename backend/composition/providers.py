@@ -61,6 +61,7 @@ def build_chat_model(settings: Settings) -> ChatModel:
             api_key=settings.ai_api_key,
             model=settings.ai_model,
             base_url=settings.ai_base_url or None,
+            effort="low",
         )
     if settings.ai_provider == "openrouter":
         from backend.adapters.ai.openrouter import OpenRouterChatModel

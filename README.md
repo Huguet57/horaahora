@@ -164,8 +164,11 @@ dispositiu; les preferències de seguiment se sincronitzen amb el backend quan l
 
 La calculadora requereix un proveïdor de model explícit: `AI_PROVIDER=openrouter`,
 `AI_PROVIDER=openai` o `AI_PROVIDER=anthropic`. La configuració de producció recomanada és
-OpenRouter amb `AI_MODEL=google/gemini-3.7-flash`, `AI_BASE_URL=https://openrouter.ai/api`
-i raonament baix. El model, la clau i l'endpoint es configuren amb `AI_MODEL`, `AI_API_KEY`
+OpenRouter amb `AI_MODEL=anthropic/claude-sonnet-5.5`, `AI_BASE_URL=https://openrouter.ai/api`
+i raonament baix. El prompt és deliberadament curt: descriu la situació, el coneixement
+casteller que el motor no pot deduir i el contracte de sortida, i confia la resta al model.
+Un error reportat s'afegeix primer a les bateries d'avaluació; només arriba al prompt si hi
+falta coneixement del domini. El model, la clau i l'endpoint es configuren amb `AI_MODEL`, `AI_API_KEY`
 i `AI_BASE_URL`. No hi ha cap intèrpret alternatiu ni cap degradació silenciosa: una
 configuració absent o desconeguda impedeix arrencar el servei de xat.
 
@@ -190,7 +193,10 @@ La composició és explícita i té un únic recorregut en dues fases quan cal c
   resultats i composició del rànquing de puntuacions;
 - `composer.py`: prompt base d'interpretació i prompt de resolució amb el context recuperat.
 
-OpenAI i Anthropic consumeixen els mateixos contractes. Una consulta de càlcul fa una sola
+OpenAI i Anthropic consumeixen els mateixos contractes. L'adaptador directe d'Anthropic
+(`AI_PROVIDER=anthropic`, per exemple amb `AI_MODEL=claude-sonnet-5-5`) demana la sortida
+estructurada amb `output_config.format` i esforç baix, sense forçar cap eina: els models
+actuals de Claude rebutgen `tool_choice` forçat. Una consulta de càlcul fa una sola
 petició estructurada i passa directament al motor determinista. Una consulta del Concurs fa
 una primera petició d'encaminament, recupera només les edicions, colles o fonts necessàries i
 fa una segona petició de resolució. Una resposta que no compleix l'esquema falla de manera

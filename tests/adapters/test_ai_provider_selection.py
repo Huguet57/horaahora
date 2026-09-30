@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from backend.adapters.ai.anthropic import AnthropicChatModel
 from backend.adapters.ai.openrouter import OpenRouterChatModel
 from backend.composition.providers import build_chat_model
 from backend.config import Settings
@@ -36,6 +37,21 @@ def test_calculator_builds_openrouter_with_gemini_defaults() -> None:
     assert model.reasoning_effort == "low"
 
 
+def test_calculator_builds_anthropic_with_low_effort() -> None:
+    settings = Settings(
+        ai_provider="anthropic",
+        ai_model="claude-sonnet-5-5",
+        ai_api_key="key",
+    )
+
+    model = build_chat_model(settings)
+
+    assert isinstance(model, AnthropicChatModel)
+    assert model.model == "claude-sonnet-5-5"
+    assert model.base_url == "https://api.anthropic.com"
+    assert model.effort == "low"
+
+
 def test_local_compose_requires_an_explicit_model_provider_and_credentials() -> None:
     compose = (REPOSITORY_ROOT / "compose.yaml").read_text()
     example_environment = (REPOSITORY_ROOT / ".env.example").read_text()
@@ -44,6 +60,6 @@ def test_local_compose_requires_an_explicit_model_provider_and_credentials() -> 
     assert "${AI_MODEL:?" in compose
     assert "${AI_API_KEY:?" in compose
     assert "AI_PROVIDER=openrouter" in example_environment
-    assert "AI_MODEL=google/gemini-3.7-flash" in example_environment
+    assert "AI_MODEL=anthropic/claude-sonnet-5.5" in example_environment
     assert "AI_BASE_URL=https://openrouter.ai/api" in example_environment
     assert "AI_PROVIDER=local" not in example_environment

@@ -11,7 +11,11 @@ from backend.adapters.ai.prompts.composer import (
     INTERPRETATION_PROMPT,
     compose_contest_resolution_prompt,
 )
-from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
+from backend.adapters.ai.schema import (
+    ContestKnowledgeQueryPayload,
+    QueryRoutingPayload,
+    ResolvedQueryPayload,
+)
 
 CALCULATION_ROUTE = {
     "intent": "comparació",
@@ -117,17 +121,16 @@ def _openai_output(payload: dict) -> httpx.Response:
     )
 
 
-def _anthropic_output(payload: dict, tool_name: str) -> httpx.Response:
+def _anthropic_output(payload: dict, *, stop_reason: str = "end_turn") -> httpx.Response:
     return httpx.Response(
         200,
         json={
+            # Adaptive thinking can put an empty thinking block before the answer.
             "content": [
-                {
-                    "type": "tool_use",
-                    "name": tool_name,
-                    "input": payload,
-                }
-            ]
+                {"type": "thinking", "thinking": "", "signature": "sig"},
+                {"type": "text", "text": json.dumps(payload)},
+            ],
+            "stop_reason": stop_reason,
         },
     )
 
@@ -143,20 +146,13 @@ def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> No
         "creator",
         "contest_router",
     ]
-    # Keep the original routing/calculation budget, with a small separate app profile.
-    core = [module.content for module in INTERPRETATION_MODULES if module.name != "creator"]
-    creator = next(module.content for module in INTERPRETATION_MODULES if module.name == "creator")
-    assert len("\n\n".join(core)) < 17_000
-    assert len(creator) < 1_000
-    assert len(INTERPRETATION_PROMPT) < 18_000
+    # The prompt states the situation and the casteller jargon; a new rule per reported
+    # failure belongs in the evaluation fixtures, not here.
+    assert len(INTERPRETATION_PROMPT) < 12_000
     assert "<resultats_anteriors>" not in INTERPRETATION_PROMPT
     assert "<coneixement_normatiu>" not in INTERPRETATION_PROMPT
     assert "16.337 punts" not in INTERPRETATION_PROMPT
-    assert "errors tipogràfics lleus" in INTERPRETATION_PROMPT
-    assert "context de la conversa" in INTERPRETATION_PROMPT
-    assert "`font` és `puntuacions`" in INTERPRETATION_PROMPT
-    assert "`abast_puntuacions` és `rànquing`" in INTERPRETATION_PROMPT
-    assert "`resultat_puntuacions`" in INTERPRETATION_PROMPT
+    assert "`escenari_vigent`" in INTERPRETATION_PROMPT
 
 
 @pytest.mark.parametrize(
@@ -176,6 +172,18 @@ def test_interpretation_prompt_keeps_casteller_notation_rules(guidance: str) -> 
     assert guidance in INTERPRETATION_PROMPT
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        *QueryRoutingPayload.model_fields,
+        *ContestKnowledgeQueryPayload.model_fields,
+    ],
+)
+def test_interpretation_prompt_explains_every_routing_field(field: str) -> None:
+    # The portable schema carries no descriptions, so the prompt is their only definition.
+    assert f"`{field}`" in INTERPRETATION_PROMPT
+
+
 def test_resolution_prompt_contains_only_the_retrieved_context() -> None:
     prompt = compose_contest_resolution_prompt(
         "<coneixement_recuperat>Concurs 1998 | Joves | 16.337 punts</coneixement_recuperat>"
@@ -184,7 +192,7 @@ def test_resolution_prompt_contains_only_the_retrieved_context() -> None:
     assert "Concurs 1998 | Joves | 16.337 punts" in prompt
     assert "Concurs 2024" not in prompt
     assert "2026 té prioritat" in prompt
-    assert "La taula versionada 2026 és l'única font numèrica autoritativa" in prompt
+    assert "la taula 2026 és l'única font de punts" in prompt
 
 
 def test_routing_payload_requires_a_structured_contest_query() -> None:
@@ -258,6 +266,35 @@ def test_resolution_payload_keeps_information_and_calculation_exclusive() -> Non
     assert recalculation.intent == "total"
     assert recalculation.answer is None
     assert len(recalculation.performances[0].castells) == 5
+
+
+@pytest.mark.parametrize(
+    ("written", "shown"),
+    [
+        # Tails observed from Claude Sonnet 5.5 under a strict JSON schema: the string
+        # sometimes picks up stray closing punctuation before it really ends.
+        ("Hola!\n\n", "Hola!"),
+        ("si em dius què faria cada colla.}", "si em dius què faria cada colla."),
+        ("què faria cadascuna.'}", "què faria cadascuna."),
+        ('actuacions concretes."}', "actuacions concretes."),
+        ("dubtes del Concurs.'", "dubtes del Concurs."),
+        ("Bona sort amb els castells.','", "Bona sort amb els castells."),
+        # Legitimate endings stay untouched.
+        ("el 3d10fm val 4.525", "el 3d10fm val 4.525"),
+        ("Ha dit «segons la normativa publicada per al 2024».", None),
+        ('Es diu "carro gros."', None),
+        ("47. 2de6: 250 / 300", None),
+    ],
+)
+def test_model_written_text_drops_stray_closing_punctuation(
+    written: str, shown: str | None
+) -> None:
+    conversation = dict(INFORMATION_RESOLUTION, intent="conversa", resposta=written)
+    clarification = dict(CALCULATION_ROUTE, intent="aclariment", actuacions=[], aclariment=written)
+
+    expected = written if shown is None else shown
+    assert ResolvedQueryPayload.model_validate(conversation).to_domain().answer == expected
+    assert QueryRoutingPayload.model_validate(clarification).to_domain().clarification == expected
 
 
 def test_openai_uses_routing_then_dynamic_resolution_prompts() -> None:
@@ -336,9 +373,7 @@ def test_anthropic_uses_the_same_two_phase_contract() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         body = json.loads(request.content)
         calls.append(body)
-        if len(calls) == 1:
-            return _anthropic_output(CONTEST_ROUTE, "interpreta_consulta_castellera")
-        return _anthropic_output(INFORMATION_RESOLUTION, "resol_concurs")
+        return _anthropic_output(CONTEST_ROUTE if len(calls) == 1 else INFORMATION_RESOLUTION)
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     model = AnthropicChatModel("key", "model", client=client)
@@ -357,17 +392,66 @@ def test_anthropic_uses_the_same_two_phase_contract() -> None:
     assert resolution.intent == "contest_info"
     assert calls[0]["system"] == INTERPRETATION_PROMPT
     assert "Joves | 16.337 punts" in calls[1]["system"]
-    assert calls[0]["tool_choice"]["name"] == "interpreta_consulta_castellera"
-    assert calls[1]["tool_choice"]["name"] == "resol_concurs"
+    assert set(calls[0]["output_config"]["format"]["schema"]["properties"]) == set(
+        QueryRoutingPayload.model_fields
+    )
+    assert set(calls[1]["output_config"]["format"]["schema"]["properties"]) == set(
+        ResolvedQueryPayload.model_fields
+    )
 
 
-def test_anthropic_rejects_invalid_tool_input_without_retry() -> None:
+def test_anthropic_requests_structured_output_without_forcing_a_tool() -> None:
+    calls: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(json.loads(request.content))
+        return _anthropic_output(CALCULATION_ROUTE)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "claude-sonnet-5-5", client=client, effort="low")
+
+    query = asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())
+
+    body = calls[0]
+    # Claude Sonnet 5.5 rejects forced tool use and thinking cannot be disabled.
+    assert "tool_choice" not in body
+    assert "tools" not in body
+    assert "thinking" not in body
+    assert body["output_config"]["effort"] == "low"
+    assert body["output_config"]["format"]["type"] == "json_schema"
+    # Thinking shares the output budget with the answer.
+    assert body["max_tokens"] >= 8_000
+    serialized_schema = json.dumps(body["output_config"]["format"]["schema"])
+    for unsupported in ("minLength", "maxLength", "maxItems", "minimum", "maximum"):
+        assert unsupported not in serialized_schema
+    assert query.intent == "comparison"
+    assert len(query.performances) == 2
+
+
+def test_anthropic_omits_effort_unless_configured() -> None:
+    calls: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(json.loads(request.content))
+        return _anthropic_output(CALCULATION_ROUTE)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "model", client=client)
+
+    asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())
+
+    assert "effort" not in calls[0]["output_config"]
+
+
+def test_anthropic_rejects_invalid_structured_output_without_retry() -> None:
     calls = 0
 
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
-        return _anthropic_output({"intent": "informació_concurs"}, "interpreta_consulta_castellera")
+        return _anthropic_output({"intent": "informació_concurs"})
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     model = AnthropicChatModel("key", "model", client=client)
@@ -377,6 +461,19 @@ def test_anthropic_rejects_invalid_tool_input_without_retry() -> None:
     asyncio.run(client.aclose())
 
     assert calls == 1
+
+
+@pytest.mark.parametrize("stop_reason", ["refusal", "max_tokens"])
+def test_anthropic_rejects_refused_or_truncated_output(stop_reason: str) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return _anthropic_output(CALCULATION_ROUTE, stop_reason=stop_reason)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "model", client=client)
+
+    with pytest.raises(ValueError, match=stop_reason):
+        asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())
 
 
 def test_open_alternatives_route_by_explicit_outcome_and_cover_mixed_results():
