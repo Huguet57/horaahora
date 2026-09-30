@@ -11,7 +11,11 @@ from backend.adapters.ai.prompts.composer import (
     INTERPRETATION_PROMPT,
     compose_contest_resolution_prompt,
 )
-from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
+from backend.adapters.ai.schema import (
+    ContestKnowledgeQueryPayload,
+    QueryRoutingPayload,
+    ResolvedQueryPayload,
+)
 
 CALCULATION_ROUTE = {
     "intent": "comparació",
@@ -143,37 +147,39 @@ def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> No
         "creator",
         "contest_router",
     ]
-    # Keep the original routing/calculation budget, with a small separate app profile.
-    core = [module.content for module in INTERPRETATION_MODULES if module.name != "creator"]
-    creator = next(module.content for module in INTERPRETATION_MODULES if module.name == "creator")
-    assert len("\n\n".join(core)) < 17_000
-    assert len(creator) < 1_000
-    assert len(INTERPRETATION_PROMPT) < 18_000
+    # The prompt states the situation and the domain facts; a new rule per reported
+    # failure belongs in the evaluation fixtures, not here.
+    assert len(INTERPRETATION_PROMPT) < 9_000
     assert "<resultats_anteriors>" not in INTERPRETATION_PROMPT
     assert "<coneixement_normatiu>" not in INTERPRETATION_PROMPT
     assert "16.337 punts" not in INTERPRETATION_PROMPT
-    assert "errors tipogràfics lleus" in INTERPRETATION_PROMPT
-    assert "context de la conversa" in INTERPRETATION_PROMPT
-    assert "`font` és `puntuacions`" in INTERPRETATION_PROMPT
-    assert "`abast_puntuacions` és `rànquing`" in INTERPRETATION_PROMPT
-    assert "`resultat_puntuacions`" in INTERPRETATION_PROMPT
 
 
 @pytest.mark.parametrize(
     "guidance",
     [
-        "«torre» i «dos»",
-        "«net», «neta» i «sense folre»",
-        "`4d9fp`",
-        "`td8sf`",
-        "`d`, `de`, `/`, `x` i `×`",
-        "`2d8` escrit exactament així",
-        "| «torre/dos de vuit» sense modificadors | `2d8f` |",
-        "variants rares",
+        # What the scoring engine cannot infer from the notation it receives.
+        "`2d8`, `3d9`, `4d9` i `pd7` sense cap sufix són la variant sense folre",
+        "«tres de nou» és `3d9f`",
+        "`4d10f` o `td9f` volen dir sense manilles",
+        "bèstia indomable `2d8sf`",
+        "`escenari_vigent`",
     ],
 )
-def test_interpretation_prompt_keeps_casteller_notation_rules(guidance: str) -> None:
+def test_interpretation_prompt_keeps_casteller_domain_knowledge(guidance: str) -> None:
     assert guidance in INTERPRETATION_PROMPT
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        *QueryRoutingPayload.model_fields,
+        *ContestKnowledgeQueryPayload.model_fields,
+    ],
+)
+def test_interpretation_prompt_explains_every_routing_field(field: str) -> None:
+    # The portable schema carries no descriptions, so the prompt is their only definition.
+    assert f"`{field}`" in INTERPRETATION_PROMPT
 
 
 def test_resolution_prompt_contains_only_the_retrieved_context() -> None:
@@ -184,7 +190,7 @@ def test_resolution_prompt_contains_only_the_retrieved_context() -> None:
     assert "Concurs 1998 | Joves | 16.337 punts" in prompt
     assert "Concurs 2024" not in prompt
     assert "2026 té prioritat" in prompt
-    assert "La taula versionada 2026 és l'única font numèrica autoritativa" in prompt
+    assert "la taula 2026 és l'única font de punts" in prompt
 
 
 def test_routing_payload_requires_a_structured_contest_query() -> None:

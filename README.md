@@ -164,8 +164,11 @@ dispositiu; les preferències de seguiment se sincronitzen amb el backend quan l
 
 La calculadora requereix un proveïdor de model explícit: `AI_PROVIDER=openrouter`,
 `AI_PROVIDER=openai` o `AI_PROVIDER=anthropic`. La configuració de producció recomanada és
-OpenRouter amb `AI_MODEL=google/gemini-3.7-flash`, `AI_BASE_URL=https://openrouter.ai/api`
-i raonament baix. El model, la clau i l'endpoint es configuren amb `AI_MODEL`, `AI_API_KEY`
+OpenRouter amb `AI_MODEL=anthropic/claude-sonnet-5.5`, `AI_BASE_URL=https://openrouter.ai/api`
+i raonament baix. El prompt és deliberadament curt: descriu la situació, el coneixement
+casteller que el motor no pot deduir i el contracte de sortida, i confia la resta al model.
+Un error reportat s'afegeix primer a les bateries d'avaluació; només arriba al prompt si hi
+falta coneixement del domini. El model, la clau i l'endpoint es configuren amb `AI_MODEL`, `AI_API_KEY`
 i `AI_BASE_URL`. No hi ha cap intèrpret alternatiu ni cap degradació silenciosa: una
 configuració absent o desconeguda impedeix arrencar el servei de xat.
 

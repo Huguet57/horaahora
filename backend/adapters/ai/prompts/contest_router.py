@@ -1,22 +1,14 @@
 CONTEST_ROUTER_PROMPT = """<encaminament_concurs>
-Classifica les preguntes factuals sobre la normativa, els resultats històrics o el rànquing de puntuacions del Concurs de Castells amb l'intent `informació_concurs`. Aquesta primera fase no les respon: descriu exactament quin coneixement local cal recuperar a `consulta_concurs`.
+En aquesta primera fase no respons les preguntes d'`informació_concurs`: descrius a `consulta_concurs` quines fonts locals cal recuperar, i en una segona crida les rebràs per respondre.
 
-- `font` és `normativa` per regles, protocol, penalitzacions, rondes i canvis normatius; és `resultats` per edicions, guanyadors, posicions, actuacions, punts històrics i recalculacions d'una actuació passada; `font` és `puntuacions` per l'ordre de la taula 2026, la posició d'un castell, els castells que té per sobre o per sota i fragments com els primers o els últims del rànquing.
-- `anys` conté només els anys explícits o inequívocament referits. Deixa'l buit si la consulta abraça totes les edicions.
-- `colles` conserva els noms o sobrenoms de colla que dona l'usuari. Deixa'l buit si no en restringeix cap.
-- Per `resultats`, `abast_resultats` és `edicions` si pregunta quines edicions es van celebrar o cancel·lar, `guanyadors` per palmarès o guanyadors, i `classificació` per posicions, punts, castells per ronda o recalculacions.
-- Per `normativa`, `abast_resultats` és null.
-- Per `puntuacions`, `abast_puntuacions` és `rànquing`. `anys` i `colles` són buits i `abast_resultats` és null.
-- `resultat_puntuacions` és `carregat`, `descarregat` o `tots_dos`. Si l'usuari no concreta el resultat, usa `tots_dos`.
-- Per `puntuacions`, `selecció_rànquing` indica la forma exacta de la resposta: `primers`, `últims`, `posició`, `veïns` o `complet`.
-- Amb `primers` i `últims`, `límit_rànquing` és el nombre demanat (1 si l'usuari usa el singular) i `castell_rànquing` és null.
-- Amb `posició` i `veïns`, conserva el castell demanat a `castell_rànquing` i deixa `límit_rànquing` a null.
-- Amb `complet`, `límit_rànquing` i `castell_rànquing` són null.
-- Per `normativa` i `resultats`, tots els camps de rànquing són null.
-- Una recalculació històrica també s'encamina primer com `informació_concurs`: cal recuperar l'actuació documentada abans de convertir-la en un intent de càlcul.
-- Per alternatives que superin un castell o opcions obertes de guanyar per punts, usa `font=puntuacions`, `abast_puntuacions=rànquing`, `selecció_rànquing=veïns`, `resultat_puntuacions=tots_dos` i el castell de referència a `castell_rànquing` (el més exigent si n'hi ha diversos). No filtris per colles ni anys. Una comparació amb totes les opcions ja concretades continua sent un càlcul.
-- Amb `informació_concurs`, deixa `actuacions` buit i `aclariment` a null.
-- Per qualsevol altre intent, `consulta_concurs` és null.
+`font` tria la font:
+- `normativa`: regles, protocol, rondes, penalitzacions i compatibilitats entre castells. La resta de camps són null i les llistes buides.
+- `resultats`: edicions passades. `anys` porta els anys esmentats (buit vol dir totes les edicions), `colles` els noms tal com els diu l'usuari (buit vol dir totes) i `abast_resultats` és `edicions` (quines es van celebrar o cancel·lar), `guanyadors` (palmarès) o `classificació` (posicions, punts i castells per ronda). Els camps de puntuacions i de rànquing són null. Recalcular una actuació històrica amb la taula actual també comença aquí, perquè primer cal recuperar-la.
+- `puntuacions`: el rànquing de la taula 2026. `abast_puntuacions` és `rànquing`; `resultat_puntuacions` és `carregat`, `descarregat` o, si no es concreta, `tots_dos`; `anys` i `colles` són buits i `abast_resultats` és null. `selecció_rànquing` diu quin fragment cal:
+  - `primers` o `últims`, amb `límit_rànquing` (1 per «el que val més») i `castell_rànquing` null.
+  - `posició` (on queda un castell) o `veïns` (què té per sobre i per sota), amb `castell_rànquing` i `límit_rànquing` null.
+  - `complet` (tota la taula), amb tots dos null.
+  Les preguntes obertes sobre què supera un castell o si una colla té opcions per punts demanen `veïns` amb `tots_dos` i el castell de referència (el de més valor si n'hi ha diversos). Una comparació amb totes les opcions ja concretades és un càlcul, no una consulta a la taula.
 
-Inclou sempre `intent`, `actuacions`, `aclariment`, `consulta_concurs` i `resposta`. `resposta` només conté text per a `conversa` i `no_compatible`; per a qualsevol altre intent és null. Respon exclusivament amb l'estructura sol·licitada.
+La sortida es valida estrictament. Tots els camps hi són sempre: `actuacions` només s'omple a `consulta`, `total` i `comparació`; `aclariment` només a `aclariment`; `consulta_concurs` només a `informació_concurs`; `resposta` només a `conversa` i `no_compatible`. La resta queda a null o llista buida.
 </encaminament_concurs>"""

@@ -44,6 +44,6 @@ def test_local_compose_requires_an_explicit_model_provider_and_credentials() -> 
     assert "${AI_MODEL:?" in compose
     assert "${AI_API_KEY:?" in compose
     assert "AI_PROVIDER=openrouter" in example_environment
-    assert "AI_MODEL=google/gemini-3.7-flash" in example_environment
+    assert "AI_MODEL=anthropic/claude-sonnet-5.5" in example_environment
     assert "AI_BASE_URL=https://openrouter.ai/api" in example_environment
     assert "AI_PROVIDER=local" not in example_environment
