@@ -121,17 +121,16 @@ def _openai_output(payload: dict) -> httpx.Response:
     )
 
 
-def _anthropic_output(payload: dict, tool_name: str) -> httpx.Response:
+def _anthropic_output(payload: dict, *, stop_reason: str = "end_turn") -> httpx.Response:
     return httpx.Response(
         200,
         json={
+            # Adaptive thinking can put an empty thinking block before the answer.
             "content": [
-                {
-                    "type": "tool_use",
-                    "name": tool_name,
-                    "input": payload,
-                }
-            ]
+                {"type": "thinking", "thinking": "", "signature": "sig"},
+                {"type": "text", "text": json.dumps(payload)},
+            ],
+            "stop_reason": stop_reason,
         },
     )
 
@@ -345,9 +344,7 @@ def test_anthropic_uses_the_same_two_phase_contract() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         body = json.loads(request.content)
         calls.append(body)
-        if len(calls) == 1:
-            return _anthropic_output(CONTEST_ROUTE, "interpreta_consulta_castellera")
-        return _anthropic_output(INFORMATION_RESOLUTION, "resol_concurs")
+        return _anthropic_output(CONTEST_ROUTE if len(calls) == 1 else INFORMATION_RESOLUTION)
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     model = AnthropicChatModel("key", "model", client=client)
@@ -366,17 +363,66 @@ def test_anthropic_uses_the_same_two_phase_contract() -> None:
     assert resolution.intent == "contest_info"
     assert calls[0]["system"] == INTERPRETATION_PROMPT
     assert "Joves | 16.337 punts" in calls[1]["system"]
-    assert calls[0]["tool_choice"]["name"] == "interpreta_consulta_castellera"
-    assert calls[1]["tool_choice"]["name"] == "resol_concurs"
+    assert set(calls[0]["output_config"]["format"]["schema"]["properties"]) == set(
+        QueryRoutingPayload.model_fields
+    )
+    assert set(calls[1]["output_config"]["format"]["schema"]["properties"]) == set(
+        ResolvedQueryPayload.model_fields
+    )
 
 
-def test_anthropic_rejects_invalid_tool_input_without_retry() -> None:
+def test_anthropic_requests_structured_output_without_forcing_a_tool() -> None:
+    calls: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(json.loads(request.content))
+        return _anthropic_output(CALCULATION_ROUTE)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "claude-sonnet-5-5", client=client, effort="low")
+
+    query = asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())
+
+    body = calls[0]
+    # Claude Sonnet 5.5 rejects forced tool use and thinking cannot be disabled.
+    assert "tool_choice" not in body
+    assert "tools" not in body
+    assert "thinking" not in body
+    assert body["output_config"]["effort"] == "low"
+    assert body["output_config"]["format"]["type"] == "json_schema"
+    # Thinking shares the output budget with the answer.
+    assert body["max_tokens"] >= 8_000
+    serialized_schema = json.dumps(body["output_config"]["format"]["schema"])
+    for unsupported in ("minLength", "maxLength", "maxItems", "minimum", "maximum"):
+        assert unsupported not in serialized_schema
+    assert query.intent == "comparison"
+    assert len(query.performances) == 2
+
+
+def test_anthropic_omits_effort_unless_configured() -> None:
+    calls: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(json.loads(request.content))
+        return _anthropic_output(CALCULATION_ROUTE)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "model", client=client)
+
+    asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())
+
+    assert "effort" not in calls[0]["output_config"]
+
+
+def test_anthropic_rejects_invalid_structured_output_without_retry() -> None:
     calls = 0
 
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
-        return _anthropic_output({"intent": "informació_concurs"}, "interpreta_consulta_castellera")
+        return _anthropic_output({"intent": "informació_concurs"})
 
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
     model = AnthropicChatModel("key", "model", client=client)
@@ -386,3 +432,16 @@ def test_anthropic_rejects_invalid_tool_input_without_retry() -> None:
     asyncio.run(client.aclose())
 
     assert calls == 1
+
+
+@pytest.mark.parametrize("stop_reason", ["refusal", "max_tokens"])
+def test_anthropic_rejects_refused_or_truncated_output(stop_reason: str) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return _anthropic_output(CALCULATION_ROUTE, stop_reason=stop_reason)
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    model = AnthropicChatModel("key", "model", client=client)
+
+    with pytest.raises(ValueError, match=stop_reason):
+        asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
+    asyncio.run(client.aclose())

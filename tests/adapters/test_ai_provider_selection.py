@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from backend.adapters.ai.anthropic import AnthropicChatModel
 from backend.adapters.ai.openrouter import OpenRouterChatModel
 from backend.composition.providers import build_chat_model
 from backend.config import Settings
@@ -34,6 +35,21 @@ def test_calculator_builds_openrouter_with_gemini_defaults() -> None:
     assert model.model == "google/gemini-3.7-flash"
     assert model.base_url == "https://openrouter.ai/api"
     assert model.reasoning_effort == "low"
+
+
+def test_calculator_builds_anthropic_with_low_effort() -> None:
+    settings = Settings(
+        ai_provider="anthropic",
+        ai_model="claude-sonnet-5-5",
+        ai_api_key="key",
+    )
+
+    model = build_chat_model(settings)
+
+    assert isinstance(model, AnthropicChatModel)
+    assert model.model == "claude-sonnet-5-5"
+    assert model.base_url == "https://api.anthropic.com"
+    assert model.effort == "low"
 
 
 def test_local_compose_requires_an_explicit_model_provider_and_credentials() -> None:

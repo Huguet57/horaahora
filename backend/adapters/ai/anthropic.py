@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
+import json
 
 import httpx
 from pydantic import BaseModel, ValidationError
 
+from backend.adapters.ai.openrouter import openrouter_schema
 from backend.adapters.ai.prompts import (
     INTERPRETATION_PROMPT,
     compose_contest_resolution_prompt,
@@ -15,16 +16,20 @@ from backend.domain.calculator.models import ChatTurn, ParsedCastellQuery, Parse
 
 
 class AnthropicChatModel:
+    """Chat model adapter for Anthropic's Messages API with structured outputs."""
+
     def __init__(
         self,
         api_key: str,
         model: str,
         base_url: str | None = None,
         client: httpx.AsyncClient | None = None,
+        effort: str | None = None,
     ) -> None:
         if not api_key or not model:
             raise ValueError("AI_API_KEY i AI_MODEL són obligatoris per a l'adaptador Anthropic")
         self.model = model
+        self.effort = effort
         self.base_url = (base_url or "https://api.anthropic.com").rstrip("/")
         self._owns_client = client is None
         self.client = client or httpx.AsyncClient(
@@ -47,12 +52,10 @@ class AnthropicChatModel:
             message_with_scenario(message, scenario),
             instructions=INTERPRETATION_PROMPT,
             schema=QueryRoutingPayload,
-            tool_name="interpreta_consulta_castellera",
-            description="Encamina una consulta castellera o extreu-ne les actuacions.",
         )
         try:
-            return QueryRoutingPayload.model_validate(raw).to_domain()
-        except (ValidationError, ValueError) as error:
+            return QueryRoutingPayload.model_validate_json(raw).to_domain()
+        except (ValidationError, ValueError, json.JSONDecodeError) as error:
             raise ValueError("El proveïdor no ha retornat una interpretació vàlida") from error
 
     async def resolve_contest(
@@ -68,12 +71,10 @@ class AnthropicChatModel:
             message_with_scenario(message, scenario),
             instructions=compose_contest_resolution_prompt(context),
             schema=ResolvedQueryPayload,
-            tool_name="resol_concurs",
-            description="Resol la consulta amb el coneixement local recuperat.",
         )
         try:
-            return ResolvedQueryPayload.model_validate(raw).to_domain()
-        except (ValidationError, ValueError) as error:
+            return ResolvedQueryPayload.model_validate_json(raw).to_domain()
+        except (ValidationError, ValueError, json.JSONDecodeError) as error:
             raise ValueError("El proveïdor no ha retornat una resolució vàlida") from error
 
     async def _request(
@@ -83,33 +84,40 @@ class AnthropicChatModel:
         *,
         instructions: str,
         schema: type[BaseModel],
-        tool_name: str,
-        description: str,
-    ) -> dict[str, Any]:
+    ) -> str:
         messages = [{"role": turn.role, "content": turn.content} for turn in history[-11:]]
         messages.append({"role": "user", "content": message})
+        # Current Claude models reject forced tool use, so the schema constrains the reply
+        # itself. Length and range limits are not part of the supported schema subset; the
+        # payload models enforce them after parsing.
+        output_config: dict = {
+            "format": {
+                "type": "json_schema",
+                "schema": openrouter_schema(schema.model_json_schema()),
+            }
+        }
+        if self.effort is not None:
+            output_config["effort"] = self.effort
         response = await self.client.post(
             f"{self.base_url}/v1/messages",
             json={
                 "model": self.model,
-                "max_tokens": 1_000,
+                # Thinking cannot be disabled on these models and shares this budget.
+                "max_tokens": 16_000,
                 "system": instructions,
                 "messages": messages,
-                "tools": [
-                    {
-                        "name": tool_name,
-                        "description": description,
-                        "input_schema": schema.model_json_schema(),
-                    }
-                ],
-                "tool_choice": {"type": "tool", "name": tool_name},
+                "output_config": output_config,
             },
         )
         response.raise_for_status()
-        for content_item in response.json().get("content", []):
-            if content_item.get("type") == "tool_use" and content_item.get("name") == tool_name:
-                return content_item.get("input", {})
-        raise ValueError("Resposta Anthropic sense tool_use")
+        payload = response.json()
+        stop_reason = payload.get("stop_reason")
+        if stop_reason in {"refusal", "max_tokens"}:
+            raise ValueError(f"Resposta Anthropic incompleta: {stop_reason}")
+        for content_item in payload.get("content", []):
+            if content_item.get("type") == "text":
+                return content_item.get("text", "")
+        raise ValueError("Resposta Anthropic sense text")
 
     async def close(self) -> None:
         if self._owns_client:

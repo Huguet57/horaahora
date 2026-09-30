@@ -193,7 +193,10 @@ La composició és explícita i té un únic recorregut en dues fases quan cal c
   resultats i composició del rànquing de puntuacions;
 - `composer.py`: prompt base d'interpretació i prompt de resolució amb el context recuperat.
 
-OpenAI i Anthropic consumeixen els mateixos contractes. Una consulta de càlcul fa una sola
+OpenAI i Anthropic consumeixen els mateixos contractes. L'adaptador directe d'Anthropic
+(`AI_PROVIDER=anthropic`, per exemple amb `AI_MODEL=claude-sonnet-5-5`) demana la sortida
+estructurada amb `output_config.format` i esforç baix, sense forçar cap eina: els models
+actuals de Claude rebutgen `tool_choice` forçat. Una consulta de càlcul fa una sola
 petició estructurada i passa directament al motor determinista. Una consulta del Concurs fa
 una primera petició d'encaminament, recupera només les edicions, colles o fonts necessàries i
 fa una segona petició de resolució. Una resposta que no compleix l'esquema falla de manera
