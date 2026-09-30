@@ -10,7 +10,9 @@ class ConversationModel:
         self.intent = intent
         self.reply = reply
 
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         return QueryRoutingPayload.model_validate(
             {
                 "intent": self.intent,
@@ -21,7 +23,7 @@ class ConversationModel:
             }
         ).to_domain()
 
-    async def resolve_contest(self, *args) -> ParsedCastellQuery:
+    async def resolve_contest(self, *args, **kwargs) -> ParsedCastellQuery:
         raise AssertionError("A conversational reply needs neither retrieval nor another call")
 
 

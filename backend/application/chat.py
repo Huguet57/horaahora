@@ -1,4 +1,4 @@
-from backend.domain.calculator.models import CalculationResult, ChatTurn
+from backend.domain.calculator.models import CalculationResult, ChatTurn, ParsedPerformance
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.scoring import ScoringEngine
 from backend.domain.contest.ports import ContestKnowledgeRepository
@@ -15,11 +15,13 @@ class ChatService:
         self.contest_repository = contest_repository
         self.scoring_engine = scoring_engine
 
-    async def respond(self, history: list[ChatTurn]) -> CalculationResult:
+    async def respond(
+        self, history: list[ChatTurn], *, scenario: list[ParsedPerformance] | None = None
+    ) -> CalculationResult:
         if not history or history[-1].role != "user":
             raise ValueError("L'últim missatge ha de ser de l'usuari")
         current = history[-1]
-        query = await self.chat_model.interpret(history[:-1], current.content)
+        query = await self.chat_model.interpret(history[:-1], current.content, scenario=scenario)
         presentation = None
         if query.intent == "contest_info":
             if query.knowledge_query is None:
@@ -35,6 +37,7 @@ class ChatService:
                 history[:-1],
                 current.content,
                 context,
+                scenario=scenario,
             )
         if query.intent in {"contest_info", "conversation", "unsupported"}:
             if not query.answer or not query.answer.strip():

@@ -4,7 +4,9 @@ from tests.support.application import make_test_client
 
 
 class ContestInformationChatModel:
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         del history, message
         return ParsedCastellQuery(
             intent="contest_info",
@@ -20,6 +22,8 @@ class ContestInformationChatModel:
         history: list[ChatTurn],
         message: str,
         context: str,
+        *,
+        scenario=None,
     ) -> ParsedCastellQuery:
         del history, message
         assert "2020" in context
@@ -30,7 +34,9 @@ class ContestInformationChatModel:
 
 
 class ScoreRankingChatModel:
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         del history, message
         return ParsedCastellQuery(
             intent="contest_info",
@@ -48,6 +54,8 @@ class ScoreRankingChatModel:
         history: list[ChatTurn],
         message: str,
         context: str,
+        *,
+        scenario=None,
     ) -> ParsedCastellQuery:
         del history, message
         assert "1 | 3de10sm" in context

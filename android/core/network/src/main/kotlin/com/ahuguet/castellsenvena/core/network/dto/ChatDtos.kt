@@ -16,12 +16,19 @@ internal data class ChatRequestDto(
     val locale: String,
     val ruleset: String,
     val messages: List<ChatMessageDto>,
+    val scenario: List<ScenarioPerformanceDto>,
 ) {
     constructor(request: ChatRequest) : this(
         conversationId = request.conversationId,
         installationId = request.installationId,
         locale = request.locale,
         ruleset = request.ruleset,
+        scenario = request.scenario.map { performance ->
+            ScenarioPerformanceDto(
+                label = performance.label,
+                castells = performance.castells.map { ScenarioCastellDto(it.notation, it.outcome) },
+            )
+        },
         // A stored message over the limit must not make every later request fail.
         messages = request.messages
             .takeLast(ChatRequest.MAX_MESSAGES)
@@ -33,6 +40,12 @@ internal data class ChatRequestDto(
             },
     )
 }
+
+@Serializable
+internal data class ScenarioPerformanceDto(val label: String, val castells: List<ScenarioCastellDto>)
+
+@Serializable
+internal data class ScenarioCastellDto(val notation: String, val outcome: String)
 
 @Serializable
 internal data class ChatMessageDto(

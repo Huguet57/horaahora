@@ -3,7 +3,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from backend.domain.calculator.models import CalculationResult
+from backend.domain.calculator.models import (
+    CalculationResult,
+    Outcome,
+    ParsedCastell,
+    ParsedPerformance,
+)
 from backend.domain.contest.models import ScorePresentation
 
 
@@ -12,12 +17,30 @@ class ChatMessageSchema(BaseModel):
     content: str = Field(min_length=1, max_length=2_000)
 
 
+class ScenarioCastellSchema(BaseModel):
+    notation: str = Field(min_length=1, max_length=32)
+    outcome: Outcome
+
+
+class ScenarioPerformanceSchema(BaseModel):
+    label: str = Field(min_length=1, max_length=100)
+    castells: list[ScenarioCastellSchema] = Field(max_length=12)
+
+    def to_domain(self) -> ParsedPerformance:
+        return ParsedPerformance(
+            label=self.label,
+            castells=[ParsedCastell(c.notation, c.outcome) for c in self.castells],
+        )
+
+
 class ChatRequestSchema(BaseModel):
     conversation_id: UUID
     installation_id: str = Field(min_length=1, max_length=128)
     locale: str = Field(default="ca-ES", max_length=16)
     ruleset: Literal["concurs-2026"] = "concurs-2026"
     messages: list[ChatMessageSchema] = Field(min_length=1, max_length=12)
+    # Latest complete calculation, independent of the prose history window.
+    scenario: list[ScenarioPerformanceSchema] = Field(default_factory=list, max_length=8)
     # Older app versions never send it: their users were told nothing is stored.
     share_for_improvement: bool = False
 

@@ -3,6 +3,8 @@ package com.ahuguet.castellsenvena.core.network
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRequest
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRequestMessage
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRole
+import com.ahuguet.castellsenvena.core.domain.chat.ScenarioCastell
+import com.ahuguet.castellsenvena.core.domain.chat.ScenarioPerformance
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationGroupSelection
 import com.ahuguet.castellsenvena.core.domain.notifications.NotificationInterestLevel
 import com.ahuguet.castellsenvena.core.network.service.HttpChatRemoteService
@@ -96,7 +98,10 @@ class ApiClientTest {
         val messages = (1..14).map { ChatRequestMessage(ChatRole.USER, "missatge $it") }
 
         val response = HttpChatRemoteService(client).send(
-            ChatRequest(conversationId = "conversation", installationId = "installation", messages = messages),
+            ChatRequest(
+                conversationId = "conversation", installationId = "installation", messages = messages,
+                scenario = listOf(ScenarioPerformance("Vella", listOf(ScenarioCastell("5de9f", "attempt")))),
+            ),
         )
 
         val request = server.takeRequest()
@@ -111,6 +116,11 @@ class ApiClientTest {
         assertEquals(12, sent.size)
         assertEquals("missatge 3", sent.first().jsonObject.getValue("content").jsonPrimitive.content)
         assertEquals("user", sent.first().jsonObject.getValue("role").jsonPrimitive.content)
+        val scenario = body.getValue("scenario").jsonArray.single().jsonObject
+        assertEquals("Vella", scenario.getValue("label").jsonPrimitive.content)
+        val castell = scenario.getValue("castells").jsonArray.single().jsonObject
+        assertEquals("5de9f", castell.getValue("notation").jsonPrimitive.content)
+        assertEquals("attempt", castell.getValue("outcome").jsonPrimitive.content)
         assertEquals("R", response.reply)
     }
 

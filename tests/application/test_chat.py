@@ -18,7 +18,9 @@ class ContestChatModel:
         self.resolution = resolution
         self.resolution_calls: list[tuple[list[ChatTurn], str, str]] = []
 
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         del history, message
         return ParsedCastellQuery(
             intent="contest_info",
@@ -34,6 +36,8 @@ class ContestChatModel:
         history: list[ChatTurn],
         message: str,
         context: str,
+        *,
+        scenario=None,
     ) -> ParsedCastellQuery:
         self.resolution_calls.append((history, message, context))
         return self.resolution
@@ -49,7 +53,9 @@ class RecordingContestRepository:
 
 
 class CalculationChatModel:
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         del history, message
         return ParsedCastellQuery(
             intent="comparison",
@@ -64,6 +70,8 @@ class CalculationChatModel:
         history: list[ChatTurn],
         message: str,
         context: str,
+        *,
+        scenario=None,
     ) -> ParsedCastellQuery:
         del history, message, context
         raise AssertionError("Una consulta de càlcul no ha de fer una segona crida")

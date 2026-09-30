@@ -10,6 +10,7 @@ import com.ahuguet.castellsenvena.core.domain.chat.ChatRepository
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRequest
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRequestMessage
 import com.ahuguet.castellsenvena.core.domain.chat.ChatRole
+import com.ahuguet.castellsenvena.core.domain.chat.ScenarioPerformance
 import com.ahuguet.castellsenvena.core.domain.chat.ConversationNotFoundException
 import com.ahuguet.castellsenvena.core.domain.chat.MessageDeliveryState
 import com.ahuguet.castellsenvena.core.domain.chat.MessageNotFoundException
@@ -28,7 +29,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * Keeps calculator conversations on the device. The backend only receives the
- * latest messages of the conversation being answered.
+ * latest messages and the complete last calculation of the conversation being answered.
  */
 class DatabaseChatRepository(
     private val database: CastellsDatabase,
@@ -110,9 +111,16 @@ class DatabaseChatRepository(
     private suspend fun deliver(userMessageId: String, conversationId: String): ChatConversation =
         deliveryScope.async(ioDispatcher) {
             val history = messages.forConversation(conversationId).executeAsList()
+            // Recover from all persisted responses before applying the prose window.
+            val scenario = history.asReversed().asSequence()
+                .filter { it.role == ChatRole.ASSISTANT.wireValue }
+                .mapNotNull { it.calculationJson?.let(ChatResponseCodec::decodeOrNull) }
+                .firstOrNull { it.performances.isNotEmpty() }
+                ?.performances?.map(::ScenarioPerformance).orEmpty()
             val request = ChatRequest(
                 conversationId = conversationId,
                 installationId = installationId,
+                scenario = scenario,
                 messages = history.takeLast(ChatRequest.MAX_MESSAGES).mapNotNull { message ->
                     ChatRole.fromWireValue(message.role)?.let { ChatRequestMessage(it, message.content) }
                 },

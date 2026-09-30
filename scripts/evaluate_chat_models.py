@@ -4,7 +4,8 @@ Usage: OPENROUTER_API_KEY=... python -m scripts.evaluate_chat_models \
     --output /tmp/chat-evaluation.json --repetitions 3
 
 Uses synthetic fixtures, no database, no production endpoint and no conversation sharing.
-Each scenario starts afresh; subsequent turns receive that model's actual replies.
+Each scenario starts afresh; subsequent turns receive the model's actual replies and
+the complete last calculation, matching the mobile clients.
 """
 
 import argparse
@@ -26,7 +27,7 @@ from backend.adapters.ai.prompts import INTERPRETATION_PROMPT, compose_contest_r
 from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
 from backend.application.chat import ChatService
-from backend.domain.calculator.models import ChatTurn
+from backend.domain.calculator.models import ChatTurn, ParsedCastell, ParsedPerformance
 from backend.domain.calculator.scoring import ScoringEngine
 from backend.domain.calculator.table import ScoreTable
 
@@ -149,13 +150,22 @@ async def evaluate_scenario(model_name: str, scenario: dict, *, effort: str = "l
             model, SnapshotContestKnowledgeRepository.default(), ScoringEngine(ScoreTable.default())
         )
         history = [ChatTurn(**turn) for turn in scenario.get("history", [])]
+        saved_scenario = []
         turns = []
         for step in scenario["steps"]:
             history.append(ChatTurn("user", step["message"]))
             start = time.monotonic()
             call_offset = len(calls)
             try:
-                response = await service.respond(history[-12:])
+                response = await service.respond(history[-12:], scenario=saved_scenario)
+                if response.performances:
+                    saved_scenario = [
+                        ParsedPerformance(
+                            p.label,
+                            [ParsedCastell(c.canonical or c.input, c.outcome) for c in p.castells],
+                        )
+                        for p in response.performances
+                    ]
                 result = asdict(response)
                 failures = check_result(result, step["expected"])
                 history.append(ChatTurn("assistant", response.reply))
