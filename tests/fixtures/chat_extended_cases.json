@@ -1957,14 +1957,10 @@
               }
             ],
             "totals": {
-              "A": 3725
+              "A": 2755
             },
             "counted": {
               "A": [
-                [
-                  "3de8",
-                  "unloaded"
-                ],
                 [
                   "3de9f",
                   "unloaded"
@@ -1977,7 +1973,8 @@
             }
           }
         }
-      ]
+      ],
+      "oracle_note": "3de8 i 3de9f són incompatibles segons la llista del protocol versionat. Expectativa revisada contra la font, independent del motor."
     },
     {
       "id": "tie",
@@ -5017,13 +5014,14 @@
             "performances": [],
             "reply_contains_any": [
               [
-                "Joves"
+                "Vilafranca"
               ]
             ],
             "reply_excludes": []
           }
         }
-      ]
+      ],
+      "oracle_note": "Guanyador comprovat a la primera fila de la classificació 1998 de la instantània; la presència de Joves en aquell any no implica que guanyés."
     },
     {
       "id": "winner_1932",

@@ -226,6 +226,8 @@ resposta conversacional són bàsiques: la qualitat de la prosa també s'ha de r
 
 La [comparativa del 30/09/2026](docs/chat-model-evaluation-20260930.md) inclou resultats,
 costos, limitacions i el registre complet de les tres passades dels quatre models.
+La [bateria ampliada de Gemini 3.8](docs/gemini38-extended-evaluation-20260930.md) prova
+100 situacions i 363 torns, amb diagnòstic separat dels errors del model i del producte.
 
 Abans de fusionar un canvi del rànquing, la bateria end-to-end es pot executar contra la URL
 real d'una Preview amb:
