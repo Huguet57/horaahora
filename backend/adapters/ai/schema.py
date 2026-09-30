@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -222,6 +223,18 @@ class ResolvedQueryPayload(StrictPayloadModel):
         )
 
 
+# Under a strict JSON schema some models close a sentence and then emit stray closing
+# punctuation (`}`, `'}`, `',`) before the string really ends. A lone `"` or `”` is kept:
+# it can close a quotation.
+_STRAY_TAIL = re.compile(r"(?<=[.!?»)])[\s'\"”`}\],]*[}\],'`][\s'\"”`}\],]*$")
+
+
+def _written_text(text: str | None) -> str | None:
+    if text is None:
+        return None
+    return _STRAY_TAIL.sub("", text.strip())
+
+
 def _to_domain(
     *,
     intent: str,
@@ -259,7 +272,7 @@ def _to_domain(
             )
             for performance in performances
         ],
-        clarification=clarification.strip() if clarification else clarification,
-        answer=answer.strip() if answer else answer,
+        clarification=_written_text(clarification),
+        answer=_written_text(answer),
         knowledge_query=knowledge_query,
     )

@@ -268,18 +268,33 @@ def test_resolution_payload_keeps_information_and_calculation_exclusive() -> Non
     assert len(recalculation.performances[0].castells) == 5
 
 
-def test_model_written_text_is_trimmed() -> None:
-    # Constrained decoding sometimes closes the string after stray line breaks.
-    conversation = dict(INFORMATION_RESOLUTION, intent="conversa", resposta="Hola!\n\n")
-    clarification = dict(
-        CALCULATION_ROUTE, intent="aclariment", actuacions=[], aclariment="Quin castell?\n"
-    )
+@pytest.mark.parametrize(
+    ("written", "shown"),
+    [
+        # Tails observed from Claude Sonnet 5.5 under a strict JSON schema: the string
+        # sometimes picks up stray closing punctuation before it really ends.
+        ("Hola!\n\n", "Hola!"),
+        ("si em dius què faria cada colla.}", "si em dius què faria cada colla."),
+        ("què faria cadascuna.'}", "què faria cadascuna."),
+        ('actuacions concretes."}', "actuacions concretes."),
+        ("dubtes del Concurs.'", "dubtes del Concurs."),
+        ("Bona sort amb els castells.','", "Bona sort amb els castells."),
+        # Legitimate endings stay untouched.
+        ("el 3d10fm val 4.525", "el 3d10fm val 4.525"),
+        ("Ha dit «segons la normativa publicada per al 2024».", None),
+        ('Es diu "carro gros."', None),
+        ("47. 2de6: 250 / 300", None),
+    ],
+)
+def test_model_written_text_drops_stray_closing_punctuation(
+    written: str, shown: str | None
+) -> None:
+    conversation = dict(INFORMATION_RESOLUTION, intent="conversa", resposta=written)
+    clarification = dict(CALCULATION_ROUTE, intent="aclariment", actuacions=[], aclariment=written)
 
-    assert ResolvedQueryPayload.model_validate(conversation).to_domain().answer == "Hola!"
-    assert (
-        QueryRoutingPayload.model_validate(clarification).to_domain().clarification
-        == "Quin castell?"
-    )
+    expected = written if shown is None else shown
+    assert ResolvedQueryPayload.model_validate(conversation).to_domain().answer == expected
+    assert QueryRoutingPayload.model_validate(clarification).to_domain().clarification == expected
 
 
 def test_openai_uses_routing_then_dynamic_resolution_prompts() -> None:
