@@ -35,6 +35,47 @@ final class ChatPersistenceTests: XCTestCase {
         XCTAssertTrue(try reopened.listConversations().isEmpty)
     }
 
+    func testCompleteScenarioSurvivesHistoryWindowAndReopening() async throws {
+        let container = try DataStack.makeModelContainer(inMemory: true)
+        let remote = StubChatRemoteService()
+        let repository = SwiftDataChatRepository(container: container, remoteService: remote, installationID: "test")
+        let performances = [PerformanceResponse(label: "Vella", total: 100, castells: [
+            ScoredCastellResponse(input: "3d10fm", canonical: "3de10fm", outcome: "loaded", points: 100, counted: true, reason: nil),
+            ScoredCastellResponse(input: "4d9fa", canonical: "4de9fa", outcome: "loaded", points: 90, counted: true, reason: nil),
+            ScoredCastellResponse(input: "5d9f", canonical: "5de9f", outcome: "loaded", points: 80, counted: false, reason: "loaded_limit"),
+            ScoredCastellResponse(input: "4d8", canonical: "4de8", outcome: "unloaded", points: 70, counted: true, reason: nil),
+            ScoredCastellResponse(input: "3d8", canonical: "3de8", outcome: "unloaded", points: 60, counted: false, reason: "outside_top_three"),
+            ScoredCastellResponse(input: "9d9f", canonical: "9de9f", outcome: "attempt", points: 0, counted: false, reason: "attempt")
+        ])]
+        await remote.setPerformances(performances)
+        let id = try repository.createConversation(title: "Llarga")
+        _ = try await repository.send(message: "Escenari original", in: id)
+        await remote.setPerformances([])
+        for _ in 0..<6 { _ = try await repository.send(message: "Hola", in: id) }
+
+        let reopened = SwiftDataChatRepository(container: container, remoteService: remote, installationID: "test")
+        _ = try await reopened.send(message: "I si descarreguen el 5d9f?", in: id)
+        let sentRequest = await remote.lastRequest
+        let request = try XCTUnwrap(sentRequest)
+        XCTAssertEqual(request.messages.count, 12)
+        XCTAssertFalse(request.messages.contains { $0.content == "Escenari original" })
+        XCTAssertEqual(request.scenario, performances.map(ScenarioPerformance.init))
+        let encoded = try JSONSerialization.jsonObject(with: JSONEncoder.castellsAPI.encode(request)) as! [String: Any]
+        let scenario = encoded["scenario"] as! [[String: Any]]
+        XCTAssertEqual((scenario[0]["castells"] as! [[String: Any]]).count, 6)
+
+        let replacement = [PerformanceResponse(label: "Nou", total: 0, castells: [performances[0].castells[0]])]
+        await remote.setPerformances(replacement)
+        _ = try await reopened.send(message: "Comencem de nou: 3d10fm carregat", in: id)
+        _ = try await reopened.send(message: "I descarregat?", in: id)
+        let replaced = await remote.lastRequest
+        XCTAssertEqual(replaced?.scenario, replacement.map(ScenarioPerformance.init))
+        let other = try reopened.createConversation(title: "Una altra")
+        _ = try await reopened.send(message: "Hola", in: other)
+        let fresh = await remote.lastRequest
+        XCTAssertEqual(fresh?.scenario, [])
+    }
+
     func testRequestsAreSharedOnlyWhenThePreferenceCoversTheConversation() async throws {
         let container = try DataStack.makeModelContainer(inMemory: true)
         let remote = StubChatRemoteService()
@@ -97,13 +138,16 @@ private final class SharingPreferencesStub: ConversationSharingPreferences {
 
 private actor StubChatRemoteService: ChatRemoteService {
     private(set) var lastRequest: ChatRequest?
+    private var performances: [PerformanceResponse] = []
+
+    func setPerformances(_ value: [PerformanceResponse]) { performances = value }
 
     func send(request: ChatRequest) async throws -> ChatResponse {
         lastRequest = request
         return ChatResponse(
             reply: "Guanya 4de9fa.",
             intent: "comparison",
-            performances: [],
+            performances: performances,
             winnerLabel: "4de9fa",
             warnings: [],
             rulesetVersion: "concurs-2026",

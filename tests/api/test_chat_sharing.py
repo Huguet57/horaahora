@@ -30,20 +30,28 @@ class RecordingSharedConversations:
 
 
 class InvalidInterpretationChatModel:
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         del history, message
         raise ValueError("El proveïdor no ha retornat una interpretació vàlida")
 
-    async def resolve_contest(self, history, message, context) -> ParsedCastellQuery:
+    async def resolve_contest(
+        self, history, message, context, *, scenario=None
+    ) -> ParsedCastellQuery:
         raise AssertionError("No s'ha de resoldre cap consulta del Concurs")
 
 
 class UnavailableChatModel:
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         del history, message
         raise httpx.ConnectError("provider unavailable")
 
-    async def resolve_contest(self, history, message, context) -> ParsedCastellQuery:
+    async def resolve_contest(
+        self, history, message, context, *, scenario=None
+    ) -> ParsedCastellQuery:
         raise AssertionError("No s'ha de resoldre cap consulta del Concurs")
 
 

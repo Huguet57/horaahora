@@ -196,6 +196,39 @@ una primera petició d'encaminament, recupera només les edicions, colles o font
 fa una segona petició de resolució. Una resposta que no compleix l'esquema falla de manera
 explícita: no es reintenta amb un prompt alternatiu ni s'accepten formats antics del proveïdor.
 
+Les salutacions, les preguntes sobre l'assistent i la frustració tenen un intent
+`conversation` amb una resposta redactada pel model en la primera crida, sense files de
+càlcul ni un aclariment obligatori. Les peticions fora d'àmbit també reben una explicació
+pertinent. Les respostes factuals del Concurs continuen exigint les fonts recuperades i
+els punts els continua calculant exclusivament el motor determinista.
+
+En una conversa de càlcul, les modificacions parteixen de l'últim escenari vigent i
+conserven les colles, els castells i els resultats no modificats. Una consulta independent
+o un reinici explícit inicia un escenari nou. Aquesta interpretació es basa en els darrers
+12 missatges que envia el client; no afegeix persistència de converses ni memòria fora
+d'aquest historial.
+
+La comparativa de models usa escenaris sintètics de conversa, modificacions successives
+i controls de càlcul i consulta històrica. Executa el mateix servei del xat, sense base de
+dades ni registre de converses; els torns successius reben les respostes reals del model.
+Amb `OPENROUTER_API_KEY` disponible a l'entorn:
+
+```bash
+uv run --frozen python -m scripts.evaluate_chat_models \
+  --output /tmp/chat-evaluation.json --repetitions 3
+```
+
+Compara Gemini 3.7 Flash, Gemini 3.8 Flash, GPT-6 Luna i Claude Sonnet 5.5 amb el mateix
+raonament `low`, l'esquema estricte i la política `data_collection=deny` de producció.
+El resultat inclou les respostes, errors, latència, ús i cost reportat per OpenRouter,
+i empremtes dels prompts, esquemes i dades de prova. Les comprovacions automàtiques de
+resposta conversacional són bàsiques: la qualitat de la prosa també s'ha de revisar.
+
+La [comparativa del 30/09/2026](docs/chat-model-evaluation-20260930.md) inclou resultats,
+costos, limitacions i el registre complet de les tres passades dels quatre models.
+La [bateria ampliada de Gemini 3.8](docs/gemini38-extended-evaluation-20260930.md) prova
+100 situacions i 363 torns, amb diagnòstic separat dels errors del model i del producte.
+
 Abans de fusionar un canvi del rànquing, la bateria end-to-end es pot executar contra la URL
 real d'una Preview amb:
 

@@ -7,7 +7,9 @@ from backend.domain.calculator.models import (
 
 
 class CalculatorChatModelStub:
-    async def interpret(self, history: list[ChatTurn], message: str) -> ParsedCastellQuery:
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
         del history, message
         return ParsedCastellQuery(
             intent="comparison",
@@ -22,6 +24,8 @@ class CalculatorChatModelStub:
         history: list[ChatTurn],
         message: str,
         context: str,
+        *,
+        scenario=None,
     ) -> ParsedCastellQuery:
         del history, message, context
         raise AssertionError("El flux de càlcul no ha de resoldre coneixement del Concurs")

@@ -9,6 +9,7 @@ import com.ahuguet.castellsenvena.core.domain.chat.ConversationNotFoundException
 import com.ahuguet.castellsenvena.core.domain.chat.MessageDeliveryState
 import com.ahuguet.castellsenvena.core.domain.chat.PerformanceResponse
 import com.ahuguet.castellsenvena.core.domain.chat.ScoredCastellResponse
+import com.ahuguet.castellsenvena.core.domain.chat.ScenarioPerformance
 import com.ahuguet.castellsenvena.core.network.service.ChatRemoteService
 import java.io.IOException
 import java.time.Clock
@@ -91,6 +92,42 @@ class ChatPersistenceTest {
         assertEquals(ChatRole.USER, lastRequest.messages.last().role)
     }
 
+    @Test
+    fun completeScenarioSurvivesHistoryWindowAndReopening() = runTest {
+        val database = inMemoryDatabase()
+        val remote = StubChatRemoteService()
+        val repository = repository(database, remote)
+        val castells = listOf(
+            ScoredCastellResponse("3d10fm", "3de10fm", "loaded", 100, true, null),
+            ScoredCastellResponse("4d9fa", "4de9fa", "loaded", 90, true, null),
+            ScoredCastellResponse("5d9f", "5de9f", "loaded", 80, false, "loaded_limit"),
+            ScoredCastellResponse("4d8", "4de8", "unloaded", 70, true, null),
+            ScoredCastellResponse("3d8", "3de8", "unloaded", 60, false, "outside_top_three"),
+            ScoredCastellResponse("9d9f", "9de9f", "attempt", 0, false, "attempt"),
+        )
+        val original = listOf(PerformanceResponse("Vella", 260, castells))
+        remote.performances = original
+        val id = repository.createConversation("Llarga")
+        repository.send("Escenari original", id)
+        remote.performances = emptyList()
+        repeat(6) { repository.send("Hola", id) }
+        val reopened = repository(database, remote)
+        reopened.send("I si descarreguen el 5d9f?", id)
+        val request = remote.requests.last()
+        assertEquals(12, request.messages.size)
+        assertTrue(request.messages.none { it.content == "Escenari original" })
+        assertEquals(original.map(::ScenarioPerformance), request.scenario)
+
+        val replacement = listOf(PerformanceResponse("Nou", 100, castells.take(1)))
+        remote.performances = replacement
+        reopened.send("Comencem de nou: 3d10fm carregat", id)
+        reopened.send("I descarregat?", id)
+        assertEquals(replacement.map(::ScenarioPerformance), remote.requests.last().scenario)
+        val other = reopened.createConversation("Una altra")
+        reopened.send("Hola", other)
+        assertTrue(remote.requests.last().scenario.isEmpty())
+    }
+
     private fun TestScope.repository(database: CastellsDatabase, remote: ChatRemoteService) =
         DatabaseChatRepository(
             database = database,
@@ -104,6 +141,7 @@ class ChatPersistenceTest {
 
     private class StubChatRemoteService(private var failures: Int = 0) : ChatRemoteService {
         val requests = mutableListOf<ChatRequest>()
+        var performances: List<PerformanceResponse>? = null
 
         override suspend fun send(request: ChatRequest): ChatResponse {
             requests += request
@@ -114,7 +152,7 @@ class ChatPersistenceTest {
             return ChatResponse(
                 reply = "Guanya 4de9fa.",
                 intent = "comparison",
-                performances = listOf(
+                performances = performances ?: listOf(
                     PerformanceResponse(
                         label = "4de9fa",
                         total = 4105,

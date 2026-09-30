@@ -76,6 +76,24 @@ public struct ChatRequestMessage: Codable, Hashable, Sendable {
     }
 }
 
+/// Calculation inputs only: retain every castell and let the server recompute scores.
+public struct ScenarioCastell: Codable, Hashable, Sendable {
+    public let notation: String
+    public let outcome: String
+}
+
+public struct ScenarioPerformance: Codable, Hashable, Sendable {
+    public let label: String
+    public let castells: [ScenarioCastell]
+
+    public init(_ performance: PerformanceResponse) {
+        self.label = performance.label
+        self.castells = performance.castells.map {
+            ScenarioCastell(notation: $0.canonical ?? $0.input, outcome: $0.outcome)
+        }
+    }
+}
+
 public struct ChatRequest: Codable, Sendable {
     public let conversationID: UUID
     public let installationID: String
@@ -83,6 +101,7 @@ public struct ChatRequest: Codable, Sendable {
     public let ruleset: String
     public let messages: [ChatRequestMessage]
     public let shareForImprovement: Bool
+    public let scenario: [ScenarioPerformance]
 
     public init(
         conversationID: UUID,
@@ -90,7 +109,8 @@ public struct ChatRequest: Codable, Sendable {
         locale: String = "ca-ES",
         ruleset: String = "concurs-2026",
         messages: [ChatRequestMessage],
-        shareForImprovement: Bool = false
+        shareForImprovement: Bool = false,
+        scenario: [ScenarioPerformance] = []
     ) {
         self.conversationID = conversationID
         self.installationID = installationID
@@ -98,6 +118,7 @@ public struct ChatRequest: Codable, Sendable {
         self.ruleset = ruleset
         self.messages = Array(messages.suffix(12))
         self.shareForImprovement = shareForImprovement
+        self.scenario = scenario
     }
 }
 

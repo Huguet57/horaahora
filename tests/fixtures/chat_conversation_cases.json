@@ -1,0 +1,1262 @@
+{
+  "version": "2026-09-30-v1",
+  "description": "Synthetic regression scenarios for conversation and scenario edits. No shared conversation IDs or raw database exports. Expected state includes uncounted castells.",
+  "scenarios": [
+    {
+      "id": "identity",
+      "category": "conversation",
+      "history": [],
+      "steps": [
+        {
+          "message": "Ets una IA?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "IA",
+                "intel·ligència artificial",
+                "intel.ligència artificial"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "greeting",
+      "category": "conversation",
+      "history": [],
+      "steps": [
+        {
+          "message": "Hola, bones!",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "frustration",
+      "category": "conversation",
+      "history": [
+        {
+          "role": "user",
+          "content": "Quina combinació guanyaria?"
+        },
+        {
+          "role": "assistant",
+          "content": "Quines actuacions vols comparar?"
+        }
+      ],
+      "steps": [
+        {
+          "message": "Deixa-ho estar, passo de tu",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "capabilities",
+      "category": "conversation",
+      "history": [],
+      "steps": [
+        {
+          "message": "Què pots fer per mi?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "castell",
+                "concurs"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "prediction",
+      "category": "conversation",
+      "history": [],
+      "steps": [
+        {
+          "message": "Qui creus que guanyarà el Concurs aquest any?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_excludes": [
+              "guanyarà segur"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "probability",
+      "category": "conversation",
+      "history": [],
+      "steps": [
+        {
+          "message": "Quina probabilitat hi ha de descarregar el 3d10sm?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_excludes": [
+              "%"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "off_topic",
+      "category": "conversation",
+      "history": [],
+      "steps": [
+        {
+          "message": "Recomana una pel·lícula de ciència-ficció",
+          "expected": {
+            "intents": [
+              "unsupported"
+            ],
+            "performances": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "partial_update_keeps_four_groups",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "Ara la Vella fa el 3net i el 4d10 carregats",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "corrections_keep_unaffected_groups",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm carregat, 3d9sf carregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm carregat (4.095 punts), 3de9sf carregat (5.165 punts). Total: 13.365 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vila per 360 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "Canvia només la torre de la Joves per un 3net carregat",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "message": "No, la Joves no fa el 3net: fa la td9f carregada",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "message": "I a la Joves, en lloc del 3d10 posa el pd7sf carregat",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "Pde7sf",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "global_change_is_not_undone",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm carregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm carregat (3.755 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 11.810 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "I si tot el que hem dit és descarregat?",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "message": "Ara només canvia el 4d10 de la Vella a carregat",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "replace_whole_group",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "No, la Vella fa només 4d10 carregat, 3net carregat i 2d9sm carregat",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "append_does_not_drop_castells",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "La Vila també carrega un pd9fmp, a més dels tres castells que ja té",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "Pde9fmp",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "independent_lookup_resets_context",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "Quant val el 5d9f?",
+          "expected": {
+            "intents": [
+              "lookup"
+            ],
+            "performances": [
+              {
+                "label": "Amb 5d9f",
+                "castells": [
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "explicit_new_comparison",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "Comencem de nou: Joves 5d9f contra Vella 4d9fa",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9fa",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ambiguous_group_asks",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "Canvia el 4d10 a carregat",
+          "expected": {
+            "intents": [
+              "clarification"
+            ],
+            "needs_clarification": true,
+            "performances": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "pending_notation_correction",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d10fm descarregat. Joves: td0sm carregat."
+        },
+        {
+          "role": "assistant",
+          "content": "Quan dius «td0sm», a quin castell et refereixes?"
+        }
+      ],
+      "steps": [
+        {
+          "message": "td9f",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "only_recent_summary_available",
+      "category": "context",
+      "history": [
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm carregat (3.755 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 11.810 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "Ara la Jove descarrega el 3 i canvia el 5 pel 4net descarregat",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "calculation_control",
+      "category": "control",
+      "history": [],
+      "steps": [
+        {
+          "message": "Vella: 5d9f, 4d9fa i 3d10fm. Joves: 3d10fm, 4d10fm i 3d9fa. Tot descarregat.",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de9fa",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9fa",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "grounded_history_control",
+      "category": "control",
+      "history": [],
+      "steps": [
+        {
+          "message": "Qui va guanyar el Concurs del 2024?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "Vilafranca"
+              ],
+              [
+                "2024"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "multi_group_update_keeps_omitted_group",
+      "category": "context",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf descarregat, 4d10fm descarregat, 3d9sf descarregat\nJoves: 4d9sf descarregat, 3d10fm descarregat, 2d9sm descarregat\nVila: 3d10fm descarregat, 4d10fm descarregat, 9d9f descarregat\nJove: 3d10fm descarregat, 4d10fm descarregat, 5d9f descarregat"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf descarregat (6.220 punts). Total: 15.255 punts. Joves: 4de9sf descarregat (4.105 punts), 3de10fm descarregat (4.525 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Vila: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 9de9f descarregat (5.180 punts). Total: 14.635 punts. Jove: 3de10fm descarregat (4.525 punts), 4de10fm descarregat (4.930 punts), 5de9f descarregat (3.125 punts). Total: 12.580 punts. Guanya Vella per 620 punts."
+        }
+      ],
+      "steps": [
+        {
+          "message": "Ara la Vella fa el 3net i el 4d10 carregats; la Vila carrega el 9d9f, i la Joves carrega la td9f",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vila",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -38,6 +38,7 @@ class ParsedCastellQuery:
         "comparison",
         "total",
         "contest_info",
+        "conversation",
         "clarification",
         "unsupported",
     ]

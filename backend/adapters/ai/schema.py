@@ -132,15 +132,29 @@ class QueryRoutingPayload(StrictPayloadModel):
         "comparació",
         "total",
         "informació_concurs",
+        "conversa",
         "aclariment",
         "no_compatible",
     ]
     actuacions: list[ParsedPerformancePayload] = Field(max_length=8)
     aclariment: str | None = Field(max_length=500)
     consulta_concurs: ContestKnowledgeQueryPayload | None
+    resposta: str | None = Field(max_length=1_500)
 
     @model_validator(mode="after")
     def validate_intent_payload(self) -> Self:
+        if self.intent in {"conversa", "no_compatible"}:
+            if (
+                not self.resposta
+                or not self.resposta.strip()
+                or self.actuacions
+                or self.aclariment is not None
+                or self.consulta_concurs is not None
+            ):
+                raise ValueError("conversa i no_compatible exigeixen només una resposta")
+            return self
+        if self.resposta is not None:
+            raise ValueError("resposta només es permet per a conversa o no_compatible")
         if self.intent == "informació_concurs":
             if self.consulta_concurs is None or self.actuacions or self.aclariment is not None:
                 raise ValueError(
@@ -158,6 +172,7 @@ class QueryRoutingPayload(StrictPayloadModel):
             intent=self.intent,
             performances=self.actuacions,
             clarification=self.aclariment,
+            answer=self.resposta,
             knowledge_query=(
                 self.consulta_concurs.to_domain() if self.consulta_concurs is not None else None
             ),
@@ -170,6 +185,7 @@ class ResolvedQueryPayload(StrictPayloadModel):
         "comparació",
         "total",
         "informació_concurs",
+        "conversa",
         "aclariment",
         "no_compatible",
     ]
@@ -179,14 +195,20 @@ class ResolvedQueryPayload(StrictPayloadModel):
 
     @model_validator(mode="after")
     def validate_intent_payload(self) -> Self:
-        if self.intent == "informació_concurs":
-            if not self.resposta or self.actuacions or self.aclariment is not None:
+        if self.intent in {"informació_concurs", "conversa", "no_compatible"}:
+            if (
+                not self.resposta
+                or not self.resposta.strip()
+                or self.actuacions
+                or self.aclariment is not None
+            ):
                 raise ValueError(
-                    "informació_concurs exigeix resposta, actuacions buides i cap aclariment"
+                    "una resposta informativa o conversacional exigeix resposta, "
+                    "actuacions buides i cap aclariment"
                 )
             return self
         if self.resposta is not None:
-            raise ValueError("resposta només es permet per a informació_concurs")
+            raise ValueError("resposta només es permet per a informació_concurs o conversa")
         if self.intent == "aclariment" and (self.actuacions or not self.aclariment):
             raise ValueError("aclariment exigeix una pregunta i actuacions buides")
         return self
@@ -213,6 +235,7 @@ def _to_domain(
         "comparació": "comparison",
         "total": "total",
         "informació_concurs": "contest_info",
+        "conversa": "conversation",
         "aclariment": "clarification",
         "no_compatible": "unsupported",
     }
