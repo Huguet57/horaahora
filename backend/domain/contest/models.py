@@ -12,7 +12,9 @@ class ContestKnowledgeQuery:
     result_scope: Literal["editions", "winners", "classification"] | None = None
     score_scope: Literal["ranking"] | None = None
     score_outcome: Literal["loaded", "unloaded", "both"] | None = None
-    ranking_selection: Literal["top", "bottom", "position", "neighbors", "full"] | None = None
+    ranking_selection: Literal["top", "bottom", "position", "neighbors", "above", "full"] | None = (
+        None
+    )
     ranking_limit: int | None = None
     ranking_notation: str | None = None
 

@@ -166,6 +166,17 @@ class SnapshotContestKnowledgeRepository:
             "Font: taula_puntuacions_concurs_castells_2026.csv.",
             f"Ordre: de més a menys punts {outcome_label}.",
         ]
+        if query.ranking_selection == "above":
+            lines.extend(
+                [
+                    f"Referència: {presentation.focus_notation} ({outcome_label}).",
+                    "Selecció: tots els castells amb punts estrictament superiors i, al final, "
+                    "el castell de referència; no és una actuació ni una combinació computable.",
+                    "No són probabilitats ni evidència que una colla pugui fer aquests castells.",
+                ]
+            )
+            if len(presentation.rows) == 1:
+                lines.append("Cap castell té més punts amb aquest resultat a la taula 2026.")
         if score_outcome == "both":
             lines.append("Posició | Castell | Punts carregat | Punts descarregat")
             lines.extend(
@@ -190,7 +201,7 @@ class SnapshotContestKnowledgeRepository:
             return None
         selection = query.ranking_selection or "full"
         focus_notation = None
-        if selection in {"position", "neighbors"}:
+        if selection in {"position", "neighbors", "above"}:
             focus_notation = (
                 self.normalizer.normalize(query.ranking_notation or "") or rows[0].notation
             )
@@ -198,7 +209,11 @@ class SnapshotContestKnowledgeRepository:
                 (row for row in rows if row.notation == focus_notation),
                 rows[0],
             )
-            title = f"{focus_row.notation} · {focus_row.position}a posició"
+            title = (
+                f"Castells per sobre del {focus_row.notation}"
+                if selection == "above"
+                else f"{focus_row.notation} · {focus_row.position}a posició"
+            )
         else:
             title = "Rànquing de puntuacions 2026"
         return ScorePresentation(
@@ -231,7 +246,7 @@ class SnapshotContestKnowledgeRepository:
             return rows[: query.ranking_limit or 1]
         if selection == "bottom":
             return rows[-(query.ranking_limit or 1) :]
-        if selection in {"position", "neighbors"}:
+        if selection in {"position", "neighbors", "above"}:
             canonical = self.normalizer.normalize(query.ranking_notation or "")
             if canonical is None:
                 return []
@@ -243,6 +258,14 @@ class SnapshotContestKnowledgeRepository:
                 return []
             if selection == "position":
                 return [rows[index]]
+            if selection == "above":
+                threshold = self.score_table.points(canonical, sort_outcome)
+                return [
+                    row
+                    for row in rows
+                    if self.score_table.points(row.notation, sort_outcome) > threshold
+                    or row.notation == canonical
+                ]
             start = max(0, min(index - NEIGHBOR_WINDOW // 2, len(rows) - NEIGHBOR_WINDOW))
             return rows[start : start + NEIGHBOR_WINDOW]
         return rows

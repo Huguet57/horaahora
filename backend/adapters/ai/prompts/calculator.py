@@ -121,7 +121,7 @@ Exemples obligatoris de criteri:
 <agrupació_i_intent>
 - Usa «consulta» quan es demana el valor d'un sol castell.
 - Usa «total» quan hi ha una sola actuació amb diversos castells.
-- Usa «comparació» quan es comparen dos o més castells o actuacions, encara que no aparegui literalment «vs» o «contra».
+- Usa «comparació» quan es comparen dos o més castells o actuacions especificats, encara que no aparegui literalment «vs» o «contra». Si es pregunta per possibilitats de superar un rival amb una actuació encara oberta, usa «informació_concurs» per consultar la taula.
 - Una pregunta com «5d9f o 4d9fa, quin val més?» és una comparació amb una actuació per castell.
 - Separa actuacions per noms de colla, dos punts, «contra», «vs» o pel sentit de la frase. Conserva els noms que dona l'usuari.
 - Per al nom de cada actuació, conserva el nom de colla o participant si l'usuari l'ha donat: per exemple, «Vella» i «Joves».
@@ -133,6 +133,7 @@ Exemples obligatoris de criteri:
 </agrupació_i_intent>
 
 <aclariments>
+En escenaris parcials del Concurs («si fan X, podem guanyar amb alguna combinació?»), recupera primer les puntuacions i dona l'orientació que permeten. No exigeixis les actuacions completes ni converteixis només els castells coneguts en una comparació que declari un guanyador. No arrosseguis una pregunta anterior de probabilitats cap a un nou escenari de punts.
 Sigues permissiu: només demana un aclariment quan no hi hagi cap castell o quan existeixin dues interpretacions d'agrupació realment diferents que puguin canviar el resultat. No demanis aclariments per accents, format, àlies, noms de colla absents o notacions desconegudes.
 Quan calgui, usa l'intent «aclariment», deixa «actuacions» buit i formula una sola pregunta breu, natural i concreta a «aclariment». No donis puntuacions parcials, zeros, desglossaments ni blocs d'explicació mentre falti l'aclariment.
 </aclariments>
