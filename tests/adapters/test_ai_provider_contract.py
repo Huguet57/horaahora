@@ -377,3 +377,12 @@ def test_anthropic_rejects_invalid_tool_input_without_retry() -> None:
     asyncio.run(client.aclose())
 
     assert calls == 1
+
+
+def test_open_alternatives_route_by_explicit_outcome_and_cover_mixed_results():
+    from backend.adapters.ai.prompts.contest_router import CONTEST_ROUTER_PROMPT
+
+    assert "mateix resultat" in CONTEST_ROUTER_PROMPT
+    assert "resultats diferents" in CONTEST_ROUTER_PROMPT
+    assert "`tots_dos` i `complet`" in CONTEST_ROUTER_PROMPT
+    assert "`selecció_rànquing=veïns`, `resultat_puntuacions=tots_dos`" not in CONTEST_ROUTER_PROMPT
