@@ -46,3 +46,17 @@ def test_unfinished_scenario_does_not_pass_and_missing_cost_is_not_zero():
     assert summary["passed_turns"] == 0
     assert summary["errors"] == 1
     assert summary["total_cost_usd"] is None
+
+
+def test_lookup_grader_ignores_generated_label_but_rejects_stale_participants():
+    castell = {"canonical": "5de9f", "outcome": "unloaded"}
+    expected = {"intents": ["lookup"], "performances": [{"label": "A", "castells": [castell]}]}
+    result = {
+        "intent": "lookup",
+        "needs_clarification": False,
+        "reply": "El 5de9f val 3.125 punts.",
+        "performances": [{"label": "Amb 5d9f", "castells": [castell]}],
+    }
+    assert check_result(result, expected) == []
+    result["performances"].append({"label": "Joves", "castells": [castell]})
+    assert "scenario_state" in check_result(result, expected)

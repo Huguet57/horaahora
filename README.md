@@ -224,6 +224,9 @@ El resultat inclou les respostes, errors, latència, ús i cost reportat per Ope
 i empremtes dels prompts, esquemes i dades de prova. Les comprovacions automàtiques de
 resposta conversacional són bàsiques: la qualitat de la prosa també s'ha de revisar.
 
+La [comparativa del 30/09/2026](docs/chat-model-evaluation-20260930.md) inclou resultats,
+costos, limitacions i el registre complet de les tres passades dels quatre models.
+
 Abans de fusionar un canvi del rànquing, la bateria end-to-end es pot executar contra la URL
 real d'una Preview amb:
 

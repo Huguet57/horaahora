@@ -52,10 +52,17 @@ def check_result(result: dict, expected: dict) -> list[str]:
         failures.append("intent")
     if result["needs_clarification"] != expected.get("needs_clarification", False):
         failures.append("clarification")
-    if "performances" in expected and signature(result["performances"]) != signature(
-        expected["performances"]
-    ):
-        failures.append("scenario_state")
+    if "performances" in expected:
+        actual_state = signature(result["performances"])
+        expected_state = signature(expected["performances"])
+        # An independent single-castell lookup has no user-supplied participant name.
+        # The generated label is not part of its meaning; named comparisons stay exact.
+        if expected["intents"] == ["lookup"]:
+            matches = sorted(actual_state.values()) == sorted(expected_state.values())
+        else:
+            matches = actual_state == expected_state
+        if not matches:
+            failures.append("scenario_state")
     if not result["reply"].strip() or result["reply"] == "Quin castell vols calcular?":
         failures.append("generic_reply")
     reply = result["reply"].casefold()
