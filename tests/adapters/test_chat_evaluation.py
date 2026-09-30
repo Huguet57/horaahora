@@ -60,3 +60,55 @@ def test_lookup_grader_ignores_generated_label_but_rejects_stale_participants():
     assert check_result(result, expected) == []
     result["performances"].append({"label": "Joves", "castells": [castell]})
     assert "scenario_state" in check_result(result, expected)
+
+
+def test_extended_grader_checks_totals_counted_castells_and_ranking_rows():
+    result = {
+        "intent": "total",
+        "needs_clarification": False,
+        "reply": "Una actuació.",
+        "performances": [
+            {
+                "label": "A",
+                "total": 845,
+                "castells": [
+                    {"canonical": "4de8", "outcome": "unloaded", "counted": True},
+                    {"canonical": "3de7", "outcome": "attempt", "counted": False},
+                ],
+            }
+        ],
+        "presentation": None,
+    }
+    expected = {
+        "intents": ["total"],
+        "totals": {"A": 845},
+        "counted": {"A": [["4de8", "unloaded"]]},
+    }
+    assert check_result(result, expected) == []
+    result["performances"][0]["total"] = 1260
+    result["performances"][0]["castells"][1]["counted"] = True
+    assert check_result(result, expected) == ["totals", "counted"]
+    assert "presentation" in check_result(
+        result,
+        {"intents": ["total"], "presentation": {"outcome": "both", "notations": ["3de10sm"]}},
+    )
+
+
+def test_extended_grader_handles_unnamed_comparisons_and_forbidden_claims():
+    result = {
+        "intent": "comparison",
+        "needs_clarification": False,
+        "reply": "Un 80% segur.",
+        "performances": [
+            {"label": "Amb 4de8", "castells": [{"canonical": "4de8", "outcome": "unloaded"}]}
+        ],
+    }
+    expected = {
+        "intents": ["comparison"],
+        "ignore_labels": True,
+        "performances": [
+            {"label": "A", "castells": [{"canonical": "4de8", "outcome": "unloaded"}]}
+        ],
+        "reply_forbids_patterns": [r"\d+\s*%"],
+    }
+    assert check_result(result, expected) == ["reply_forbidden_pattern"]

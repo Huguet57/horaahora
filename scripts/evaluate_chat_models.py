@@ -12,6 +12,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import statistics
 import time
 from dataclasses import asdict
@@ -57,12 +58,38 @@ def check_result(result: dict, expected: dict) -> list[str]:
         expected_state = signature(expected["performances"])
         # An independent single-castell lookup has no user-supplied participant name.
         # The generated label is not part of its meaning; named comparisons stay exact.
-        if expected["intents"] == ["lookup"]:
+        if expected["intents"] == ["lookup"] or expected.get("ignore_labels", False):
             matches = sorted(actual_state.values()) == sorted(expected_state.values())
         else:
             matches = actual_state == expected_state
         if not matches:
             failures.append("scenario_state")
+    if "totals" in expected:
+        actual = {p["label"].casefold(): p["total"] for p in result["performances"]}
+        wanted = {label.casefold(): total for label, total in expected["totals"].items()}
+        if actual != wanted:
+            failures.append("totals")
+    if "counted" in expected:
+        actual = {
+            p["label"].casefold(): sorted(
+                [c["canonical"], c["outcome"]] for c in p["castells"] if c["counted"]
+            )
+            for p in result["performances"]
+        }
+        wanted = {
+            label.casefold(): sorted(castells) for label, castells in expected["counted"].items()
+        }
+        if actual != wanted:
+            failures.append("counted")
+    if "presentation" in expected:
+        presentation = result.get("presentation")
+        wanted = expected["presentation"]
+        if (
+            not presentation
+            or presentation["outcome"] != wanted["outcome"]
+            or [row["notation"] for row in presentation["rows"]] != wanted["notations"]
+        ):
+            failures.append("presentation")
     if not result["reply"].strip() or result["reply"] == "Quin castell vols calcular?":
         failures.append("generic_reply")
     reply = result["reply"].casefold()
@@ -72,6 +99,9 @@ def check_result(result: dict, expected: dict) -> list[str]:
     for term in expected.get("reply_excludes", []):
         if term.casefold() in reply:
             failures.append("reply_forbidden")
+    for pattern in expected.get("reply_forbids_patterns", []):
+        if re.search(pattern, reply):
+            failures.append("reply_forbidden_pattern")
     return failures
 
 
@@ -100,6 +130,9 @@ async def evaluate_scenario(model_name: str, scenario: dict, *, effort: str = "l
                 "provider": payload.get("provider"),
                 "usage": payload.get("usage"),
                 "finish_reasons": [c.get("finish_reason") for c in payload.get("choices", [])],
+                "response_content": [
+                    c.get("message", {}).get("content") for c in payload.get("choices", [])
+                ],
             }
         )
 
@@ -190,11 +223,12 @@ def summarize(runs: list[dict]) -> dict:
 async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--dataset", type=Path, default=DATASET)
     parser.add_argument("--repetitions", type=int, choices=range(1, 6), default=3)
     parser.add_argument("--models", nargs="+", choices=MODELS, default=list(MODELS))
     parser.add_argument("--effort", choices=["low", "medium", "high"], default="low")
     args = parser.parse_args()
-    raw = DATASET.read_bytes()
+    raw = args.dataset.read_bytes()
     dataset = json.loads(raw)
     gate = asyncio.Semaphore(4)
 
