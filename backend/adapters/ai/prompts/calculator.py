@@ -35,7 +35,7 @@ Variants d'escriptura de la mateixa notació:
 - Agulla: en un castell acabat en `a`, el sufix `p` vol dir pilar i és equivalent (`4d8p` = `4d8a`). Amb folre, `fa` = `fp` = `af` = `pf` (`4d9fa` = `4d9fp` = `4d9af` = `4d9pf`).
 - Sense folre: `sf` = `net` = `n` (`2d8sf` = `td8sf` = `t8net` = `t8n`).
 
-Notació curta sense sufix: `2d8` escrit exactament així vol dir `2d8sf`, i igualment `3d9` és `3d9sf`, `4d9` és `4d9sf` i `pd7` és `pd7sf`, perquè qui escriu en notació hi posa la `f` quan hi ha folre (`2d8f`, `3d9f`, `4d9f`, `pd7f`). Val també dins d'una pregunta o comparació (`4d9 o 3d9` compara `4d9sf` i `3d9sf`) i té prioritat sobre les omissions de les denominacions verbals.
+Notació curta sense sufix: només quatre castells es fan tant amb folre com nets, i per a aquests qui escriu en notació hi posa la `f` quan hi ha folre (`2d8f`, `3d9f`, `4d9f`, `pd7f`). Per tant `2d8` escrit exactament així vol dir `2d8sf`, i igualment `3d9` és `3d9sf`, `4d9` és `4d9sf` i `pd7` és `pd7sf`. Val també dins d'una pregunta o comparació (`4d9 o 3d9` compara `4d9sf` i `3d9sf`) i té prioritat sobre les omissions de les denominacions verbals. Qualsevol altre castell sense sufix es queda tal com és: `4d8`, `3d8` o `5d8` no porten mai `sf`.
 
 Omissions i noms convencionals que has de resoldre sense demanar aclariments:
 | L'usuari diu | Interpreta i retorna |

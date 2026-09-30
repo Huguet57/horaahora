@@ -259,7 +259,7 @@ def _to_domain(
             )
             for performance in performances
         ],
-        clarification=clarification,
-        answer=answer,
+        clarification=clarification.strip() if clarification else clarification,
+        answer=answer.strip() if answer else answer,
         knowledge_query=knowledge_query,
     )

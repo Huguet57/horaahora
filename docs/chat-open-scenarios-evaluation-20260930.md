@@ -110,3 +110,31 @@ negació explícita i explica que l'assistent és una IA.
 Es pot repetir amb l'avaluador i `--dataset tests/fixtures/chat_creator_cases.json`.
 Empremta de prompts/esquemes amb el perfil:
 `e6b409e6a99c7b2352dd4091f03fb8ba1251da153eee59d8aed1365afc22ba1f`.
+
+
+## Regressió posterior: resultat demanat i comparacions mixtes
+
+S'ha substituït la regla que forçava sempre veïns amb totes dues puntuacions. Quan
+la referència i les alternatives tenen el mateix resultat explícit, es recuperen
+els veïns d'aquell resultat. Per comparacions mixtes o alternatives sense resultat
+concret, es recupera la taula completa. Un fragment mixt de veïns no justifica
+concloure que no hi ha cap alternativa.
+
+Prova real posterior a la correcció, raonament `low`, una passada per model:
+
+| Model | Quatre casos nous | 17 torns anteriors | Total automàtic |
+|---|---:|---:|---:|
+| Gemini 3.8 Flash | 4/4 | 17/17 | 21/21 |
+| Gemini 3.7 Flash | 4/4 | 16/17 | 20/21 |
+
+Els casos nous comproven carregat contra carregat, descarregat contra descarregat
+i les dues direccions mixtes amb el 3de7a. Tots dos models recuperen 7de7a carregat
+(570) i 5de7a carregat (605) per superar 3de7a carregat (485), i 4de7a descarregat
+(515) per superar aquella referència carregada.
+
+L'únic marcat de 3.7 és `reply_content` a `standalone_open_question`: dona els punts
+correctes i diu que guanyar dependrà del conjunt dels tres millors castells de cada
+colla, però el verificador no inclou «dependrà» entre les formulacions acceptades.
+Es conserva el resultat automàtic sense corregir-lo retrospectivament. No hi ha
+errors de petició. Cost dels 21 torns: 0,185261325 USD amb 3.8 i 0,19802685 USD
+amb 3.7. Registre complet: [chat-outcomes-20260930.json](evaluations/chat-outcomes-20260930.json).

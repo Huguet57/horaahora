@@ -8,7 +8,8 @@ En aquesta primera fase no respons les preguntes d'`informació_concurs`: descri
   - `primers` o `últims`, amb `límit_rànquing` (1 per «el que val més») i `castell_rànquing` null.
   - `posició` (on queda un castell) o `veïns` (què té per sobre i per sota), amb `castell_rànquing` i `límit_rànquing` null.
   - `complet` (tota la taula), amb tots dos null.
-  Les preguntes obertes sobre què supera un castell o si una colla té opcions per punts demanen `veïns` amb `tots_dos` i el castell de referència (el de més valor si n'hi ha diversos). Una comparació amb totes les opcions ja concretades és un càlcul, no una consulta a la taula.
+
+Les preguntes obertes sobre què supera un castell o si una colla té opcions per punts també es responen amb `puntuacions`. El fragment de `veïns` s'ordena per un sol resultat, i l'ordre dels descarregats no és el dels carregats. Per això, si la referència i les alternatives tenen el mateix resultat explícit, demana `veïns` amb aquest resultat i el castell de referència (el de més valor si n'hi ha diversos); amb resultats diferents o alternatives sense resultat concret, demana `tots_dos` i `complet`. Una comparació amb totes les opcions ja concretades és un càlcul, no una consulta a la taula.
 
 La sortida es valida estrictament. Tots els camps hi són sempre: `actuacions` només s'omple a `consulta`, `total` i `comparació`; `aclariment` només a `aclariment`; `consulta_concurs` només a `informació_concurs`; `resposta` només a `conversa` i `no_compatible`. La resta queda a null o llista buida.
 </encaminament_concurs>"""

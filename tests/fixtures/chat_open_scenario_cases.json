@@ -637,6 +637,144 @@
           }
         }
       ]
+    },
+    {
+      "id": "loaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quin castell carregat supera un 3de7a carregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "485"
+              ],
+              [
+                "570",
+                "605"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ],
+            "presentation": {
+              "outcome": "loaded",
+              "notations": [
+                "5de7a",
+                "7de7a",
+                "3de7a",
+                "5de7",
+                "4de7a"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "unloaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quin castell descarregat supera un 3de7a descarregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "545"
+              ],
+              [
+                "555",
+                "565"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ],
+            "presentation": {
+              "outcome": "unloaded",
+              "notations": [
+                "5de7",
+                "7de7",
+                "3de7a",
+                "4de7a",
+                "3de7"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "mixed_loaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quins castells carregats són els més propers en punts per sobre del 3de7a descarregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "545"
+              ],
+              [
+                "570",
+                "605"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "mixed_unloaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quin castell descarregat és el més proper en punts per sobre del 3de7a carregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "485"
+              ],
+              [
+                "515",
+                "545",
+                "555",
+                "565"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

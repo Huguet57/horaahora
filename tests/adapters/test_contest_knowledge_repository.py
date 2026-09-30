@@ -257,3 +257,35 @@ def test_unknown_result_filter_returns_an_explicit_empty_context() -> None:
     assert "1900" in context
     assert "Colla Inexistent" in context
     assert "No completis aquesta absència" in context
+
+
+def test_loaded_alternatives_include_castells_outside_the_unloaded_neighbor_window():
+    repository = SnapshotContestKnowledgeRepository.default()
+    loaded = repository.score_presentation(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="loaded",
+            ranking_selection="neighbors",
+            ranking_notation="3de7a",
+        )
+    )
+    assert loaded is not None
+    points = {row.notation: row.loaded_points for row in loaded.rows}
+    assert points["3de7a"] == 485
+    assert points["7de7a"] == 570
+    assert points["5de7a"] == 605
+
+    mixed = repository.score_presentation(
+        ContestKnowledgeQuery(
+            source="scores",
+            score_scope="ranking",
+            score_outcome="both",
+            ranking_selection="full",
+        )
+    )
+    assert mixed is not None
+    rows = {row.notation: row for row in mixed.rows}
+    assert len(rows) == 47
+    assert rows["7de7a"].loaded_points > rows["3de7a"].unloaded_points == 545
+    assert rows["4de7a"].unloaded_points > rows["3de7a"].loaded_points == 485

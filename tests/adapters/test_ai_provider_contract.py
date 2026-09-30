@@ -268,6 +268,20 @@ def test_resolution_payload_keeps_information_and_calculation_exclusive() -> Non
     assert len(recalculation.performances[0].castells) == 5
 
 
+def test_model_written_text_is_trimmed() -> None:
+    # Constrained decoding sometimes closes the string after stray line breaks.
+    conversation = dict(INFORMATION_RESOLUTION, intent="conversa", resposta="Hola!\n\n")
+    clarification = dict(
+        CALCULATION_ROUTE, intent="aclariment", actuacions=[], aclariment="Quin castell?\n"
+    )
+
+    assert ResolvedQueryPayload.model_validate(conversation).to_domain().answer == "Hola!"
+    assert (
+        QueryRoutingPayload.model_validate(clarification).to_domain().clarification
+        == "Quin castell?"
+    )
+
+
 def test_openai_uses_routing_then_dynamic_resolution_prompts() -> None:
     calls: list[dict] = []
 
@@ -445,3 +459,12 @@ def test_anthropic_rejects_refused_or_truncated_output(stop_reason: str) -> None
     with pytest.raises(ValueError, match=stop_reason):
         asyncio.run(model.interpret([], "5d9f o 4d9fa?"))
     asyncio.run(client.aclose())
+
+
+def test_open_alternatives_route_by_explicit_outcome_and_cover_mixed_results():
+    from backend.adapters.ai.prompts.contest_router import CONTEST_ROUTER_PROMPT
+
+    assert "mateix resultat" in CONTEST_ROUTER_PROMPT
+    assert "resultats diferents" in CONTEST_ROUTER_PROMPT
+    assert "`tots_dos` i `complet`" in CONTEST_ROUTER_PROMPT
+    assert "`selecció_rànquing=veïns`, `resultat_puntuacions=tots_dos`" not in CONTEST_ROUTER_PROMPT
