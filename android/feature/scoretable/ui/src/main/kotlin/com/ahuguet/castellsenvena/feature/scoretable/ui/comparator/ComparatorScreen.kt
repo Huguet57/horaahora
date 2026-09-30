@@ -11,6 +11,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,10 +32,14 @@ fun ComparatorScreen(model: ComparatorViewModel?, modifier: Modifier = Modifier)
         ContentUnavailable(icon = Icons.Filled.Warning, title = "No s'ha pogut obrir la taula", modifier = modifier)
         return
     }
-    var openScenarioId by rememberSaveable { mutableStateOf<String?>(null) }
+    val state by model.state.collectAsState()
+    var savedScenarioId by rememberSaveable { mutableStateOf<String?>(null) }
+    // The scenario that was open may be gone when the screen comes back after the process died:
+    // an untouched first scenario loads as none, and the list says so.
+    val openScenarioId = savedScenarioId?.takeIf { id -> state.scenarios.any { it.id == id } }
     val reduceMotion = LocalReduceMotion.current
 
-    BackHandler(enabled = openScenarioId != null) { openScenarioId = null }
+    BackHandler(enabled = openScenarioId != null) { savedScenarioId = null }
 
     AnimatedContent(
         targetState = openScenarioId,
@@ -55,11 +60,11 @@ fun ComparatorScreen(model: ComparatorViewModel?, modifier: Modifier = Modifier)
                 model = model,
                 onOpen = { id ->
                     model.show(id)
-                    openScenarioId = id
+                    savedScenarioId = id
                 },
             )
         } else {
-            ComparatorScenarioScreen(model = model, onBack = { openScenarioId = null })
+            ComparatorScenarioScreen(model = model, onBack = { savedScenarioId = null })
         }
     }
 }
