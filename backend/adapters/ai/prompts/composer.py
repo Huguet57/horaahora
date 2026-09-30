@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from backend.adapters.ai.prompts.aleta import ALETA_PROMPT
 from backend.adapters.ai.prompts.calculator import CALCULATOR_PROMPT
 from backend.adapters.ai.prompts.contest_router import CONTEST_ROUTER_PROMPT
 from backend.adapters.ai.prompts.creator import CREATOR_PROMPT
@@ -15,6 +16,7 @@ class PromptModule:
 INTERPRETATION_MODULES = (
     PromptModule("calculator", CALCULATOR_PROMPT),
     PromptModule("creator", CREATOR_PROMPT),
+    PromptModule("aleta", ALETA_PROMPT),
     PromptModule("contest_router", CONTEST_ROUTER_PROMPT),
 )
 
