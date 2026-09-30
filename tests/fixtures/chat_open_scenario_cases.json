@@ -1,0 +1,780 @@
+{
+  "description": "Open scenario regressions including the user-reported conversation; exact scores checked against the versioned table.",
+  "scenarios": [
+    {
+      "id": "reported_open_question",
+      "category": "open_scenarios",
+      "history": [
+        {
+          "role": "user",
+          "content": "Ets una IA?"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        },
+        {
+          "role": "user",
+          "content": "Diguem com de probable es que es descarregui el 3d10sm"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        }
+      ],
+      "steps": [
+        {
+          "message": "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.525",
+                "4525"
+              ],
+              [
+                "si",
+                "només",
+                "resta",
+                "complet",
+                "parcial",
+                "no garanteix"
+              ],
+              [
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "3de9sf",
+                "3d9sf",
+                "2de9sm",
+                "2d9sm",
+                "pde9fmp",
+                "pd9fmp",
+                "quatre de deu",
+                "quatre de 10"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "reported_final_greeting",
+      "category": "open_scenarios",
+      "history": [
+        {
+          "role": "user",
+          "content": "Ets una IA?"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        },
+        {
+          "role": "user",
+          "content": "Diguem com de probable es que es descarregui el 3d10sm"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        },
+        {
+          "role": "user",
+          "content": "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?"
+        },
+        {
+          "role": "assistant",
+          "content": "Quins altres castells o actuacions completes vols comparar per a cada colla?"
+        },
+        {
+          "role": "user",
+          "content": "Paso de tu"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        }
+      ],
+      "steps": [
+        {
+          "message": "Hola mates",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "fresh_reported_sequence",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Ets una IA?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "sí",
+                "soc",
+                "sóc"
+              ]
+            ]
+          }
+        },
+        {
+          "message": "Diguem com de probable es que es descarregui el 3d10sm",
+          "expected": {
+            "intents": [
+              "conversation",
+              "unsupported"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "no",
+                "fiabil",
+                "dades"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ]
+          }
+        },
+        {
+          "message": "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.525",
+                "4525"
+              ],
+              [
+                "si",
+                "només",
+                "resta",
+                "complet",
+                "parcial",
+                "no garanteix"
+              ],
+              [
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "3de9sf",
+                "3d9sf",
+                "2de9sm",
+                "2d9sm",
+                "pde9fmp",
+                "pd9fmp",
+                "quatre de deu",
+                "quatre de 10"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        },
+        {
+          "message": "Paso de tu",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": []
+          }
+        },
+        {
+          "message": "Hola mates",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "standalone_open_question",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.525",
+                "4525"
+              ],
+              [
+                "si",
+                "només",
+                "resta",
+                "complet",
+                "parcial",
+                "no garanteix"
+              ],
+              [
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "3de9sf",
+                "3d9sf",
+                "2de9sm",
+                "2d9sm",
+                "pde9fmp",
+                "pd9fmp",
+                "quatre de deu",
+                "quatre de 10"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "loaded_reference",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Si la Vella i la Joves només carreguen el 3d10fm, quin castell descarregat podria posar Vilafranca per superar aquest castell?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "3.755",
+                "3755"
+              ],
+              [
+                "4de9sf",
+                "4d9sf",
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "2de8sf",
+                "2d8sf",
+                "quatre de nou sense folre"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "different_references",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "La Vella descarrega el 3d10fm i la Joves el 4d10fm. Quin castell descarregat podria fer Vilafranca per superar tots dos castells?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.930",
+                "4930"
+              ],
+              [
+                "9de9f",
+                "9d9f",
+                "3de9sf",
+                "3d9sf",
+                "2de9sm",
+                "2d9sm",
+                "pde9fmp",
+                "pd9fmp"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "no_higher_single_castell",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Hi ha algun castell descarregat que superi el 3d10sm descarregat, comparant un sol castell per colla?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "7.475",
+                "7475"
+              ],
+              [
+                "no",
+                "cap",
+                "més puntuat"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "possibility_not_probability",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "No et demano una probabilitat: si la Joves descarrega 4d9sf, la Vila té opcions de punts per superar aquest castell?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.105",
+                "4105"
+              ],
+              [
+                "2de8sf",
+                "2d8sf",
+                "3de10fm",
+                "3d10fm",
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "torre neta"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "actual_probability_control",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Quina probabilitat té Vilafranca de guanyar si la Vella descarrega el 3d10fm?",
+          "expected": {
+            "intents": [
+              "conversation",
+              "unsupported"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "no",
+                "fiabil",
+                "dades"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "closed_comparison_control",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Compara Vella: 3d10fm; Joves: 3d10fm; Vilafranca: 4d10fm. Tot descarregat.",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vilafranca",
+                "castells": [
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vella": 4525,
+              "Joves": 4525,
+              "Vilafranca": 4930
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "open_to_concrete_comparison",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.525",
+                "4525"
+              ],
+              [
+                "si",
+                "només",
+                "resta",
+                "complet",
+                "parcial",
+                "no garanteix"
+              ],
+              [
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "3de9sf",
+                "3d9sf",
+                "2de9sm",
+                "2d9sm",
+                "pde9fmp",
+                "pd9fmp",
+                "quatre de deu",
+                "quatre de 10"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        },
+        {
+          "message": "Compara Vella: 3d10fm; Joves: 3d10fm; Vilafranca: 4d10fm. Tot descarregat.",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vilafranca",
+                "castells": [
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vella": 4525,
+              "Joves": 4525,
+              "Vilafranca": 4930
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "open_question_spanish",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Si la Vella y la Joves descargan el 3d10fm, ¿Vilafranca tiene alguna opción de superarlo por puntos?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.525",
+                "4525"
+              ],
+              [
+                "si",
+                "només",
+                "resta",
+                "complet",
+                "parcial",
+                "no garanteix"
+              ],
+              [
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "3de9sf",
+                "3d9sf",
+                "2de9sm",
+                "2d9sm",
+                "pde9fmp",
+                "pd9fmp",
+                "quatre de deu",
+                "quatre de 10"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "loaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quin castell carregat supera un 3de7a carregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "485"
+              ],
+              [
+                "570",
+                "605"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ],
+            "presentation": {
+              "outcome": "loaded",
+              "notations": [
+                "5de7a",
+                "7de7a",
+                "3de7a",
+                "5de7",
+                "4de7a"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "unloaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quin castell descarregat supera un 3de7a descarregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "545"
+              ],
+              [
+                "555",
+                "565"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ],
+            "presentation": {
+              "outcome": "unloaded",
+              "notations": [
+                "5de7",
+                "7de7",
+                "3de7a",
+                "4de7a",
+                "3de7"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "mixed_loaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quins castells carregats són els més propers en punts per sobre del 3de7a descarregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "545"
+              ],
+              [
+                "570",
+                "605"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "mixed_unloaded_alternatives_3de7a",
+      "category": "open_scenarios",
+      "steps": [
+        {
+          "message": "Quin castell descarregat és el més proper en punts per sobre del 3de7a carregat?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "485"
+              ],
+              [
+                "515",
+                "545",
+                "555",
+                "565"
+              ]
+            ],
+            "reply_excludes": [
+              "no hi ha cap castell",
+              "cap castell carregat supera",
+              "cap castell descarregat supera"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

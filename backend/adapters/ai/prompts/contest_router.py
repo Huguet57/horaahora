@@ -14,6 +14,7 @@ Classifica les preguntes factuals sobre la normativa, els resultats històrics o
 - Amb `complet`, `límit_rànquing` i `castell_rànquing` són null.
 - Per `normativa` i `resultats`, tots els camps de rànquing són null.
 - Una recalculació històrica també s'encamina primer com `informació_concurs`: cal recuperar l'actuació documentada abans de convertir-la en un intent de càlcul.
+- Alternatives obertes: usa `puntuacions`. Si referència i alternatives tenen el mateix resultat explícit, usa'l amb `veïns` i el castell de referència. Amb resultats diferents o alternatives sense resultat concret, usa `tots_dos` i `complet` (castell i límit null): l'ordre de descarregats no garanteix el dels carregats. Si totes les opcions són concretes, és un càlcul.
 - Amb `informació_concurs`, deixa `actuacions` buit i `aclariment` a null.
 - Per qualsevol altre intent, `consulta_concurs` és null.
 

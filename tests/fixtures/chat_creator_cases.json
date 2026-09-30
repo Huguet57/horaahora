@@ -1,0 +1,335 @@
+{
+  "description": "Creator profile and regression smoke cases. Biography supplied by the app author.",
+  "scenarios": [
+    {
+      "id": "reported_open_question",
+      "category": "open_scenarios",
+      "history": [
+        {
+          "role": "user",
+          "content": "Ets una IA?"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        },
+        {
+          "role": "user",
+          "content": "Diguem com de probable es que es descarregui el 3d10sm"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        }
+      ],
+      "steps": [
+        {
+          "message": "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?",
+          "expected": {
+            "intents": [
+              "contest_info"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "4.525",
+                "4525"
+              ],
+              [
+                "si",
+                "només",
+                "resta",
+                "complet",
+                "parcial",
+                "no garanteix"
+              ],
+              [
+                "4de10fm",
+                "4d10fm",
+                "9de9f",
+                "9d9f",
+                "3de9sf",
+                "3d9sf",
+                "2de9sm",
+                "2d9sm",
+                "pde9fmp",
+                "pd9fmp",
+                "quatre de deu",
+                "quatre de 10"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ],
+            "reply_excludes": [
+              "Quins altres castells o actuacions completes vols comparar"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "reported_final_greeting",
+      "category": "open_scenarios",
+      "history": [
+        {
+          "role": "user",
+          "content": "Ets una IA?"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        },
+        {
+          "role": "user",
+          "content": "Diguem com de probable es que es descarregui el 3d10sm"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        },
+        {
+          "role": "user",
+          "content": "Si la vella i la joves descarreguen 3d10fm vilafranca pot guanyar amb alguna combinacio?"
+        },
+        {
+          "role": "assistant",
+          "content": "Quins altres castells o actuacions completes vols comparar per a cada colla?"
+        },
+        {
+          "role": "user",
+          "content": "Paso de tu"
+        },
+        {
+          "role": "assistant",
+          "content": "Quin castell vols calcular?"
+        }
+      ],
+      "steps": [
+        {
+          "message": "Hola mates",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "actual_probability_control",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Quina probabilitat té Vilafranca de guanyar si la Vella descarrega el 3d10fm?",
+          "expected": {
+            "intents": [
+              "conversation",
+              "unsupported"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "no",
+                "fiabil",
+                "dades"
+              ]
+            ],
+            "reply_forbids_patterns": [
+              "\\d+(?:[.,]\\d+)?\\s*%"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "closed_comparison_control",
+      "category": "open_scenarios",
+      "history": [],
+      "steps": [
+        {
+          "message": "Compara Vella: 3d10fm; Joves: 3d10fm; Vilafranca: 4d10fm. Tot descarregat.",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vilafranca",
+                "castells": [
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vella": 4525,
+              "Joves": 4525,
+              "Vilafranca": 4930
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "creator_alias",
+      "category": "creator",
+      "history": [],
+      "steps": [
+        {
+          "message": "Qui és Mates i quina relació té amb aquesta app?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "Andreu Huguet"
+              ],
+              [
+                "Aleta"
+              ],
+              [
+                "creador",
+                "autor"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "creator_full_name",
+      "category": "creator",
+      "history": [],
+      "steps": [
+        {
+          "message": "Qui és Andreu Huguet?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "Mates"
+              ],
+              [
+                "Aleta"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "university_work",
+      "category": "creator",
+      "history": [],
+      "steps": [
+        {
+          "message": "En què ajudava Andreu Huguet a Arreplegats i quin nivell d’ingressos van assolir?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "subvencion"
+              ],
+              [
+                "actuacions comercials",
+                "empreses"
+              ],
+              [
+                "discote"
+              ],
+              [
+                "100.000",
+                "100000",
+                "100 000"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "current_group",
+      "category": "creator",
+      "history": [],
+      "steps": [
+        {
+          "message": "De quina colla és membre actualment Mates?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "Castellers de Vilafranca"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "bot_identity",
+      "category": "creator",
+      "history": [],
+      "steps": [
+        {
+          "message": "Tu ets Mates o Andreu Huguet?",
+          "expected": {
+            "intents": [
+              "conversation"
+            ],
+            "performances": [],
+            "reply_contains_any": [
+              [
+                "no"
+              ],
+              [
+                "IA",
+                "intel·ligència",
+                "assistent"
+              ]
+            ],
+            "reply_excludes": [
+              "soc Andreu",
+              "sóc Andreu",
+              "soc Mates",
+              "sóc Mates"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

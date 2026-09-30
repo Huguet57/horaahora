@@ -140,9 +140,15 @@ def test_both_model_schemas_are_strict_at_every_object_level() -> None:
 def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> None:
     assert [module.name for module in INTERPRETATION_MODULES] == [
         "calculator",
+        "creator",
         "contest_router",
     ]
-    assert len(INTERPRETATION_PROMPT) < 17_000
+    # Keep the original routing/calculation budget, with a small separate app profile.
+    core = [module.content for module in INTERPRETATION_MODULES if module.name != "creator"]
+    creator = next(module.content for module in INTERPRETATION_MODULES if module.name == "creator")
+    assert len("\n\n".join(core)) < 17_000
+    assert len(creator) < 1_000
+    assert len(INTERPRETATION_PROMPT) < 18_000
     assert "<resultats_anteriors>" not in INTERPRETATION_PROMPT
     assert "<coneixement_normatiu>" not in INTERPRETATION_PROMPT
     assert "16.337 punts" not in INTERPRETATION_PROMPT
@@ -371,3 +377,12 @@ def test_anthropic_rejects_invalid_tool_input_without_retry() -> None:
     asyncio.run(client.aclose())
 
     assert calls == 1
+
+
+def test_open_alternatives_route_by_explicit_outcome_and_cover_mixed_results():
+    from backend.adapters.ai.prompts.contest_router import CONTEST_ROUTER_PROMPT
+
+    assert "mateix resultat" in CONTEST_ROUTER_PROMPT
+    assert "resultats diferents" in CONTEST_ROUTER_PROMPT
+    assert "`tots_dos` i `complet`" in CONTEST_ROUTER_PROMPT
+    assert "`selecció_rànquing=veïns`, `resultat_puntuacions=tots_dos`" not in CONTEST_ROUTER_PROMPT
