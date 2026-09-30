@@ -208,6 +208,12 @@ o un reinici explícit inicia un escenari nou. Aquesta interpretació es basa en
 12 missatges que envia el client; no afegeix persistència de converses ni memòria fora
 d'aquest historial.
 
+Les preguntes obertes com «si les altres colles fan un 3d10fm, quines opcions tinc per
+superar-lo?» consulten la taula i reben exemples amb punts abans de demanar actuacions
+completes. La resposta distingeix superar el castell indicat de guanyar tota l'actuació.
+No estima probabilitats ni optimitza combinacions: les comparacions concretes continuen
+passant pel motor de càlcul.
+
 La comparativa de models usa escenaris sintètics de conversa, modificacions successives
 i controls de càlcul i consulta històrica. Executa el mateix servei del xat, sense base de
 dades ni registre de converses; els torns successius reben les respostes reals del model.
@@ -228,6 +234,8 @@ La [comparativa del 30/09/2026](docs/chat-model-evaluation-20260930.md) inclou r
 costos, limitacions i el registre complet de les tres passades dels quatre models.
 La [bateria ampliada de Gemini 3.8](docs/gemini38-extended-evaluation-20260930.md) prova
 100 situacions i 363 torns, amb diagnòstic separat dels errors del model i del producte.
+La [regressió de preguntes obertes](docs/chat-open-scenarios-evaluation-20260930.md)
+comprova les opcions parcials de puntuació i la conversa reportada amb Gemini 3.7 i 3.8.
 
 Abans de fusionar un canvi del rànquing, la bateria end-to-end es pot executar contra la URL
 real d'una Preview amb:
