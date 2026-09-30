@@ -20,15 +20,19 @@ class ScoringEngine:
         self.normalizer = CastellNormalizer(table)
 
     def calculate(self, query: ParsedCastellQuery) -> CalculationResult:
-        if query.intent in {"clarification", "unsupported"} or not query.performances:
+        if query.intent == "clarification":
+            if not query.clarification or not query.clarification.strip():
+                raise ValueError("L'aclariment ha de contenir una pregunta")
             return CalculationResult(
-                reply=query.clarification or "Quin castell vols calcular?",
+                reply=query.clarification,
                 intent=query.intent,
                 performances=[],
                 winner_label=None,
                 warnings=[],
                 needs_clarification=True,
             )
+        if query.intent not in {"lookup", "total", "comparison"} or not query.performances:
+            raise ValueError("El càlcul exigeix almenys una actuació")
 
         warnings: list[str] = []
         unknown_notations: list[str] = []

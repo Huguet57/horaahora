@@ -21,12 +21,14 @@ CALCULATION_ROUTE = {
     ],
     "aclariment": None,
     "consulta_concurs": None,
+    "resposta": None,
 }
 
 CONTEST_ROUTE = {
     "intent": "informació_concurs",
     "actuacions": [],
     "aclariment": None,
+    "resposta": None,
     "consulta_concurs": {
         "font": "resultats",
         "anys": [1998],
@@ -44,6 +46,7 @@ SCORE_RANKING_ROUTE = {
     "intent": "informació_concurs",
     "actuacions": [],
     "aclariment": None,
+    "resposta": None,
     "consulta_concurs": {
         "font": "puntuacions",
         "anys": [],
@@ -139,7 +142,7 @@ def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> No
         "calculator",
         "contest_router",
     ]
-    assert len(INTERPRETATION_PROMPT) < 15_000
+    assert len(INTERPRETATION_PROMPT) < 17_000
     assert "<resultats_anteriors>" not in INTERPRETATION_PROMPT
     assert "<coneixement_normatiu>" not in INTERPRETATION_PROMPT
     assert "16.337 punts" not in INTERPRETATION_PROMPT

@@ -14,6 +14,7 @@ CALCULATION_ROUTE = {
     ],
     "aclariment": None,
     "consulta_concurs": None,
+    "resposta": None,
 }
 
 

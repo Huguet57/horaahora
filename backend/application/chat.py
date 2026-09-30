@@ -20,6 +20,7 @@ class ChatService:
             raise ValueError("L'últim missatge ha de ser de l'usuari")
         current = history[-1]
         query = await self.chat_model.interpret(history[:-1], current.content)
+        presentation = None
         if query.intent == "contest_info":
             if query.knowledge_query is None:
                 raise ValueError("La consulta informativa del Concurs és buida")
@@ -35,16 +36,16 @@ class ChatService:
                 current.content,
                 context,
             )
-            if query.intent == "contest_info":
-                if not query.answer:
-                    raise ValueError("La resposta informativa del Concurs és buida")
-                return CalculationResult(
-                    reply=query.answer,
-                    intent=query.intent,
-                    performances=[],
-                    winner_label=None,
-                    warnings=[],
-                    needs_clarification=False,
-                    presentation=presentation,
-                )
+        if query.intent in {"contest_info", "conversation", "unsupported"}:
+            if not query.answer or not query.answer.strip():
+                raise ValueError("La resposta informativa o conversacional és buida")
+            return CalculationResult(
+                reply=query.answer,
+                intent=query.intent,
+                performances=[],
+                winner_label=None,
+                warnings=[],
+                needs_clarification=False,
+                presentation=presentation if query.intent == "contest_info" else None,
+            )
         return self.scoring_engine.calculate(query)

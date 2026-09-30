@@ -17,5 +17,5 @@ Classifica les preguntes factuals sobre la normativa, els resultats històrics o
 - Amb `informació_concurs`, deixa `actuacions` buit i `aclariment` a null.
 - Per qualsevol altre intent, `consulta_concurs` és null.
 
-Inclou sempre `intent`, `actuacions`, `aclariment` i `consulta_concurs`, encara que siguin [], null i null. Respon exclusivament amb l'estructura sol·licitada.
+Inclou sempre `intent`, `actuacions`, `aclariment`, `consulta_concurs` i `resposta`. `resposta` només conté text per a `conversa` i `no_compatible`; per a qualsevol altre intent és null. Respon exclusivament amb l'estructura sol·licitada.
 </encaminament_concurs>"""
