@@ -114,8 +114,7 @@ struct ComparatorCellView: View {
             .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
             .foregroundStyle(Color(.tertiaryLabel))
             .overlay {
-                Label(isCompact ? "" : "castell", systemImage: "plus")
-                    .labelStyle(.titleAndIcon)
+                Image(systemName: "plus")
                     .font(.footnote.weight(.medium))
                     .foregroundStyle(.secondary)
             }
