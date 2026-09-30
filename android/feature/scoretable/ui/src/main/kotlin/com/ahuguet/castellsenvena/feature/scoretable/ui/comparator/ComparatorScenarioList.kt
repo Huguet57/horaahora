@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,6 +67,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.ahuguet.castellsenvena.core.designsystem.component.ContentUnavailable
 import com.ahuguet.castellsenvena.core.designsystem.component.SectionFooter
 import com.ahuguet.castellsenvena.core.designsystem.component.SectionHeader
 import com.ahuguet.castellsenvena.core.designsystem.theme.CastellNotation
@@ -81,7 +83,8 @@ private const val OTHERS_HEADER = "header:escenaris"
 /**
  * The comparator's main page: every scenario as who wins and each colla's castells, the
  * favourites pinned on top. Tapping one opens its grid; a long press drags it within its
- * section; its menu pins, renames, duplicates or deletes it, with a snackbar to undo.
+ * section; its menu pins, renames, duplicates or deletes it, with a snackbar to undo. Without
+ * scenarios, it says what they are for.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,6 +131,15 @@ internal fun ComparatorScenarioList(model: ComparatorViewModel, onOpen: (String)
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
+        if (state.scenarios.isEmpty()) {
+            ContentUnavailable(
+                icon = Icons.Outlined.TableChart,
+                title = "Cap escenari",
+                description = "Crea un escenari per comparar les actuacions de fins a quatre colles i veure qui guanyaria.",
+                modifier = Modifier.padding(padding),
+            )
+            return@Scaffold
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -137,7 +149,6 @@ internal fun ComparatorScenarioList(model: ComparatorViewModel, onOpen: (String)
             // Room for the button over the last row.
             contentPadding = PaddingValues(bottom = 96.dp),
         ) {
-            val canDelete = state.scenarios.size > 1
             for (favorites in listOf(true, false)) {
                 val scenarios = if (favorites) state.favorites else state.others
                 if (favorites && scenarios.isEmpty()) continue
@@ -153,7 +164,6 @@ internal fun ComparatorScenarioList(model: ComparatorViewModel, onOpen: (String)
                         model = model,
                         scenario = scenario,
                         isDragged = isDragged,
-                        canDelete = canDelete,
                         canMoveUp = position > 0,
                         canMoveDown = position < scenarios.lastIndex,
                         // A long press that starts a drag ends with the finger up on the row.
@@ -206,7 +216,6 @@ private fun ScenarioRow(
     model: ComparatorViewModel,
     scenario: ComparatorScenario,
     isDragged: Boolean,
-    canDelete: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
     onOpen: () -> Unit,
@@ -234,7 +243,7 @@ private fun ScenarioRow(
                         add(CustomAccessibilityAction("Duplica") { model.duplicate(scenario.id); true })
                         if (canMoveUp) add(CustomAccessibilityAction("Mou amunt") { onMove(-1); true })
                         if (canMoveDown) add(CustomAccessibilityAction("Mou avall") { onMove(1); true })
-                        if (canDelete) add(CustomAccessibilityAction("Elimina") { onDelete(); true })
+                        add(CustomAccessibilityAction("Elimina") { onDelete(); true })
                     }
                 }
                 .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
@@ -305,20 +314,18 @@ private fun ScenarioRow(
                             model.duplicate(scenario.id)
                         },
                     )
-                    if (canDelete) {
-                        DropdownMenuItem(
-                            text = { Text("Elimina") },
-                            leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                            colors = MenuDefaults.itemColors(
-                                textColor = MaterialTheme.colorScheme.error,
-                                leadingIconColor = MaterialTheme.colorScheme.error,
-                            ),
-                            onClick = {
-                                showsMenu = false
-                                onDelete()
-                            },
-                        )
-                    }
+                    DropdownMenuItem(
+                        text = { Text("Elimina") },
+                        leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                        colors = MenuDefaults.itemColors(
+                            textColor = MaterialTheme.colorScheme.error,
+                            leadingIconColor = MaterialTheme.colorScheme.error,
+                        ),
+                        onClick = {
+                            showsMenu = false
+                            onDelete()
+                        },
+                    )
                 }
             }
         }
