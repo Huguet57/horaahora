@@ -1,0 +1,504 @@
+{
+  "description": "Edit misreadings seen in shared calculator conversations (2026-09-30/10-01), paraphrased: adding versus replacing a castell, a verb carried over a list or to a second colla, and «els dos de 10». Totals come from the scoring engine.",
+  "scenarios": [
+    {
+      "id": "shared_add_castell_keeps_the_rest",
+      "category": "shared_regressions",
+      "history": [
+        {
+          "role": "user",
+          "content": "Jove: 3d10fm, 4d10fm carregat i 5d9f. Vella: 4 net, 4d10fm i 3 net carregat. Joves: 4 net, 3d10fm carregat, 2d9sm carregat i pd7sf carregat a la ronda de millora"
+        },
+        {
+          "role": "assistant",
+          "content": "Jove: 3de10fm descarregat (4.525 punts), 4de10fm carregat (4.095 punts), 5de9f descarregat (3.125 punts). Total: 11.745 punts. Vella: 4de9sf descarregat (4.105 punts), 4de10fm descarregat (4.930 punts), 3de9sf carregat (5.165 punts). Total: 14.200 punts. Joves: 4de9sf descarregat (4.105 punts), 2de9sm carregat (4.685 punts), Pde7sf carregat (5.280 punts). Total: 14.070 punts. Guanya Vella per 130 punts."
+        },
+        {
+          "role": "user",
+          "content": "I si la Joves carrega el 3 net?"
+        },
+        {
+          "role": "assistant",
+          "content": "La Joves no té cap 3 net a l'escenari. Vols afegir-li un 3d9sf carregat o volies dir un altre castell?"
+        }
+      ],
+      "scenario": [
+        {
+          "label": "Jove",
+          "castells": [
+            {
+              "notation": "3de10fm",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "4de10fm",
+              "outcome": "loaded"
+            },
+            {
+              "notation": "5de9f",
+              "outcome": "unloaded"
+            }
+          ]
+        },
+        {
+          "label": "Vella",
+          "castells": [
+            {
+              "notation": "4de9sf",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "4de10fm",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "3de9sf",
+              "outcome": "loaded"
+            }
+          ]
+        },
+        {
+          "label": "Joves",
+          "castells": [
+            {
+              "notation": "4de9sf",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "3de10fm",
+              "outcome": "loaded"
+            },
+            {
+              "notation": "2de9sm",
+              "outcome": "loaded"
+            },
+            {
+              "notation": "Pde7sf",
+              "outcome": "loaded"
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "message": "Sí, vull afegir-li el 3 net",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Jove",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "5de9f",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "Pde7sf",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Jove": 11745,
+              "Vella": 14200,
+              "Joves": 14550
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_no_x_but_y_replaces_and_verb_carries_over",
+      "category": "shared_regressions",
+      "history": [
+        {
+          "role": "user",
+          "content": "Vella: 4d9sf, 2d9sm(c), 4d10fm, 3d9sf(c). Vilafranca: 4d10fm, 3d10fm, 9d9f(c). Joves de Valls: 3d10fm, 4d9sf, 2d9sm"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 2de9sm carregat (4.685 punts), 4de10fm descarregat (4.930 punts), 3de9sf carregat (5.165 punts). Total: 14.780 punts. Vilafranca: 4de10fm descarregat (4.930 punts), 3de10fm descarregat (4.525 punts), 9de9f carregat (4.295 punts). Total: 13.750 punts. Joves de Valls: 3de10fm descarregat (4.525 punts), 4de9sf descarregat (4.105 punts), 2de9sm descarregat (5.645 punts). Total: 14.275 punts. Guanya Vella per 505 punts."
+        }
+      ],
+      "scenario": [
+        {
+          "label": "Vella",
+          "castells": [
+            {
+              "notation": "4de9sf",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "2de9sm",
+              "outcome": "loaded"
+            },
+            {
+              "notation": "4de10fm",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "3de9sf",
+              "outcome": "loaded"
+            }
+          ]
+        },
+        {
+          "label": "Vilafranca",
+          "castells": [
+            {
+              "notation": "4de10fm",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "3de10fm",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "9de9f",
+              "outcome": "loaded"
+            }
+          ]
+        },
+        {
+          "label": "Joves de Valls",
+          "castells": [
+            {
+              "notation": "3de10fm",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "4de9sf",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "2de9sm",
+              "outcome": "unloaded"
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "message": "i si la Vella no carrega el 2d9sm i fa el 2d8 net?",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de8sf",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vilafranca",
+                "castells": [
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves de Valls",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vella": 14405,
+              "Vilafranca": 13750,
+              "Joves de Valls": 14275
+            }
+          }
+        },
+        {
+          "message": "i si Vilafranca carrega el pd9fmp i la Joves el pd7 net?",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de8sf",
+                    "outcome": "unloaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vilafranca",
+                "castells": [
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "Pde9fmp",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves de Valls",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "Pde7sf",
+                    "outcome": "loaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vella": 14405,
+              "Vilafranca": 14375,
+              "Joves de Valls": 15450
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_loaded_verb_applies_to_the_whole_list",
+      "category": "shared_regressions",
+      "steps": [
+        {
+          "message": "Si la Vella fa el 4d9sf i carrega el 4d10fm, el 3d9sf i el 2d9sm, quins castells li compten i quants punts fa?",
+          "expected": {
+            "intents": [
+              "total"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vella": 13955
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_both_castells_of_ten",
+      "category": "shared_regressions",
+      "history": [
+        {
+          "role": "user",
+          "content": "Quants punts fa la Vella si descarrega el 3 net i el 4d10fm i carrega el 2d9f?"
+        },
+        {
+          "role": "assistant",
+          "content": "Vella: 3de9sf descarregat (6.220 punts), 4de10fm descarregat (4.930 punts), 2de9sm carregat (4.685 punts). Total: 15.835 punts."
+        }
+      ],
+      "scenario": [
+        {
+          "label": "Vella",
+          "castells": [
+            {
+              "notation": "3de9sf",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "4de10fm",
+              "outcome": "unloaded"
+            },
+            {
+              "notation": "2de9sm",
+              "outcome": "loaded"
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "message": "i si els Verds fan el pd9fmp carregat i els dos de 10 descarregats?",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Verds",
+                "castells": [
+                  {
+                    "canonical": "Pde9fmp",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vella": 15835,
+              "Verds": 14375
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

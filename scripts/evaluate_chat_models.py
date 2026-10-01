@@ -27,7 +27,7 @@ from backend.adapters.ai.prompts import INTERPRETATION_PROMPT, compose_contest_r
 from backend.adapters.ai.schema import QueryRoutingPayload, ResolvedQueryPayload
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
 from backend.application.chat import ChatService
-from backend.domain.calculator.models import ChatTurn, ParsedCastell, ParsedPerformance
+from backend.domain.calculator.models import ChatTurn, Outcome, ParsedCastell, ParsedPerformance
 from backend.domain.calculator.scoring import ScoringEngine
 from backend.domain.calculator.table import ScoreTable
 
@@ -40,12 +40,31 @@ MODELS = (
 DATASET = Path(__file__).resolve().parents[1] / "tests/fixtures/chat_conversation_cases.json"
 
 
+_ARTICLE = re.compile(r"^(?:la|el|els|les|l')\s*")
+
+
+def label_key(label: str) -> str:
+    """«la Joves» and «Joves» name the same colla; «Jove» and «Joves» stay different."""
+    return _ARTICLE.sub("", label.casefold().strip().replace("’", "'"))
+
+
 def signature(performances: list[dict]) -> dict:
     """Compare every interpreted castell, including those the scoring engine excludes."""
     return {
-        p["label"].casefold().strip(): sorted((c["canonical"], c["outcome"]) for c in p["castells"])
+        label_key(p["label"]): sorted((c["canonical"], c["outcome"]) for c in p["castells"])
         for p in performances
     }
+
+
+def saved_scenario_from_fixture(performances: list[dict]) -> list[ParsedPerformance]:
+    """The last complete calculation the app had saved before the fixture's first step."""
+    return [
+        ParsedPerformance(
+            p["label"],
+            [ParsedCastell(c["notation"], Outcome(c["outcome"])) for c in p["castells"]],
+        )
+        for p in performances
+    ]
 
 
 def check_result(result: dict, expected: dict) -> list[str]:
@@ -66,19 +85,19 @@ def check_result(result: dict, expected: dict) -> list[str]:
         if not matches:
             failures.append("scenario_state")
     if "totals" in expected:
-        actual = {p["label"].casefold(): p["total"] for p in result["performances"]}
-        wanted = {label.casefold(): total for label, total in expected["totals"].items()}
+        actual = {label_key(p["label"]): p["total"] for p in result["performances"]}
+        wanted = {label_key(label): total for label, total in expected["totals"].items()}
         if actual != wanted:
             failures.append("totals")
     if "counted" in expected:
         actual = {
-            p["label"].casefold(): sorted(
+            label_key(p["label"]): sorted(
                 [c["canonical"], c["outcome"]] for c in p["castells"] if c["counted"]
             )
             for p in result["performances"]
         }
         wanted = {
-            label.casefold(): sorted(castells) for label, castells in expected["counted"].items()
+            label_key(label): sorted(castells) for label, castells in expected["counted"].items()
         }
         if actual != wanted:
             failures.append("counted")
@@ -150,7 +169,7 @@ async def evaluate_scenario(model_name: str, scenario: dict, *, effort: str = "l
             model, SnapshotContestKnowledgeRepository.default(), ScoringEngine(ScoreTable.default())
         )
         history = [ChatTurn(**turn) for turn in scenario.get("history", [])]
-        saved_scenario = []
+        saved_scenario = saved_scenario_from_fixture(scenario.get("scenario", []))
         turns = []
         for step in scenario["steps"]:
             history.append(ChatTurn("user", step["message"]))
