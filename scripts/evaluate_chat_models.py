@@ -48,12 +48,16 @@ def label_key(label: str) -> str:
     return _ARTICLE.sub("", label.casefold().strip().replace("’", "'"))
 
 
-def signature(performances: list[dict]) -> dict:
-    """Compare every interpreted castell, including those the scoring engine excludes."""
-    return {
-        label_key(p["label"]): sorted((c["canonical"], c["outcome"]) for c in p["castells"])
+def signature(performances: list[dict]) -> list[tuple[str, list]]:
+    """Compare every interpreted castell, including those the scoring engine excludes.
+
+    A sorted list rather than a dict, so two performances whose labels normalize to the
+    same colla («Joves» and «la Joves») both stay and an extra one cannot hide.
+    """
+    return sorted(
+        (label_key(p["label"]), sorted((c["canonical"], c["outcome"]) for c in p["castells"]))
         for p in performances
-    }
+    )
 
 
 def saved_scenario_from_fixture(performances: list[dict]) -> list[ParsedPerformance]:
@@ -79,26 +83,29 @@ def check_result(result: dict, expected: dict) -> list[str]:
         # An independent single-castell lookup has no user-supplied participant name.
         # The generated label is not part of its meaning; named comparisons stay exact.
         if expected["intents"] == ["lookup"] or expected.get("ignore_labels", False):
-            matches = sorted(actual_state.values()) == sorted(expected_state.values())
+            matches = sorted(state for _, state in actual_state) == sorted(
+                state for _, state in expected_state
+            )
         else:
             matches = actual_state == expected_state
         if not matches:
             failures.append("scenario_state")
     if "totals" in expected:
-        actual = {label_key(p["label"]): p["total"] for p in result["performances"]}
-        wanted = {label_key(label): total for label, total in expected["totals"].items()}
+        actual = sorted((label_key(p["label"]), p["total"]) for p in result["performances"])
+        wanted = sorted((label_key(label), total) for label, total in expected["totals"].items())
         if actual != wanted:
             failures.append("totals")
     if "counted" in expected:
-        actual = {
-            label_key(p["label"]): sorted(
-                [c["canonical"], c["outcome"]] for c in p["castells"] if c["counted"]
+        actual = sorted(
+            (
+                label_key(p["label"]),
+                sorted([c["canonical"], c["outcome"]] for c in p["castells"] if c["counted"]),
             )
             for p in result["performances"]
-        }
-        wanted = {
-            label_key(label): sorted(castells) for label, castells in expected["counted"].items()
-        }
+        )
+        wanted = sorted(
+            (label_key(label), sorted(castells)) for label, castells in expected["counted"].items()
+        )
         if actual != wanted:
             failures.append("counted")
     if "presentation" in expected:

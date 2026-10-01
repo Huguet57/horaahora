@@ -158,3 +158,28 @@ def test_label_key_strips_whole_articles_only():
     assert label_key("l’Alegria") == "alegria"
     assert label_key("Lleida") == "lleida"
     assert label_key("Elsa") == "elsa"
+
+
+def test_grader_rejects_an_extra_participant_with_the_same_normalized_label():
+    castell = {"canonical": "4de9sf", "outcome": "unloaded", "counted": True}
+    expected = {
+        "intents": ["comparison"],
+        "performances": [{"label": "Joves", "castells": [castell]}],
+        "totals": {"Joves": 4105},
+        "counted": {"Joves": [["4de9sf", "unloaded"]]},
+    }
+    stray = {"canonical": "3de9sf", "outcome": "loaded", "counted": True}
+    result = {
+        "intent": "comparison",
+        "needs_clarification": False,
+        "reply": "Un resultat de càlcul.",
+        "performances": [
+            {"label": "la Joves", "total": 5165, "castells": [stray]},
+            {"label": "Joves", "total": 4105, "castells": [castell]},
+        ],
+    }
+    failures = check_result(result, expected)
+    assert {"scenario_state", "totals", "counted"} <= set(failures)
+
+    expected["ignore_labels"] = True
+    assert "scenario_state" in check_result(result, expected)
