@@ -1,5 +1,6 @@
 package com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator
 
+import com.ahuguet.castellsenvena.core.common.TextFolding
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,32 +13,165 @@ data class ComparatorCell(val collaId: String, val round: Int) {
     val key: String get() = "$collaId-$round"
 }
 
-/** A colla the comparison offers to pick, with the short name for narrow columns. */
-data class KnownColla(val name: String, val shortName: String) {
+/**
+ * A colla the comparison offers to pick, with the short name for narrow columns and the name in
+ * the CCCC directory, which the picker also searches.
+ */
+data class KnownColla(val name: String, val shortName: String, val officialName: String = name) {
     companion object {
-        val ALL = listOf(
-            KnownColla("Vilafranca", "VERDS"),
-            KnownColla("Colla Vella", "VELLA"),
-            KnownColla("Colla Joves", "JOVES"),
-            KnownColla("Jove de Tarragona", "JOVE"),
-            KnownColla("Barcelona", "CDB"),
-            KnownColla("Capgrossos", "CAPS"),
-            KnownColla("Sabadell", "SAB"),
+        /** The colles of the Concurs de Castells 2026, first. */
+        val CONTEST = listOf(
+            KnownColla("Vilafranca", "VERDS", "Castellers de Vilafranca"),
+            KnownColla("Colla Vella", "VELLA", "Colla Vella dels Xiquets de Valls"),
+            KnownColla("Colla Joves", "JOVES", "Colla Joves Xiquets de Valls"),
+            KnownColla("Jove de Tarragona", "JOVE", "Colla Jove Xiquets de Tarragona"),
+            KnownColla("Barcelona", "CDB", "Castellers de Barcelona"),
+            KnownColla("Capgrossos", "CAPS", "Capgrossos de Mataró"),
+            KnownColla("Sabadell", "SAB", "Castellers de Sabadell"),
             KnownColla("Xiquets de Tarragona", "XDT"),
-            KnownColla("Sant Pere i Sant Pau", "SPSP"),
+            KnownColla("Sant Pere i Sant Pau", "SPSP", "Colla Castellera Sant Pere i Sant Pau"),
             KnownColla("Nens del Vendrell", "NENS"),
-            KnownColla("Sant Cugat", "SCG"),
+            KnownColla("Sant Cugat", "SCG", "Castellers de Sant Cugat"),
             KnownColla("Xiquets de Reus", "REUS"),
-            KnownColla("Gràcia", "GRÀC"),
-            KnownColla("Lleida", "LLEI"),
-            KnownColla("Moixiganguers", "MOIX"),
-            KnownColla("Sants", "SANTS"),
-            KnownColla("Terrassa", "TERR"),
+            KnownColla("Gràcia", "GRÀC", "Castellers de la Vila de Gràcia"),
+            KnownColla("Lleida", "LLEI", "Castellers de Lleida"),
+            KnownColla("Moixiganguers", "MOIX", "Moixiganguers d'Igualada"),
+            KnownColla("Sants", "SANTS", "Castellers de Sants"),
+            KnownColla("Terrassa", "TERR", "Castellers de Terrassa"),
         )
 
-        /** A colla typed by hand: its last word, up to five letters, in capitals. */
+        /** Every other colla of the CCCC directory (castellscat.cat, 2026-07-25), by name. */
+        val OTHERS = listOf(
+            KnownColla("Al·lots de Llevant", "ALLOT"),
+            KnownColla("Alt Maresme", "AMAR", "Colla Castellera de l'Alt Maresme i la Selva Marítima"),
+            KnownColla("Altafulla", "ALTA", "Castellers d'Altafulla"),
+            KnownColla("Andorra", "AND", "Castellers d'Andorra"),
+            KnownColla("Arreplegats", "ARREP", "Arreplegats de la Zona Universitària"),
+            KnownColla("Badalona", "BDN", "Castellers de Badalona"),
+            KnownColla("Baix Montseny", "BMONT", "Castellers del Baix Montseny"),
+            KnownColla("Berga", "BERGA", "Castellers de Berga"),
+            KnownColla("Bergants", "BRGNT", "Bergants del Campus de Terrassa"),
+            KnownColla("Berlín", "BERL", "Colla Castellera de Berlín"),
+            KnownColla("Bordegassos", "BORD", "Bordegassos de Vilanova"),
+            KnownColla("Boston", "BOST", "Castellers de Boston"),
+            KnownColla("Brivalls", "BRIV", "Brivalls de Cornudella"),
+            KnownColla("Brussel·les", "BRUS", "Mannekes de Brussel·les"),
+            KnownColla("Caldes", "CALD", "Castellers de Caldes de Montbui"),
+            KnownColla("Cambrils", "CAMB", "Xiquets de Cambrils"),
+            KnownColla("Castellar", "CTLR", "Castellers de Castellar del Vallès"),
+            KnownColla("Castelldefels", "CDF", "Castellers de Castelldefels"),
+            KnownColla("Cerdanya", "CDNYA", "Colla Castellera de Cerdanya"),
+            KnownColla("Cerdanyola", "CERD", "Castellers de Cerdanyola"),
+            KnownColla("Copenhagen", "CPH", "Xiquets de Copenhagen"),
+            KnownColla("Cornellà", "CORN", "Castellers de Cornellà"),
+            KnownColla("Cubelles", "CUB", "Castellers del Foix de Cubelles"),
+            KnownColla("Descargolats", "DESC", "Descargolats de l'EEBE"),
+            KnownColla("Edinburgh", "EDI", "Colla Castellera d’Edinburgh"),
+            KnownColla("Éire", "ÉIRE", "Castellers d’Éire"),
+            KnownColla("El Prat", "PRAT", "Castellers del Prat de Llobregat"),
+            KnownColla("Emboirats", "EMBO", "Emboirats de la Universitat de Vic"),
+            KnownColla("Encantats de Begues", "ENC", "Colla Castellera Els Encantats de Begues"),
+            KnownColla("Engrescats", "ENGR", "Engrescats de la URL"),
+            KnownColla("Esparreguera", "ESPAR", "Castellers d'Esparreguera"),
+            KnownColla("Esperxats", "ESPX", "Esperxats de l'Estany"),
+            KnownColla("Esplugues", "ESPL", "Castellers d'Esplugues"),
+            KnownColla("Esquerra de l'Eixample", "EIX", "Colla Castellera de l'Esquerra de l'Eixample"),
+            KnownColla("Estocolm", "ESTOC", "Castellers d'Estocolm"),
+            KnownColla("Figueres", "FIG", "Colla Castellera de Figueres"),
+            KnownColla("Gambirots", "GAMB", "Gambirots de la UIB"),
+            KnownColla("Ganàpies", "GANÀ", "Ganàpies de la UAB"),
+            KnownColla("Gavà", "GAVÀ", "Colla Castellera de Gavà"),
+            KnownColla("Grillats", "GRILL", "Grillats del Campus del Baix Llobregat"),
+            KnownColla("Jove de Barcelona", "JBCN", "Colla Castellera Jove de Barcelona"),
+            KnownColla("Jove de l'Hospitalet", "HOSP", "Colla Jove de l'Hospitalet"),
+            KnownColla("Jove de Sitges", "SITG", "Colla Jove de Castellers de Sitges"),
+            KnownColla("L'Adroc", "ADROC", "Castellers de l'Adroc"),
+            KnownColla("La Bisbal", "BISB", "Colla Castellera La Bisbal del Penedès"),
+            KnownColla("La Selva", "SELVA", "Castellers de la Selva"),
+            KnownColla("Laietans", "LAIE", "Laietans de Gramenet"),
+            KnownColla("Lausanne", "LAUS", "Castellers de Lausanne"),
+            KnownColla("Les Roquetes", "ROQ", "Castellers de les Roquetes"),
+            KnownColla("Lluçanès", "LLUÇ", "Castellers del Lluçanès"),
+            KnownColla("Llunàtics", "LLUN", "Llunàtics UPC Vilanova"),
+            KnownColla("Lo Prado", "PRADO", "Castellers de Lo Prado"),
+            KnownColla("Londres", "LON", "Castellers of London"),
+            KnownColla("Madrid", "MAD", "Colla Castellera de Madrid"),
+            KnownColla("Mallorca", "MALL", "Castellers de Mallorca"),
+            KnownColla("Manyacs", "MANY", "Manyacs de Parets"),
+            KnownColla("Margeners", "MARG", "Margeners de Guissona"),
+            KnownColla("Marrecs", "MARR", "Marrecs de Salt"),
+            KnownColla("Matossers", "MATOS", "Matossers de Molins de Rei"),
+            KnownColla("Mediona", "MED", "Castellers de Mediona"),
+            KnownColla("Minyons de l'Arboç", "ARBOÇ"),
+            KnownColla("Minyons de Terrassa", "MINY"),
+            KnownColla("Mollet", "MOLL", "Castellers de Mollet"),
+            KnownColla("Montcada", "MONTC", "Castellers de Montcada i Reixac"),
+            KnownColla("Montreal", "MTL", "Castellers de Montreal"),
+            KnownColla("Nois de la Torre", "NOIS"),
+            KnownColla("Pallagos", "CONFL", "Pallagos del Conflent"),
+            KnownColla("Pallars", "PALL", "Castellers del Pallars"),
+            KnownColla("París", "PARÍS", "Castellers de París"),
+            KnownColla("Passerells", "PASS", "Passerells del TCM"),
+            KnownColla("Pataquers", "PATA", "Pataquers de la URV"),
+            KnownColla("Penjats", "PENJ", "Penjats del Campus de Manresa"),
+            KnownColla("Poble-sec", "PSEC", "Castellers del Poble Sec"),
+            KnownColla("Riberal", "RIB", "Castellers del Riberal"),
+            KnownColla("Rubí", "RUBÍ", "Castellers de Rubí"),
+            KnownColla("Sagals d'Osona", "SAGAL"),
+            KnownColla("Sagrada Família", "SGF", "Castellers de la Sagrada Família"),
+            KnownColla("Salats", "SALAT", "Salats de Súria"),
+            KnownColla("Sant Adrià", "SADR", "Castellers de Sant Adrià"),
+            KnownColla("Sant Feliu", "SFEL", "Castellers de Sant Feliu"),
+            KnownColla("Sant Vicenç", "SVIC", "Castellers de Sant Vicenç dels Horts"),
+            KnownColla("Santa Coloma", "SCOL", "Castellers de Santa Coloma"),
+            KnownColla("Santa Cristina d'Aro", "STCR", "Minyons de Santa Cristina d'Aro"),
+            KnownColla("Santpedor", "SPED", "Castellers de Santpedor"),
+            KnownColla("Sarrià", "SARR", "Castellers de Sarrià"),
+            KnownColla("Serrallo", "SERR", "Xiquets del Serrallo"),
+            KnownColla("Sydney", "SYD", "Castellers de Sydney"),
+            KnownColla("Tirallongues", "TIRA", "Tirallongues de Manresa"),
+            KnownColla("Torraires", "TORRA", "Torraires de Montblanc"),
+            KnownColla("Tortosa", "TORT", "Castellers de Tortosa"),
+            KnownColla("Trempats", "TREMP", "Trempats de la UPF"),
+            KnownColla("Vacarisses", "VAC", "Colla Castellera de Vacarisses"),
+            KnownColla("Vailets", "VAIL", "Vailets de Gelida"),
+            KnownColla("Vila-seca", "VSECA", "Xiquets de Vila-seca"),
+            KnownColla("Viladecans", "VLDC", "Castellers de Viladecans"),
+            KnownColla("Xerrics", "OLOT", "Xerrics d'Olot"),
+            KnownColla("Xicots", "XICOT", "Xicots de Vilafranca"),
+            KnownColla("Xics de Granollers", "GRAN"),
+            KnownColla("Xiqüelos del Delta", "DELTA", "Xiqüelos i Xiqüeles del Delta"),
+            KnownColla("Xoriguers", "XORI", "Xoriguers de la UdG"),
+            KnownColla("Zürich", "ZÜR", "Castellers de Zürich"),
+        )
+
+        val ALL = CONTEST + OTHERS
+
+        /**
+         * The colles whose name, short name or name in the directory contains [query], ignoring
+         * case and accents; all of them without a query.
+         */
+        fun matching(query: String, colles: List<KnownColla> = ALL): List<KnownColla> {
+            if (query.isBlank()) return colles
+            return colles.filter { known ->
+                listOf(known.name, known.shortName, known.officialName)
+                    .any { TextFolding.containsIgnoringCaseAndAccents(it, query.trim()) }
+            }
+        }
+
+        /** The colla called [name], by either of its names, ignoring case and accents. */
+        fun named(name: String): KnownColla? {
+            val folded = TextFolding.fold(name.trim())
+            return ALL.firstOrNull { TextFolding.fold(it.name) == folded || TextFolding.fold(it.officialName) == folded }
+        }
+
+        /**
+         * A colla typed by hand: the known one with that name or, otherwise, its last word, up
+         * to five letters, in capitals.
+         */
         fun custom(name: String): KnownColla {
             val trimmed = name.trim()
+            named(trimmed)?.let { return it }
             val lastWord = trimmed.split(' ').lastOrNull { it.isNotEmpty() } ?: trimmed
             return KnownColla(trimmed, lastWord.take(5).uppercase())
         }

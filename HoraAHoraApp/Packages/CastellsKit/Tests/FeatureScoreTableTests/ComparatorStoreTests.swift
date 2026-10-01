@@ -200,4 +200,30 @@ final class ComparatorStoreTests: XCTestCase {
 
         XCTAssertEqual(store.current.colles.map(\.shortName), ["VERDS", "MEUS"])
     }
+
+    func testEveryCollaOfTheDirectoryCanBePickedAfterTheContestOnes() {
+        XCTAssertEqual(KnownColla.all.count, 118)
+        XCTAssertEqual(KnownColla.contest.count, 17)
+        XCTAssertEqual(KnownColla.all.prefix(2).map(\.shortName), ["VERDS", "VELLA"])
+        XCTAssertEqual(Set(KnownColla.all.map(\.name)).count, KnownColla.all.count)
+        XCTAssertEqual(Set(KnownColla.all.map(\.shortName)).count, KnownColla.all.count)
+        XCTAssertTrue(KnownColla.all.allSatisfy { $0.shortName.count <= 5 })
+    }
+
+    func testTheCollesMatchAnyOfTheirNamesIgnoringAccents() {
+        XCTAssertEqual(KnownColla.matching("  "), KnownColla.all)
+        XCTAssertEqual(
+            KnownColla.matching("minyons").map(\.name),
+            ["Minyons de l'Arboç", "Minyons de Terrassa", "Santa Cristina d'Aro"]
+        )
+        XCTAssertEqual(KnownColla.matching("castellers de terrassa").map(\.name), ["Terrassa"])
+        XCTAssertEqual(KnownColla.matching("vila de gracia").map(\.name), ["Gràcia"])
+        XCTAssertEqual(KnownColla.matching("BDN", in: KnownColla.others).map(\.name), ["Badalona"])
+    }
+
+    func testACollaTypedByEitherOfItsNamesIsTheKnownOne() {
+        XCTAssertEqual(KnownColla.named(" castellers de badalona ")?.shortName, "BDN")
+        XCTAssertEqual(KnownColla.named("Minyons de Terrassa")?.shortName, "MINY")
+        XCTAssertNil(KnownColla.named("Minyons"))
+    }
 }
