@@ -81,8 +81,6 @@ class CastellNormalizer:
             "3de9sf": "3de9",
             "Pde7f": "Pde7",
             "Pde7sf": "Pde7",
-            "2de9fm": "2de9",
-            "2de9sm": "2de9",
             "3de10fm": "3de10",
             "3de10sm": "3de10",
             "4de10fm": "4de10",
