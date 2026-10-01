@@ -44,6 +44,11 @@ class ScoringEngine:
             scored: list[ScoredCastell] = []
             for parsed in performance.castells:
                 canonical = self.normalizer.normalize(parsed.notation)
+                outcome = parsed.outcome
+                if canonical is None:
+                    canonical = self.normalizer.normalize_loaded_marker(parsed.notation)
+                    if canonical is not None:
+                        outcome = Outcome.LOADED
                 if canonical is None:
                     if parsed.notation not in unknown_notations:
                         unknown_notations.append(parsed.notation)
@@ -62,9 +67,9 @@ class ScoringEngine:
                     ScoredCastell(
                         input=parsed.notation,
                         canonical=canonical,
-                        outcome=parsed.outcome,
-                        points=self.table.points(canonical, parsed.outcome),
-                        reason="attempt" if parsed.outcome is Outcome.ATTEMPT else None,
+                        outcome=outcome,
+                        points=self.table.points(canonical, outcome),
+                        reason="attempt" if outcome is Outcome.ATTEMPT else None,
                     )
                 )
             self._select_counted(scored)

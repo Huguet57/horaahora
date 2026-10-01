@@ -70,6 +70,18 @@ class CastellNormalizer:
         canonical = self.CONVENTIONAL_OMISSIONS.get(canonical, canonical)
         return canonical if self.table.contains(canonical) else None
 
+    def normalize_loaded_marker(self, notation: str) -> str | None:
+        """Read «9d9fc» or «9d9f(c)» as the 9de9f with a trailing c for carregat.
+
+        No scored castell ends in c, so the marker is unambiguous once the notation itself
+        is unknown.
+        """
+        value = notation.strip().lower().replace(" ", "")
+        for marker in ("(c)", "c"):
+            if value.endswith(marker) and len(value) > len(marker):
+                return self.normalize(value[: -len(marker)])
+        return None
+
     @staticmethod
     def structure_key(canonical: str) -> str:
         shared_structures = {

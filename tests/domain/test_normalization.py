@@ -71,3 +71,14 @@ def test_common_notation_families_cover_every_scored_castell() -> None:
             stem = lower[:-2]
             assert normalizer.normalize(stem + "net") == canonical
             assert normalizer.normalize(stem + "n") == canonical
+
+
+def test_trailing_loaded_marker_is_only_read_when_the_notation_is_unknown() -> None:
+    normalizer = CastellNormalizer(ScoreTable.default())
+
+    assert normalizer.normalize("9d9fc") is None
+    assert normalizer.normalize_loaded_marker("9d9fc") == "9de9f"
+    assert normalizer.normalize_loaded_marker("4d10c") == "4de10fm"
+    assert normalizer.normalize_loaded_marker("pd9fmp(c)") == "Pde9fmp"
+    assert normalizer.normalize_loaded_marker("9d9fm") is None
+    assert normalizer.normalize_loaded_marker("c") is None

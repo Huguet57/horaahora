@@ -189,3 +189,30 @@ def test_equal_performances_are_reported_as_a_tie() -> None:
 
     assert result.winner_label is None
     assert "empat a 3.125 punts" in result.reply
+
+
+def test_trailing_c_marks_a_glued_castell_as_loaded() -> None:
+    # Shared conversations wrote «9d9fc» and «4d10fmc» for carregat and got a clarification.
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="total",
+            performances=[
+                performance(
+                    "Verds",
+                    ("9d9fc", Outcome.UNLOADED),
+                    ("4d10fmc", Outcome.UNLOADED),
+                    ("3d10fm", Outcome.UNLOADED),
+                ),
+            ],
+        )
+    )
+
+    assert not result.needs_clarification
+    castells = result.performances[0].castells
+    assert [item.canonical for item in castells] == ["9de9f", "4de10fm", "3de10fm"]
+    assert [item.outcome for item in castells] == [
+        Outcome.LOADED,
+        Outcome.LOADED,
+        Outcome.UNLOADED,
+    ]
+    assert result.performances[0].total == 4295 + 4095 + 4525
