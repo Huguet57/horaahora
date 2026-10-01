@@ -1,3 +1,4 @@
+from backend.domain.calculator.app_prompts import app_prompt_query
 from backend.domain.calculator.models import CalculationResult, ChatTurn, ParsedPerformance
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.scoring import ScoringEngine
@@ -21,7 +22,12 @@ class ChatService:
         if not history or history[-1].role != "user":
             raise ValueError("L'últim missatge ha de ser de l'usuari")
         current = history[-1]
-        query = await self.chat_model.interpret(history[:-1], current.content, scenario=scenario)
+        # An app suggestion that opens a conversation has a fixed interpretation.
+        query = app_prompt_query(current.content) if len(history) == 1 and not scenario else None
+        if query is None:
+            query = await self.chat_model.interpret(
+                history[:-1], current.content, scenario=scenario
+            )
         presentation = None
         if query.intent == "contest_info":
             if query.knowledge_query is None:
