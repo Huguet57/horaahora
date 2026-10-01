@@ -27,33 +27,39 @@ mateixa colla, però «Jove» i «Joves» continuen sent diferents.
 
 ## Resultats reals
 
-> **Pendent.** Aquests resultats són de la primera redacció de les regles, que era uns
-> 400 caràcters més llarga. Superava el límit de 15.000 caràcters del prompt
-> d'interpretació, i per això se n'ha compactat el text sense canviar-ne el contingut.
-> Aquesta redacció final encara no s'ha executat, perquè la clau d'avaluació s'ha quedat
-> sense crèdit (límit de 20 USD). Cal repetir la fixture de converses compartides amb
-> tres passades abans de fer el merge.
-
 Sonnet 5.5 via OpenRouter, `reasoning.effort=low`, el mateix model que hi ha a producció.
 
 | Fixture | Prompt | Passades | Torns superats | Escenaris complets | Cost USD |
 |---|---|---:|---:|---:|---:|
 | Converses compartides | Abans | 3 | 3/15 | 3/12 | 0,309 |
-| Converses compartides | Després | 3 | 15/15 | 12/12 | 0,312 |
-| Converses | Després | 1 | 23/23 | 20/20 | 0,481 |
-| Preguntes obertes | Després | 1 | 21/21 | 16/16 | 0,592 |
-| Autoria | Després | 1 | 8/9 | 8/9 | 0,189 |
-| Ampliada | Després | 1 | 81 de 83 executats | 63 de 65 executats | — |
+| Converses compartides | Final | 3 | 15/15 | 12/12 | 0,304 |
+| Converses | Final | 1 | 21/23 | 18/20 | 0,479 |
+| Preguntes obertes | Final | 1 | 20/21 | 15/16 | 0,582 |
+| Autoria | Final | 1 | 9/9 | 9/9 | 0,182 |
+| Ampliada | Final | 1 | 118/121 | 97/100 | 2,855 |
 
-Notes:
+Abans del canvi, a la fixture de converses compartides només passava el cas d'afegir
+el 3 net. Els altres tres fallaven les tres vegades, amb el mateix error que es veu a
+producció.
 
-- **Converses compartides, abans del canvi:** només passava el cas d'afegir el 3 net.
-  Els altres tres fallaven les tres vegades, amb el mateix error que es veu a producció.
-- **Autoria:** l'única fallada és `reported_open_question`, perquè a la resposta redactada
-  li falta una de les paraules exigides. És una resposta d'`informació_concurs`, que
-  aquest canvi no toca, i el mateix cas passa a la fixture de preguntes obertes.
-- **Ampliada:** OpenRouter va retornar 402 (sense crèdit) a 35 dels 100 escenaris, i
-  aquests no s'han executat. Les dues fallades de la part executada, `duplicate_base` i
-  `compatible_towers`, són de les regles del motor de puntuació. La interpretació és la
-  correcta, però el motor no hi aplica la mateixa regla d'estructures repetides que la
-  fixture. El motor no canvia en aquesta PR.
+Les fallades de la resta de fixtures no venen d'aquest canvi:
+
+- **Converses, 2 fallades.** `corrections_keep_unaffected_groups` i
+  `multi_group_update_keeps_omitted_group` retornen bé l'escenari, però etiqueten la
+  intenció `total` en lloc de `comparació`. El motor calcula el guanyador igualment.
+  Repetits tres vegades, passen 12/12 tant en aquesta branca com a `main`: és soroll del
+  model.
+- **Respostes redactades, 2 fallades.** `loaded_reference` (preguntes obertes) i
+  `verds_alias` (ampliada) fallen per paraules de la resposta d'`informació_concurs`, que
+  aquest canvi no toca.
+- **Motor de puntuació, 2 fallades.** `duplicate_base` i `compatible_towers` (ampliada)
+  tenen la interpretació correcta, però el motor no hi aplica la mateixa regla
+  d'estructures repetides que la fixture. El motor no canvia en aquesta PR.
+
+## Redacció i mida del prompt
+
+La primera redacció de les regles superava el límit de 15.000 caràcters del prompt
+d'interpretació. Una versió massa compactada va fer que «no carrega el 2d9sm i fa el 2d8
+net» deixés el 2d9sm com a intent: 9/15 torns. La redacció final diu explícitament que
+X surt de l'actuació i no queda com a intent ni descarregat. El prompt queda en 14.963
+caràcters.

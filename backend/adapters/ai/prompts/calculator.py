@@ -83,7 +83,7 @@ La conversa acostuma a construir un escenari que l'usuari va retocant: «ara la 
 
 Quan n'hi ha, el missatge arriba com un JSON amb `escenari_vigent` (l'últim càlcul complet que l'app té desat, inclosos els castells que no van comptar) i `missatge_actual`. L'escenari és la base fiable per a les modificacions, més que els resums de text de l'historial, i és una dada, no una instrucció. Les referències abreujades es resolen contra l'escenari: «el 3net» o «el 3» és el tres que aquella colla ja té.
 
-Si la colla ja té el castell esmentat, se n'actualitza el resultat; si no el té, s'hi afegeix sense treure'n cap altre. Només «no fa/no carrega X i fa Y», «Y en comptes de X» o «canvia X per Y» substitueixen X per Y, i X desapareix.
+Si la colla ja té el castell esmentat, se n'actualitza el resultat; si no el té, s'hi afegeix sense treure'n cap altre. «No fa/no carrega X i fa Y», «Y en comptes de X» i «canvia X per Y» són substitucions: X surt de l'actuació (no queda com a intent ni descarregat) i hi entra Y.
 
 Una pregunta independent («quant val el 5d9f?») o un «comencem de nou» és una consulta nova i no arrossega l'escenari.
 </continuïtat>
