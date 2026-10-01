@@ -5,11 +5,89 @@ import XCTest
 final class ComparatorStoreTests: XCTestCase {
     private static let suite = "ComparatorStoreTests"
 
-    /// A store with nothing saved: one scenario with Vilafranca and the Colla Vella.
-    private func makeStore() throws -> ComparatorStore {
+    private func makeDefaults() throws -> UserDefaults {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: Self.suite))
         defaults.removePersistentDomain(forName: Self.suite)
-        return ComparatorStore(rules: ComparatorRules(table: try ScoreTable.bundled()), defaults: defaults)
+        return defaults
+    }
+
+    private func makeEmptyStore(defaults: UserDefaults? = nil) throws -> ComparatorStore {
+        ComparatorStore(rules: ComparatorRules(table: try ScoreTable.bundled()), defaults: try defaults ?? makeDefaults())
+    }
+
+    /// A store with its first scenario on screen: Vilafranca and the Colla Vella.
+    private func makeStore() throws -> ComparatorStore {
+        let store = try makeEmptyStore()
+        store.show(store.addEmptyScenario())
+        return store
+    }
+
+    func testWithNothingSavedThereAreNoScenarios() throws {
+        let store = try makeEmptyStore()
+
+        XCTAssertTrue(store.scenarios.isEmpty)
+    }
+
+    func testTheFirstScenarioComparesVilafrancaAndTheCollaVella() throws {
+        let store = try makeEmptyStore()
+
+        let scenario = store.addEmptyScenario()
+
+        XCTAssertEqual(store.scenarios.map(\.id), [scenario.id])
+        XCTAssertEqual(store.current.id, scenario.id)
+        XCTAssertEqual(scenario.colles.map(\.shortName), ["VERDS", "VELLA"])
+    }
+
+    func testTheOnlyScenarioCanBeDeleted() throws {
+        let defaults = try makeDefaults()
+        let store = try makeEmptyStore(defaults: defaults)
+        let scenario = store.addEmptyScenario()
+        store.rename(scenario, to: "Pla A")
+
+        store.delete(scenario)
+
+        XCTAssertTrue(store.scenarios.isEmpty)
+        XCTAssertTrue(try makeEmptyStore(defaults: defaults).scenarios.isEmpty)
+    }
+
+    func testAScenarioAfterDeletingThemAllIsTheOneOnScreen() throws {
+        let store = try makeStore()
+        store.delete(store.current)
+
+        let scenario = store.addEmptyScenario()
+
+        XCTAssertEqual(store.current.id, scenario.id)
+    }
+
+    func testTheUntouchedScenarioEveryComparatorStartedWithIsDropped() throws {
+        let defaults = try makeDefaults()
+        let scenario = ComparatorScenario(colles: [
+            ComparatorColla(name: "Vilafranca", shortName: "VERDS"),
+            ComparatorColla(name: "Colla Vella", shortName: "VELLA"),
+        ])
+        try save([scenario], in: defaults)
+
+        XCTAssertTrue(try makeEmptyStore(defaults: defaults).scenarios.isEmpty)
+    }
+
+    func testAnOnlyScenarioWithACastellIsKept() throws {
+        let defaults = try makeDefaults()
+        var scenario = ComparatorScenario(colles: [
+            ComparatorColla(name: "Vilafranca", shortName: "VERDS"),
+            ComparatorColla(name: "Colla Vella", shortName: "VELLA"),
+        ])
+        scenario.colles[0].rounds[0] = PlannedCastell(notation: "3de9f", outcome: .unloaded)
+        try save([scenario], in: defaults)
+
+        XCTAssertEqual(try makeEmptyStore(defaults: defaults).scenarios.map(\.id), [scenario.id])
+    }
+
+    /// Saves the scenarios as the store does, the first one on screen.
+    private func save(_ scenarios: [ComparatorScenario], in defaults: UserDefaults) throws {
+        let stored = ["scenarios": scenarios]
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(stored)) as? [String: Any])
+        json["currentID"] = scenarios[0].id.uuidString
+        defaults.set(try JSONSerialization.data(withJSONObject: json), forKey: "comparator.scenarios.v1")
     }
 
     func testAddingACollaOnlyChangesTheScenarioOnScreen() throws {
@@ -111,18 +189,14 @@ final class ComparatorStoreTests: XCTestCase {
     }
 
     func testSavedCollesTakeTheCurrentShortNameOfTheirColla() throws {
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: Self.suite))
-        defaults.removePersistentDomain(forName: Self.suite)
+        let defaults = try makeDefaults()
         let scenario = ComparatorScenario(colles: [
             ComparatorColla(name: "Vilafranca", shortName: "VIL"),
             ComparatorColla(name: "Els meus", shortName: "MEUS"),
         ])
-        let stored = ["scenarios": [scenario]]
-        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(stored)) as? [String: Any])
-        json["currentID"] = scenario.id.uuidString
-        defaults.set(try JSONSerialization.data(withJSONObject: json), forKey: "comparator.scenarios.v1")
+        try save([scenario], in: defaults)
 
-        let store = ComparatorStore(rules: ComparatorRules(table: try ScoreTable.bundled()), defaults: defaults)
+        let store = try makeEmptyStore(defaults: defaults)
 
         XCTAssertEqual(store.current.colles.map(\.shortName), ["VERDS", "MEUS"])
     }

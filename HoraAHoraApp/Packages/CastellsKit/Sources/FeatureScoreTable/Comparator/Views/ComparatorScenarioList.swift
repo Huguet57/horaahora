@@ -3,7 +3,8 @@ import SwiftUI
 
 /// The comparator's main page: every scenario as its score and each colla's castells, the
 /// favourites pinned on top. Tapping one opens its grid; dragging it reorders it within its
-/// section; its menu pins, renames, duplicates or deletes it.
+/// section; its menu pins, renames, duplicates or deletes it. Without scenarios, it says what
+/// they are for and offers to create the first one.
 struct ComparatorScenarioList: View {
     let store: ComparatorStore
     let onOpen: (ComparatorScenario) -> Void
@@ -21,15 +22,32 @@ struct ComparatorScenarioList: View {
                         .onMove { store.moveScenarios(favorites: true, from: $0, to: $1) }
                 }
             }
-            Section {
-                rows(store.others)
-                    .onMove { store.moveScenarios(favorites: false, from: $0, to: $1) }
-            } header: {
-                if !store.favorites.isEmpty { Text("Escenaris") }
-            } footer: {
-                Text("Mantén premut un escenari per moure'l. Duplica'n un per provar què passa si una colla fa un altre castell.")
+            if !store.scenarios.isEmpty {
+                Section {
+                    rows(store.others)
+                        .onMove { store.moveScenarios(favorites: false, from: $0, to: $1) }
+                } header: {
+                    if !store.favorites.isEmpty { Text("Escenaris") }
+                } footer: {
+                    Text("Mantén premut un escenari per moure'l. Duplica'n un per provar què passa si una colla fa un altre castell.")
+                }
             }
         }
+        .overlay {
+            if store.scenarios.isEmpty {
+                ContentUnavailableView {
+                    Label("Cap escenari", systemImage: "tablecells")
+                } description: {
+                    Text("Crea un escenari per comparar les actuacions de fins a quatre colles i veure qui guanyaria.")
+                } actions: {
+                    Button("Crea un escenari") { onOpen(store.addEmptyScenario()) }
+                        .buttonStyle(.borderedProminent)
+                }
+            }
+        }
+        // An empty list would lose the grouped background of the other tabs.
+        .scrollContentBackground(.hidden)
+        .background(Color(.systemGroupedBackground))
         .animation(.snappy, value: store.scenarios.map(\.id))
         .task(id: revealingID) {
             guard revealingID != nil else { return }
@@ -39,8 +57,10 @@ struct ComparatorScenarioList: View {
         .navigationTitle("Comparador")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                EditButton()
+            if !store.scenarios.isEmpty {
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
+                }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Nou escenari", systemImage: "plus") {
@@ -65,10 +85,8 @@ struct ComparatorScenarioList: View {
         ForEach(scenarios) { scenario in
             row(scenario)
                 .swipeActions {
-                    if store.scenarios.count > 1 {
-                        Button("Elimina", systemImage: "trash", role: .destructive) {
-                            deleting = scenario
-                        }
+                    Button("Elimina", systemImage: "trash", role: .destructive) {
+                        deleting = scenario
                     }
                     Button("Duplica", systemImage: "plus.square.on.square") {
                         revealingID = store.duplicate(scenario).id
@@ -138,10 +156,8 @@ struct ComparatorScenarioList: View {
                 Button("Duplica", systemImage: "plus.square.on.square") {
                     revealingID = store.duplicate(scenario).id
                 }
-                if store.scenarios.count > 1 {
-                    Button("Elimina", systemImage: "trash", role: .destructive) {
-                        deleting = scenario
-                    }
+                Button("Elimina", systemImage: "trash", role: .destructive) {
+                    deleting = scenario
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")

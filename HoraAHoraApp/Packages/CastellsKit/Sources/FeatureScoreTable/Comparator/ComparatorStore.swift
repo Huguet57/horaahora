@@ -44,7 +44,7 @@ final class ComparatorStore {
 
     let rules: ComparatorRules
     private(set) var scenarios: [ComparatorScenario] { didSet { save() } }
-    private(set) var currentID: UUID { didSet { save() } }
+    private(set) var currentID: UUID? { didSet { save() } }
     var selection: ComparatorCell?
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -54,22 +54,32 @@ final class ComparatorStore {
         self.defaults = defaults
         if let data = defaults.data(forKey: Self.storageKey),
            let stored = try? JSONDecoder().decode(Stored.self, from: data),
-           !stored.scenarios.isEmpty {
+           !Self.isUntouchedStart(stored.scenarios) {
             // Favourites first, as the list shows them, and the known colles with today's short
             // name, which may have changed since they were saved.
             let loaded = stored.scenarios.map(Self.refreshingShortNames)
             scenarios = loaded.filter(\.isFavorite) + loaded.filter { !$0.isFavorite }
             currentID = stored.scenarios.contains { $0.id == stored.currentID }
                 ? stored.currentID
-                : stored.scenarios[0].id
+                : stored.scenarios.first?.id
         } else {
-            let first = ComparatorScenario(colles: [
-                ComparatorColla(name: "Vilafranca", shortName: "VERDS"),
-                ComparatorColla(name: "Colla Vella", shortName: "VELLA"),
-            ])
-            scenarios = [first]
-            currentID = first.id
+            scenarios = []
+            currentID = nil
         }
+    }
+
+    /// Vilafranca and the Colla Vella, the colles of the first scenario.
+    private static var firstColles: [ComparatorColla] {
+        KnownColla.all.prefix(2).map { ComparatorColla(name: $0.name, shortName: $0.shortName) }
+    }
+
+    /// Whether the scenarios are just the one every comparator used to start with, as it was:
+    /// the list now starts empty, and creating the first scenario gives the same one.
+    private static func isUntouchedStart(_ scenarios: [ComparatorScenario]) -> Bool {
+        guard scenarios.count == 1, let scenario = scenarios.first else { return false }
+        return !scenario.isFavorite && scenario.name == nil
+            && scenario.colles.map(\.name) == firstColles.map(\.name)
+            && scenario.colles.allSatisfy { $0.penalties == 0 && $0.rounds.allSatisfy { $0 == nil } }
     }
 
     private static func refreshingShortNames(_ scenario: ComparatorScenario) -> ComparatorScenario {
@@ -84,8 +94,10 @@ final class ComparatorStore {
 
     // MARK: Scenarios
 
+    /// The scenario whose grid is open, or opens next. Without scenarios, one without colles,
+    /// which no screen shows.
     var current: ComparatorScenario {
-        get { scenarios.first { $0.id == currentID } ?? scenarios[0] }
+        get { scenarios.first { $0.id == currentID } ?? scenarios.first ?? ComparatorScenario(colles: []) }
         set {
             guard let index = scenarios.firstIndex(where: { $0.id == newValue.id }) else { return }
             scenarios[index] = newValue
@@ -144,10 +156,10 @@ final class ComparatorStore {
         show(duplicate(current))
     }
 
-    /// A scenario with the same colles and every round empty, at the end.
+    /// A scenario with the colles of the first one and every round empty, at the end.
     @discardableResult
     func addEmptyScenario() -> ComparatorScenario {
-        var colles = scenarios.first?.colles ?? []
+        var colles = scenarios.first?.colles ?? Self.firstColles
         for index in colles.indices {
             colles[index].rounds = Array(repeating: nil, count: ComparatorColla.roundCount)
             colles[index].penalties = 0
@@ -158,11 +170,11 @@ final class ComparatorStore {
     }
 
     func delete(_ scenario: ComparatorScenario) {
-        guard scenarios.count > 1, let index = scenarios.firstIndex(where: { $0.id == scenario.id })
-        else { return }
+        guard let index = scenarios.firstIndex(where: { $0.id == scenario.id }) else { return }
         scenarios.remove(at: index)
         if scenario.id == currentID {
-            show(scenarios[min(index, scenarios.count - 1)])
+            selection = nil
+            currentID = scenarios.isEmpty ? nil : scenarios[min(index, scenarios.count - 1)].id
         }
     }
 
@@ -258,7 +270,7 @@ final class ComparatorStore {
 
     private struct Stored: Codable {
         let scenarios: [ComparatorScenario]
-        let currentID: UUID
+        let currentID: UUID?
     }
 
     private func save() {

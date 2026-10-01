@@ -144,11 +144,13 @@ def test_interpretation_prompt_is_small_and_contains_no_contest_snapshot() -> No
     assert [module.name for module in INTERPRETATION_MODULES] == [
         "calculator",
         "creator",
+        "aleta",
         "contest_router",
     ]
     # The prompt states the situation and the casteller jargon; a new rule per reported
     # failure belongs in the evaluation fixtures, not here.
-    assert len(INTERPRETATION_PROMPT) < 12_000
+    # Includes the public Aleta product context, without full web pages or snapshots.
+    assert len(INTERPRETATION_PROMPT) < 15_000
     assert "<resultats_anteriors>" not in INTERPRETATION_PROMPT
     assert "<coneixement_normatiu>" not in INTERPRETATION_PROMPT
     assert "16.337 punts" not in INTERPRETATION_PROMPT

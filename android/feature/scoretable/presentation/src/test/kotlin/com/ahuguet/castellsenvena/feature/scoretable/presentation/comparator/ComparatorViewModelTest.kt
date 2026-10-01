@@ -11,12 +11,50 @@ class ComparatorViewModelTest {
     private val rules = ComparatorRules(ScoreTable.bundled())
     private val storage = InMemoryComparatorStorage()
 
-    /** A model with nothing saved: one scenario with Vilafranca and the Colla Vella. */
-    private fun makeModel() = ComparatorViewModel(rules, storage)
+    /** A model with what is saved or, with nothing, its first scenario on screen: Vilafranca and the Colla Vella. */
+    private fun makeModel() = ComparatorViewModel(rules, storage).also { model ->
+        if (model.state.value.scenarios.isEmpty()) model.show(model.addEmptyScenario().id)
+    }
 
     private val ComparatorViewModel.current get() = state.value.current
 
     private fun ComparatorViewModel.scenario(id: String) = state.value.scenarios.first { it.id == id }
+
+    @Test
+    fun withNothingSavedThereAreNoScenarios() {
+        assertEquals(emptyList(), ComparatorViewModel(rules, storage).state.value.scenarios)
+    }
+
+    @Test
+    fun theFirstScenarioComparesVilafrancaAndTheCollaVella() {
+        val model = ComparatorViewModel(rules, storage)
+
+        val scenario = model.addEmptyScenario()
+
+        assertEquals(listOf(scenario.id), model.state.value.scenarios.map { it.id })
+        assertEquals(scenario.id, model.current.id)
+        assertEquals(listOf("VERDS", "VELLA"), scenario.colles.map { it.shortName })
+    }
+
+    @Test
+    fun theUntouchedScenarioEveryComparatorStartedWithIsDropped() {
+        storage.value = """
+            {"scenarios":[{"id":"A","colles":[
+                {"id":"V","name":"Vilafranca","shortName":"VERDS","rounds":[null,null,null,null,null],"penalties":0},
+                {"id":"C","name":"Colla Vella","shortName":"VELLA","rounds":[null,null,null,null,null],"penalties":0}
+            ]}],"currentId":"A"}
+        """.trimIndent()
+
+        assertEquals(emptyList(), ComparatorViewModel(rules, storage).state.value.scenarios)
+    }
+
+    @Test
+    fun anOnlyScenarioWithACastellIsKept() {
+        val model = makeModel()
+        model.set(d("3de9f"), ComparatorCell(model.current.colles.first().id, round = 0))
+
+        assertEquals(listOf(model.current.id), ComparatorViewModel(rules, storage).state.value.scenarios.map { it.id })
+    }
 
     @Test
     fun addingACollaOnlyChangesTheScenarioOnScreen() {
@@ -163,11 +201,27 @@ class ComparatorViewModelTest {
     }
 
     @Test
-    fun theOnlyScenarioCannotBeDeleted() {
+    fun theOnlyScenarioCanBeDeletedAndComesBack() {
         val model = makeModel()
+        model.rename(model.current.id, "Pla A")
+        val only = model.current
 
-        assertNull(model.delete(model.current.id))
-        assertEquals(1, model.state.value.scenarios.size)
+        val deleted = assertNotNull(model.delete(only.id))
+        assertEquals(emptyList(), model.state.value.scenarios)
+        assertEquals(emptyList(), ComparatorViewModel(rules, storage).state.value.scenarios)
+
+        model.restore(deleted)
+        assertEquals(only, model.current)
+    }
+
+    @Test
+    fun aScenarioAfterDeletingThemAllIsTheOneOnScreen() {
+        val model = makeModel()
+        model.delete(model.current.id)
+
+        val scenario = model.addEmptyScenario()
+
+        assertEquals(scenario.id, model.current.id)
     }
 
     @Test

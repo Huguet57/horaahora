@@ -62,11 +62,17 @@ data class ComparatorState(
     /** The favourites first, in the order the list shows them. */
     val scenarios: List<ComparatorScenario>,
     /** The scenario whose grid is open, or opens next. */
-    val currentId: String,
+    val currentId: String?,
 ) {
-    val current: ComparatorScenario get() = scenarios.firstOrNull { it.id == currentId } ?: scenarios.first()
+    /** Without scenarios, one without colles, which no screen shows. */
+    val current: ComparatorScenario
+        get() = scenarios.firstOrNull { it.id == currentId } ?: scenarios.firstOrNull() ?: NO_SCENARIO
     val favorites: List<ComparatorScenario> get() = scenarios.filter { it.isFavorite }
     val others: List<ComparatorScenario> get() = scenarios.filterNot { it.isFavorite }
+
+    private companion object {
+        val NO_SCENARIO = ComparatorScenario(id = "", colles = emptyList())
+    }
 }
 
 /** A deleted scenario and where it was, to put it back. */
@@ -140,20 +146,20 @@ class ComparatorViewModel(val rules: ComparatorRules, private val storage: Compa
 
     /** A scenario with the colles of the first one and every round empty, at the end. */
     fun addEmptyScenario(): ComparatorScenario {
-        val colles = mutableState.value.scenarios.firstOrNull()?.colles.orEmpty().map { it.cleared() }
+        val colles = mutableState.value.scenarios.firstOrNull()?.colles?.map { it.cleared() } ?: firstColles()
         val scenario = ComparatorScenario(id = newId(), colles = colles)
         update { it.copy(scenarios = it.scenarios + scenario) }
         return scenario
     }
 
-    /** Removes a scenario, unless it is the only one; [restore] puts it back. */
+    /** Removes a scenario; [restore] puts it back. */
     fun delete(id: String): DeletedScenario? {
         val state = mutableState.value
         val index = state.scenarios.indexOfFirst { it.id == id }
-        if (state.scenarios.size <= 1 || index < 0) return null
+        if (index < 0) return null
         val scenarios = state.scenarios.toMutableList()
         val removed = scenarios.removeAt(index)
-        val currentId = if (id == state.currentId) scenarios[minOf(index, scenarios.lastIndex)].id else state.currentId
+        val currentId = if (id == state.currentId) scenarios.getOrNull(minOf(index, scenarios.lastIndex))?.id else state.currentId
         update { ComparatorState(scenarios, currentId) }
         return DeletedScenario(removed, index)
     }
@@ -270,22 +276,28 @@ class ComparatorViewModel(val rules: ComparatorRules, private val storage: Compa
     private fun load(): ComparatorState {
         val stored = storage.load()
             ?.let { runCatching { json.decodeFromString(Stored.serializer(), it) }.getOrNull() }
-            ?.takeIf { it.scenarios.isNotEmpty() }
-        if (stored == null) {
-            val first = ComparatorScenario(
-                id = newId(),
-                colles = listOf(
-                    ComparatorColla(id = newId(), name = "Vilafranca", shortName = "VERDS"),
-                    ComparatorColla(id = newId(), name = "Colla Vella", shortName = "VELLA"),
-                ),
-            )
-            return ComparatorState(listOf(first), first.id)
-        }
+            ?.takeUnless { isUntouchedStart(it.scenarios) }
+            ?: return ComparatorState(emptyList(), null)
         // Favourites first, as the list shows them, and the known colles with today's short
         // name, which may have changed since they were saved.
         val loaded = stored.scenarios.map(::refreshingShortNames)
-        val currentId = stored.currentId.takeIf { id -> loaded.any { it.id == id } } ?: loaded.first().id
+        val currentId = stored.currentId.takeIf { id -> loaded.any { it.id == id } } ?: loaded.firstOrNull()?.id
         return ComparatorState(loaded.filter { it.isFavorite } + loaded.filterNot { it.isFavorite }, currentId)
+    }
+
+    /** Vilafranca and the Colla Vella, the colles of the first scenario. */
+    private fun firstColles(): List<ComparatorColla> =
+        KnownColla.ALL.take(2).map { ComparatorColla(id = newId(), name = it.name, shortName = it.shortName) }
+
+    /**
+     * Whether the scenarios are just the one every comparator used to start with, as it was: the
+     * list now starts empty, and creating the first scenario gives the same one.
+     */
+    private fun isUntouchedStart(scenarios: List<ComparatorScenario>): Boolean {
+        val scenario = scenarios.singleOrNull() ?: return false
+        return !scenario.isFavorite && scenario.name == null &&
+            scenario.colles.map { it.name } == KnownColla.ALL.take(2).map { it.name } &&
+            scenario.colles.all { it == it.cleared() }
     }
 
     private fun refreshingShortNames(scenario: ComparatorScenario): ComparatorScenario = scenario.copy(
@@ -297,7 +309,7 @@ class ComparatorViewModel(val rules: ComparatorRules, private val storage: Compa
     private fun newId(): String = UUID.randomUUID().toString()
 
     @Serializable
-    private data class Stored(val scenarios: List<ComparatorScenario>, val currentId: String)
+    private data class Stored(val scenarios: List<ComparatorScenario>, val currentId: String? = null)
 
     companion object {
         const val MAX_COLLES = 4
