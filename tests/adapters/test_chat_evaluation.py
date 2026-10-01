@@ -1,6 +1,12 @@
 from copy import deepcopy
 
-from scripts.evaluate_chat_models import check_result, summarize
+from backend.domain.calculator.models import Outcome, ParsedCastell, ParsedPerformance
+from scripts.evaluate_chat_models import (
+    check_result,
+    label_key,
+    saved_scenario_from_fixture,
+    summarize,
+)
 
 
 def test_context_grader_detects_lost_groups_castells_and_outcomes_including_uncounted():
@@ -112,3 +118,68 @@ def test_extended_grader_handles_unnamed_comparisons_and_forbidden_claims():
         "reply_forbids_patterns": [r"\d+\s*%"],
     }
     assert check_result(result, expected) == ["reply_forbidden_pattern"]
+
+
+def test_grader_ignores_a_leading_article_but_keeps_jove_and_joves_apart():
+    castell = {"canonical": "4de9sf", "outcome": "unloaded"}
+    expected = {
+        "intents": ["comparison"],
+        "performances": [
+            {"label": "Joves", "castells": [castell]},
+            {"label": "Vella", "castells": [castell]},
+        ],
+        "totals": {"Joves": 4105, "Vella": 4105},
+    }
+    result = {
+        "intent": "comparison",
+        "needs_clarification": False,
+        "reply": "Un resultat de càlcul.",
+        "performances": [
+            {"label": "la Joves", "total": 4105, "castells": [castell]},
+            {"label": "La Vella", "total": 4105, "castells": [castell]},
+        ],
+    }
+    assert check_result(result, expected) == []
+
+    result["performances"][0]["label"] = "la Jove"
+    assert "scenario_state" in check_result(result, expected)
+
+
+def test_saved_scenario_from_fixture_matches_what_the_app_sends():
+    performances = saved_scenario_from_fixture(
+        [{"label": "Vella", "castells": [{"notation": "3de9sf", "outcome": "loaded"}]}]
+    )
+    assert performances == [ParsedPerformance("Vella", [ParsedCastell("3de9sf", Outcome.LOADED)])]
+
+
+def test_label_key_strips_whole_articles_only():
+    assert label_key("Els Xiquets") == "xiquets"
+    assert label_key("les Gralles") == "gralles"
+    assert label_key("l’Alegria") == "alegria"
+    assert label_key("Lleida") == "lleida"
+    assert label_key("Elsa") == "elsa"
+
+
+def test_grader_rejects_an_extra_participant_with_the_same_normalized_label():
+    castell = {"canonical": "4de9sf", "outcome": "unloaded", "counted": True}
+    expected = {
+        "intents": ["comparison"],
+        "performances": [{"label": "Joves", "castells": [castell]}],
+        "totals": {"Joves": 4105},
+        "counted": {"Joves": [["4de9sf", "unloaded"]]},
+    }
+    stray = {"canonical": "3de9sf", "outcome": "loaded", "counted": True}
+    result = {
+        "intent": "comparison",
+        "needs_clarification": False,
+        "reply": "Un resultat de càlcul.",
+        "performances": [
+            {"label": "la Joves", "total": 5165, "castells": [stray]},
+            {"label": "Joves", "total": 4105, "castells": [castell]},
+        ],
+    }
+    failures = check_result(result, expected)
+    assert {"scenario_state", "totals", "counted"} <= set(failures)
+
+    expected["ignore_labels"] = True
+    assert "scenario_state" in check_result(result, expected)
