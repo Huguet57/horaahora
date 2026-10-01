@@ -8,6 +8,7 @@ struct ComparisonPresentation {
         let result: String
         let points: Int
         let counted: Bool
+        let notCountedReason: String?
     }
 
     struct Column: Identifiable {
@@ -43,7 +44,8 @@ struct ComparisonPresentation {
                         notation: castell.canonical ?? castell.input,
                         result: Self.resultLabel(castell.outcome),
                         points: castell.points,
-                        counted: castell.counted
+                        counted: castell.counted,
+                        notCountedReason: castell.notCountedReason
                     )
                 },
                 isWinner: performance.label == response.winnerLabel

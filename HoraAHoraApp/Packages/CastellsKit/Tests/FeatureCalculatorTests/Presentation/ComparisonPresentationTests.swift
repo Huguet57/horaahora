@@ -71,6 +71,23 @@ final class ComparisonPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.columns.map(\.label), ["A", "B"])
     }
 
+    func testCellsSayWhyACastellDoesNotCount() throws {
+        let uncountedJSON = Self.responseJSON.replacingOccurrences(
+            of: #""points": 4105,\#n          "counted": true,\#n          "reason": null"#,
+            with: #""points": 4105,\#n          "counted": false,\#n          "reason": "duplicate_structure""#
+        )
+        XCTAssertNotEqual(uncountedJSON, Self.responseJSON)
+        let response = try JSONDecoder.castellsAPI.decode(
+            ChatResponse.self,
+            from: Data(uncountedJSON.utf8)
+        )
+
+        let presentation = try XCTUnwrap(ComparisonPresentation(response: response))
+
+        XCTAssertNil(presentation.columns[0].castells[0].notCountedReason)
+        XCTAssertEqual(presentation.columns[1].castells[0].notCountedReason, "repetit")
+    }
+
     private static let responseJSON = #"""
     {
       "reply": "Guanya Vella per 825 punts.",

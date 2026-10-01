@@ -112,13 +112,19 @@ private fun ComparisonCastellCell(castell: ComparisonPresentation.Castell?) {
     }
     Column(horizontalAlignment = Alignment.End, modifier = Modifier.alpha(if (castell.counted) 1f else 0.55f)) {
         Text(castell.notation, style = notationStyle)
-        val suffix = if (castell.counted) "" else " · no compta"
+        val suffix = notCountedSuffix(castell.counted, castell.notCountedReason)
         Text(
             text = "${castell.result} · ${CatalanNumbers.grouped(castell.points)}$suffix",
             style = detailStyle.merge(TabularNumbers),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+private fun notCountedSuffix(counted: Boolean, reason: String?): String = when {
+    counted -> ""
+    reason != null -> " · no compta · $reason"
+    else -> " · no compta"
 }
 
 @Composable
@@ -195,7 +201,11 @@ internal fun PerformanceSummary(presentation: PerformanceSummaryPresentation) {
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(row.notation, style = notationStyle)
-                        Text(row.result, style = detailStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            text = row.result + notCountedSuffix(row.counted, row.notCountedReason),
+                            style = detailStyle,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     Text(
                         text = CatalanNumbers.grouped(row.points),

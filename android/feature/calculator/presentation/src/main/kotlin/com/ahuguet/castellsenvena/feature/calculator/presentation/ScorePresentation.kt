@@ -53,6 +53,7 @@ data class PerformanceSummaryPresentation(
         val result: String,
         val points: Int,
         val counted: Boolean,
+        val notCountedReason: String?,
     )
 
     companion object {
@@ -72,6 +73,7 @@ data class PerformanceSummaryPresentation(
                         result = castellResultLabel(castell.outcome),
                         points = castell.points,
                         counted = castell.counted,
+                        notCountedReason = notCountedReasonLabel(castell),
                     )
                 },
                 total = performance.total,

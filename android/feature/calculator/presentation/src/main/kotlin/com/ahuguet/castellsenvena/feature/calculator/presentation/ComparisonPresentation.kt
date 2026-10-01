@@ -18,6 +18,7 @@ data class ComparisonPresentation(
         val result: String,
         val points: Int,
         val counted: Boolean,
+        val notCountedReason: String?,
     )
 
     data class Column(
@@ -50,6 +51,7 @@ data class ComparisonPresentation(
                             result = castellResultLabel(castell.outcome),
                             points = castell.points,
                             counted = castell.counted,
+                            notCountedReason = notCountedReasonLabel(castell),
                         )
                     },
                     isWinner = performance.label == response.winnerLabel,

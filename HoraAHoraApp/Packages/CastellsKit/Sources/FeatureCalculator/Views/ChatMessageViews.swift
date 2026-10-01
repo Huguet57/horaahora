@@ -153,7 +153,7 @@ struct PerformanceSummaryView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(row.notation).font(.caption.monospaced().weight(.semibold))
-                            Text(row.result).font(.caption2).foregroundStyle(.secondary)
+                            Text(detail(for: row)).font(.caption2).foregroundStyle(.secondary)
                         }
                         .opacity(row.counted ? 1 : 0.55)
                         Spacer()
@@ -176,6 +176,10 @@ struct PerformanceSummaryView: View {
             .clipShape(RoundedRectangle(cornerRadius: 11))
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private func detail(for row: PerformanceSummaryPresentation.Row) -> String {
+        row.result + notCountedSuffix(counted: row.counted, reason: row.notCountedReason)
     }
 }
 
@@ -259,7 +263,12 @@ struct ComparisonTable: View {
 
     private func detail(for castell: ComparisonPresentation.Castell) -> String {
         let points = castell.points.formatted(.number.grouping(.automatic))
-        let suffix = castell.counted ? "" : " · no compta"
+        let suffix = notCountedSuffix(counted: castell.counted, reason: castell.notCountedReason)
         return "\(castell.result) · \(points)\(suffix)"
     }
+}
+
+private func notCountedSuffix(counted: Bool, reason: String?) -> String {
+    guard !counted else { return "" }
+    return reason.map { " · no compta · \($0)" } ?? " · no compta"
 }

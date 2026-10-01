@@ -7,6 +7,7 @@ struct PerformanceSummaryPresentation {
         let result: String
         let points: Int
         let counted: Bool
+        let notCountedReason: String?
     }
 
     let title: String
@@ -28,7 +29,8 @@ struct PerformanceSummaryPresentation {
                 notation: castell.canonical ?? castell.input,
                 result: Self.resultLabel(castell.outcome),
                 points: castell.points,
-                counted: castell.counted
+                counted: castell.counted,
+                notCountedReason: castell.notCountedReason
             )
         }
         total = performance.total

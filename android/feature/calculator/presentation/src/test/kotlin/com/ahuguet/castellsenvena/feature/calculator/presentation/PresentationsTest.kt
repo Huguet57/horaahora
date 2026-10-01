@@ -13,8 +13,14 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class PresentationsTest {
-    private fun castell(input: String, canonical: String, points: Int, outcome: String = "unloaded", counted: Boolean = true) =
-        ScoredCastellResponse(input, canonical, outcome, points, counted, reason = null)
+    private fun castell(
+        input: String,
+        canonical: String,
+        points: Int,
+        outcome: String = "unloaded",
+        counted: Boolean = true,
+        reason: String? = null,
+    ) = ScoredCastellResponse(input, canonical, outcome, points, counted, reason)
 
     private fun comparison(
         firstLabel: String = "Vella",
@@ -117,6 +123,52 @@ class PresentationsTest {
         assertEquals(listOf("3de10sm", "2de10fmp"), presentation.rows.map { it.notation })
         assertEquals("Descarregat", presentation.rows.first().result)
         assertEquals(20_615, presentation.total)
+    }
+
+    @Test
+    fun uncountedCastellsSayWhyTheyDoNotCount() {
+        // Shared conversations: a castell that stopped counting looked like the calculator ignored it.
+        val response = ChatResponse(
+            reply = "Joves: Pde7sf carregat, 3de9sf carregat. Total: 10.445 punts.",
+            intent = "total",
+            performances = listOf(
+                PerformanceResponse(
+                    label = "Joves",
+                    total = 10_445,
+                    castells = listOf(
+                        castell("pd7sf", "Pde7sf", 5_280, outcome = "loaded"),
+                        castell("3d9sf", "3de9sf", 5_165, outcome = "loaded"),
+                        castell("2d9sm", "2de9sm", 4_685, outcome = "loaded", counted = false, reason = "loaded_limit"),
+                        castell("3d9f", "3de9f", 1_910, counted = false, reason = "duplicate_structure"),
+                        castell("5d8", "5de8", 1_385, counted = false, reason = "outside_top_three"),
+                        castell("4d9f", "4de9f", 0, outcome = "attempt", counted = false, reason = "attempt"),
+                    ),
+                ),
+            ),
+            winnerLabel = null,
+            warnings = emptyList(),
+            rulesetVersion = "concurs-2026",
+            needsClarification = false,
+        )
+
+        val presentation = assertNotNull(PerformanceSummaryPresentation.from(response))
+
+        assertEquals(
+            listOf(null, null, "3r carregat", "repetit", "fora de les 3", null),
+            presentation.rows.map { it.notCountedReason },
+        )
+    }
+
+    @Test
+    fun comparisonCellsSayWhyACastellDoesNotCount() {
+        val response = comparison(
+            second = castell("2d9sm", "2de9sm", 4_685, outcome = "loaded", counted = false, reason = "loaded_limit"),
+        )
+
+        val presentation = assertNotNull(ComparisonPresentation.from(response))
+
+        assertNull(presentation.columns[0].castells.single().notCountedReason)
+        assertEquals("3r carregat", presentation.columns[1].castells.single().notCountedReason)
     }
 
     @Test
