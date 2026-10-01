@@ -40,7 +40,7 @@ MODELS = (
 DATASET = Path(__file__).resolve().parents[1] / "tests/fixtures/chat_conversation_cases.json"
 
 
-_ARTICLE = re.compile(r"^(?:la|el|els|les|l')\s*")
+_ARTICLE = re.compile(r"^(?:(?:la|el|els|les)\s+|l')")
 
 
 def label_key(label: str) -> str:

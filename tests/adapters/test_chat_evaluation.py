@@ -1,7 +1,12 @@
 from copy import deepcopy
 
 from backend.domain.calculator.models import Outcome, ParsedCastell, ParsedPerformance
-from scripts.evaluate_chat_models import check_result, saved_scenario_from_fixture, summarize
+from scripts.evaluate_chat_models import (
+    check_result,
+    label_key,
+    saved_scenario_from_fixture,
+    summarize,
+)
 
 
 def test_context_grader_detects_lost_groups_castells_and_outcomes_including_uncounted():
@@ -145,3 +150,11 @@ def test_saved_scenario_from_fixture_matches_what_the_app_sends():
         [{"label": "Vella", "castells": [{"notation": "3de9sf", "outcome": "loaded"}]}]
     )
     assert performances == [ParsedPerformance("Vella", [ParsedCastell("3de9sf", Outcome.LOADED)])]
+
+
+def test_label_key_strips_whole_articles_only():
+    assert label_key("Els Xiquets") == "xiquets"
+    assert label_key("les Gralles") == "gralles"
+    assert label_key("l’Alegria") == "alegria"
+    assert label_key("Lleida") == "lleida"
+    assert label_key("Elsa") == "elsa"
