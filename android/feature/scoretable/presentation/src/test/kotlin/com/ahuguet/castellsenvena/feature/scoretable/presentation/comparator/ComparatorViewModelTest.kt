@@ -6,6 +6,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ComparatorViewModelTest {
     private val rules = ComparatorRules(ScoreTable.bundled())
@@ -270,5 +271,33 @@ class ComparatorViewModelTest {
     fun aCustomCollaIsShortenedToItsLastWord() {
         assertEquals(KnownColla("Castellers de la Vila", "VILA"), KnownColla.custom(" Castellers de la Vila "))
         assertEquals("MINYO", KnownColla.custom("Minyons").shortName)
+    }
+
+    @Test
+    fun everyCollaOfTheDirectoryCanBePickedAfterTheContestOnes() {
+        assertEquals(118, KnownColla.ALL.size)
+        assertEquals(listOf("VERDS", "VELLA"), KnownColla.ALL.take(2).map { it.shortName })
+        assertEquals(17, KnownColla.CONTEST.size)
+        assertEquals(KnownColla.ALL.size, KnownColla.ALL.map { it.name }.toSet().size)
+        assertEquals(KnownColla.ALL.size, KnownColla.ALL.map { it.shortName }.toSet().size)
+        assertTrue(KnownColla.ALL.all { it.shortName.length <= 5 })
+    }
+
+    @Test
+    fun theCollesMatchAnyOfTheirNamesIgnoringAccents() {
+        assertEquals(KnownColla.ALL, KnownColla.matching("  "))
+        assertEquals(
+            listOf("Minyons de l'Arboç", "Minyons de Terrassa", "Santa Cristina d'Aro"),
+            KnownColla.matching("minyons").map { it.name },
+        )
+        assertEquals(listOf("Terrassa"), KnownColla.matching("castellers de terrassa").map { it.name })
+        assertEquals(listOf("Gràcia"), KnownColla.matching("vila de gracia").map { it.name })
+        assertEquals(listOf("Badalona"), KnownColla.matching("BDN", KnownColla.OTHERS).map { it.name })
+    }
+
+    @Test
+    fun aCollaTypedByEitherOfItsNamesIsTheKnownOne() {
+        assertEquals(KnownColla.named("Badalona"), KnownColla.custom(" castellers de badalona "))
+        assertEquals("MINY", KnownColla.custom("Minyons de Terrassa").shortName)
     }
 }

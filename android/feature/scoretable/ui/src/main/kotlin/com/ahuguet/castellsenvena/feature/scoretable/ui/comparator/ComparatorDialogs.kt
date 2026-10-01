@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -72,8 +73,8 @@ internal fun ScenarioRenameDialog(
 }
 
 /**
- * Picks the colla for a column, or for a new column: one of the known colles, or any other
- * typed by hand. The colles already in the comparison are disabled.
+ * Picks the colla for a column, or for a new column: one of the known colles, which what is
+ * typed filters, or any other typed by hand. The colles already in the comparison are disabled.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +93,8 @@ internal fun ComparatorCollaPicker(
     }
 
     // Typed by hand, a colla already in the comparison would be a second column for it.
-    val isCustomTaken = takenNames.any { it.equals(customName.trim(), ignoreCase = true) }
+    val isCustomTaken = customName.isNotBlank() &&
+        takenNames.any { it.equals(KnownColla.custom(customName).name, ignoreCase = true) }
     val canPickCustom = customName.isNotBlank() && !isCustomTaken
 
     fun pickCustom() {
@@ -116,7 +118,7 @@ internal fun ComparatorCollaPicker(
                 OutlinedTextField(
                     value = customName,
                     onValueChange = { customName = it },
-                    label = { Text("Una altra colla") },
+                    label = { Text("Cerca o escriu una colla") },
                     supportingText = if (isCustomTaken) ({ Text("Ja és a la comparació") }) else null,
                     isError = isCustomTaken,
                     singleLine = true,
@@ -126,23 +128,36 @@ internal fun ComparatorCollaPicker(
                 )
                 TextButton(onClick = ::pickCustom, enabled = canPickCustom) { Text("Afegeix") }
             }
-            SectionHeader("Colles")
+            val contest = KnownColla.matching(customName, KnownColla.CONTEST)
+            val others = KnownColla.matching(customName, KnownColla.OTHERS)
             LazyColumn(modifier = Modifier.heightIn(max = 480.dp)) {
-                items(KnownColla.ALL, key = { it.name }) { known ->
-                    ListRow(
-                        title = known.name,
-                        enabled = known.name !in takenNames,
-                        onClick = { pick(known) },
-                        trailing = {
-                            Text(
-                                text = known.shortName,
-                                style = MaterialTheme.typography.labelMedium.merge(CastellNotation),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        },
-                    )
-                }
+                collaSection("Concurs de castells", contest, takenNames, ::pick)
+                collaSection("Altres colles", others, takenNames, ::pick)
             }
         }
+    }
+}
+
+private fun LazyListScope.collaSection(
+    title: String,
+    colles: List<KnownColla>,
+    takenNames: Set<String>,
+    onPick: (KnownColla) -> Unit,
+) {
+    if (colles.isEmpty()) return
+    item(key = title) { SectionHeader(title) }
+    items(colles, key = { it.name }) { known ->
+        ListRow(
+            title = known.name,
+            enabled = known.name !in takenNames,
+            onClick = { onPick(known) },
+            trailing = {
+                Text(
+                    text = known.shortName,
+                    style = MaterialTheme.typography.labelMedium.merge(CastellNotation),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        )
     }
 }
