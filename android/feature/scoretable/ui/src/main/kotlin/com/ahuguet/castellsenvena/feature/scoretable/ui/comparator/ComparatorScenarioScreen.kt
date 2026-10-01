@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorCell
 import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** The collaId the colla picker receives to add a new column instead of changing one. */
@@ -77,6 +79,14 @@ internal fun ComparatorScenarioScreen(model: ComparatorViewModel, onBack: () -> 
     var collaTarget by rememberSaveable { mutableStateOf<String?>(null) }
     var isRenaming by rememberSaveable { mutableStateOf(false) }
     var showsMenu by remember { mutableStateOf(false) }
+    // A fresh copy shows as a placeholder for a moment, as it looks just like the original.
+    var revealsCopy by remember { mutableStateOf(false) }
+    LaunchedEffect(revealsCopy) {
+        if (revealsCopy) {
+            delay(DUPLICATE_SKELETON_MILLIS)
+            revealsCopy = false
+        }
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -122,6 +132,7 @@ internal fun ComparatorScenarioScreen(model: ComparatorViewModel, onBack: () -> 
                                     showsMenu = false
                                     selection = null
                                     model.duplicateCurrent()
+                                    revealsCopy = true
                                 },
                             )
                             if (scenario.colles.size < ComparatorViewModel.MAX_COLLES) {
@@ -178,6 +189,7 @@ internal fun ComparatorScenarioScreen(model: ComparatorViewModel, onBack: () -> 
                     horizontalScroll = horizontalScroll,
                     onEditColla = { collaTarget = it ?: NEW_COLLA },
                     modifier = Modifier.padding(horizontal = ComparatorLayout.HorizontalPadding),
+                    isPlaceholder = revealsCopy,
                 )
                 Spacer(Modifier.height(12.dp))
                 ComparatorGrid(
@@ -191,6 +203,7 @@ internal fun ComparatorScenarioScreen(model: ComparatorViewModel, onBack: () -> 
                     modifier = Modifier
                         .horizontalScroll(horizontalScroll)
                         .padding(horizontal = ComparatorLayout.HorizontalPadding),
+                    isPlaceholder = revealsCopy,
                 )
                 Text(
                     text = "Compten les 3 millors construccions, amb un màxim de 2 carregats. Les penalitzacions només desempaten.",

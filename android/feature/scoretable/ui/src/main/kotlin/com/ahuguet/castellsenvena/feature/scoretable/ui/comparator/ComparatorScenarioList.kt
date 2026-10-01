@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -75,6 +76,7 @@ import com.ahuguet.castellsenvena.core.designsystem.theme.CastellsTheme
 import com.ahuguet.castellsenvena.core.designsystem.theme.TabularNumbers
 import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorScenario
 import com.ahuguet.castellsenvena.feature.scoretable.presentation.comparator.ComparatorViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val FAVORITES_HEADER = "header:favorits"
@@ -94,6 +96,14 @@ internal fun ComparatorScenarioList(model: ComparatorViewModel, onOpen: (String)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var renamingId by rememberSaveable { mutableStateOf<String?>(null) }
+    // A fresh copy shows as a placeholder for a moment, as it looks just like the original.
+    var revealingId by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(revealingId) {
+        if (revealingId != null) {
+            delay(DUPLICATE_SKELETON_MILLIS)
+            revealingId = null
+        }
+    }
     val listState = rememberLazyListState()
     val haptics = LocalHapticFeedback.current
     val reorder = remember(listState) { ScenarioReorder(listState) }
@@ -164,11 +174,13 @@ internal fun ComparatorScenarioList(model: ComparatorViewModel, onOpen: (String)
                         model = model,
                         scenario = scenario,
                         isDragged = isDragged,
+                        isRevealing = revealingId == scenario.id,
                         canMoveUp = position > 0,
                         canMoveDown = position < scenarios.lastIndex,
                         // A long press that starts a drag ends with the finger up on the row.
                         onOpen = { if (reorder.draggedId == null) onOpen(scenario.id) },
                         onRename = { renamingId = scenario.id },
+                        onDuplicate = { revealingId = model.duplicate(scenario.id)?.id },
                         onDelete = { delete(scenario) },
                         onMove = { by -> model.moveScenario(favorites, position, position + by) },
                         modifier = Modifier
@@ -216,10 +228,12 @@ private fun ScenarioRow(
     model: ComparatorViewModel,
     scenario: ComparatorScenario,
     isDragged: Boolean,
+    isRevealing: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
     onOpen: () -> Unit,
     onRename: () -> Unit,
+    onDuplicate: () -> Unit,
     onDelete: () -> Unit,
     onMove: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -240,7 +254,7 @@ private fun ScenarioRow(
                     customActions = buildList {
                         add(CustomAccessibilityAction(favoriteLabel) { model.toggleFavorite(scenario.id); true })
                         add(CustomAccessibilityAction("Canvia el nom") { onRename(); true })
-                        add(CustomAccessibilityAction("Duplica") { model.duplicate(scenario.id); true })
+                        add(CustomAccessibilityAction("Duplica") { onDuplicate(); true })
                         if (canMoveUp) add(CustomAccessibilityAction("Mou amunt") { onMove(-1); true })
                         if (canMoveDown) add(CustomAccessibilityAction("Mou avall") { onMove(1); true })
                         add(CustomAccessibilityAction("Elimina") { onDelete(); true })
@@ -264,6 +278,7 @@ private fun ScenarioRow(
                         style = MaterialTheme.typography.titleMedium.merge(TabularNumbers),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.skeleton(isRevealing),
                     )
                 }
                 if (scenario.name != null) {
@@ -271,6 +286,7 @@ private fun ScenarioRow(
                         text = summary.title,
                         style = MaterialTheme.typography.labelLarge.merge(TabularNumbers),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.skeleton(isRevealing),
                     )
                 }
                 for (line in summary.lines) {
@@ -280,6 +296,7 @@ private fun ScenarioRow(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.skeleton(isRevealing),
                     )
                 }
             }
@@ -311,7 +328,7 @@ private fun ScenarioRow(
                         leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
                         onClick = {
                             showsMenu = false
-                            model.duplicate(scenario.id)
+                            onDuplicate()
                         },
                     )
                     DropdownMenuItem(

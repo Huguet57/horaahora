@@ -80,6 +80,7 @@ internal fun ComparatorGrid(
     onTap: (ComparatorCell) -> Unit,
     onTapOutcome: (ComparatorCell) -> Unit,
     modifier: Modifier = Modifier,
+    isPlaceholder: Boolean = false,
 ) {
     val colles = scenario.colles
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(ComparatorLayout.Spacing)) {
@@ -111,6 +112,7 @@ internal fun ComparatorGrid(
                             width = columnWidth,
                             onTap = { onTap(cell) },
                             onTapOutcome = { onTapOutcome(cell) },
+                            modifier = Modifier.skeleton(isPlaceholder, CellShape),
                         )
                     }
                 }
@@ -136,11 +138,12 @@ private fun GridCell(
     width: Dp,
     onTap: () -> Unit,
     onTapOutcome: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var showsMenu by remember { mutableStateOf(false) }
     val outline = MaterialTheme.colorScheme.outlineVariant
     val selectedColor = MaterialTheme.colorScheme.primary
-    Box {
+    Box(modifier = modifier) {
         Box(
             modifier = Modifier
                 .width(width)

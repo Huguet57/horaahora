@@ -76,6 +76,7 @@ internal fun ComparatorHeader(
     horizontalScroll: ScrollState,
     onEditColla: (collaId: String?) -> Unit,
     modifier: Modifier = Modifier,
+    isPlaceholder: Boolean = false,
 ) {
     val colles = scenario.colles
     Surface(
@@ -100,6 +101,7 @@ internal fun ComparatorHeader(
                         collaCount = colles.size,
                         width = columnWidth,
                         onEditColla = { onEditColla(colla.id) },
+                        modifier = Modifier.skeleton(isPlaceholder, RoundedCornerShape(8.dp)),
                     )
                 }
                 if (colles.size < ComparatorViewModel.MAX_COLLES) {
@@ -110,7 +112,9 @@ internal fun ComparatorHeader(
                 LeaderLine(
                     scenario = scenario,
                     ranking = ranking,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .skeleton(isPlaceholder),
                 )
             }
         }
@@ -142,6 +146,7 @@ private fun CollaColumn(
     collaCount: Int,
     width: Dp,
     onEditColla: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val index = ranking.indexOfFirst { it.collaId == colla.id }
     val position = index + 1
@@ -158,7 +163,7 @@ private fun CollaColumn(
     )
     var showsMenu by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.width(width)) {
+    Column(modifier = modifier.width(width)) {
         Box {
             Row(
                 modifier = Modifier
