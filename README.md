@@ -187,6 +187,7 @@ explícitament l'any.
 La composició és explícita i té un únic recorregut en dues fases quan cal coneixement:
 
 - `calculator.py`: interpretació de llenguatge casteller i consultes de càlcul;
+- `aleta.py`: context públic de l'app de gestió Aleta, verificat el 30/09/2026;
 - `contest_router.py`: consulta estructurada per font, anys, colles i abast;
 - `response_policy.py`: límits, atribució temporal i prohibició d'inventar dades;
 - `adapters/contest/snapshot.py`: selecció local de la porció rellevant de normativa o
@@ -222,6 +223,13 @@ passant pel motor de càlcul.
 El perfil del creador és al mòdul `backend/adapters/ai/prompts/creator.py`: el xat pot
 explicar qui és Andreu Huguet («Mates») i la seva trajectòria, mantenint la seva pròpia
 identitat com a assistent d'IA.
+
+El context d'Aleta resumeix les funcionalitats, l'accés, les tarifes, la demo i el suport
+de [la web oficial](https://aleta.castellera.cat). Aquestes preguntes aprofiten l'intent
+`conversation` i es responen en una sola crida, sense recuperar dades del Concurs ni
+calcular punts. Les tarifes i subvencions s'atribueixen a la data de verificació i remeten
+a la web per confirmar les condicions; el xat no accedeix a dades privades de les colles
+ni fa gestions a Aleta. El mòdul només s'inclou en el prompt d'interpretació.
 
 La comparativa de models usa escenaris sintètics de conversa, modificacions successives
 i controls de càlcul i consulta històrica. Executa el mateix servei del xat, sense base de
