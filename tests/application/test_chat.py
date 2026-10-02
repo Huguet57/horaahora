@@ -179,3 +179,36 @@ def test_chat_service_rejects_an_unresolved_contest_route() -> None:
         assert "resposta informativa" in str(error)
     else:
         raise AssertionError("S'esperava un error per una resolució informativa buida")
+
+
+class RecordingCalculationModel(CalculationChatModel):
+    def __init__(self) -> None:
+        self.calls: list[tuple[list[ChatTurn], str]] = []
+
+    async def interpret(
+        self, history: list[ChatTurn], message: str, *, scenario=None
+    ) -> ParsedCastellQuery:
+        self.calls.append((history, message))
+        return await super().interpret(history, message, scenario=scenario)
+
+
+def test_chat_service_spells_out_glued_loaded_markers_in_user_turns() -> None:
+    model = RecordingCalculationModel()
+    service = ChatService(model, UnexpectedContestRepository(), ScoringEngine(ScoreTable.default()))
+
+    asyncio.run(
+        service.respond(
+            [
+                ChatTurn(role="user", content="Vella 3d9c i 2d9fc"),
+                ChatTurn(role="assistant", content="Vols dir 3d9c?"),
+                ChatTurn(role="user", content="Afegeix el 9d9fc a la Vila"),
+            ]
+        )
+    )
+
+    history, message = model.calls[0]
+    assert [turn.content for turn in history] == [
+        "Vella 3d9 carregat i 2d9f carregat",
+        "Vols dir 3d9c?",
+    ]
+    assert message == "Afegeix el 9d9f carregat a la Vila"

@@ -1,4 +1,8 @@
+import re
+
 from backend.domain.calculator.table import ScoreTable
+
+_GLUED_LOADED_MARKER = re.compile(r"(?<![\w(])([\w/×]*\d[\w/×]*?)(\(c\)|c)(?![\w)])", re.IGNORECASE)
 
 
 class CastellNormalizer:
@@ -81,6 +85,20 @@ class CastellNormalizer:
             if value.endswith(marker) and len(value) > len(marker):
                 return self.normalize(value[: -len(marker)])
         return None
+
+    def spell_out_loaded_markers(self, text: str) -> str:
+        """Write «3d9c» as «3d9 carregat» so the model never reads the c as part of the castell.
+
+        Only tokens that are unknown as written and known without the marker change.
+        """
+
+        def spell_out(match: re.Match[str]) -> str:
+            token, base = match.group(0), match.group(1)
+            if self.normalize(token) is None and self.normalize(base) is not None:
+                return f"{base} carregat"
+            return token
+
+        return _GLUED_LOADED_MARKER.sub(spell_out, text)
 
     @staticmethod
     def structure_key(canonical: str) -> str:

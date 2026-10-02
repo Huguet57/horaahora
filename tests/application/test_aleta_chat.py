@@ -6,6 +6,8 @@ import httpx
 from backend.adapters.ai.openrouter import OpenRouterChatModel
 from backend.application.chat import ChatService
 from backend.domain.calculator.models import ChatTurn
+from backend.domain.calculator.scoring import ScoringEngine
+from backend.domain.calculator.table import ScoreTable
 from tests.api.test_chat_conversation import ConversationModel
 from tests.support.application import make_test_client
 
@@ -15,6 +17,13 @@ ALETA_REPLY = "Aleta permet confirmar assistència i consultar pinyes. https://a
 class UnexpectedDependency:
     def __getattr__(self, name: str):
         raise AssertionError(f"Una resposta d'Aleta no necessita {name}")
+
+
+class UnexpectedScoring(ScoringEngine):
+    """Its normalizer may tidy notation in the message, but nothing gets scored."""
+
+    def calculate(self, query):
+        raise AssertionError("Una resposta d'Aleta no necessita cap càlcul")
 
 
 def test_aleta_uses_the_product_context_without_retrieval_or_scoring() -> None:
@@ -43,7 +52,9 @@ def test_aleta_uses_the_product_context_without_retrieval_or_scoring() -> None:
     async def respond():
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             model = OpenRouterChatModel("key", "model", client=client)
-            service = ChatService(model, UnexpectedDependency(), UnexpectedDependency())
+            service = ChatService(
+                model, UnexpectedDependency(), UnexpectedScoring(ScoreTable.default())
+            )
             return await service.respond([ChatTurn("user", "Què és l'Aleta?")])
 
     result = asyncio.run(respond())

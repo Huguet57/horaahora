@@ -82,3 +82,28 @@ def test_trailing_loaded_marker_is_only_read_when_the_notation_is_unknown() -> N
     assert normalizer.normalize_loaded_marker("pd9fmp(c)") == "Pde9fmp"
     assert normalizer.normalize_loaded_marker("9d9fm") is None
     assert normalizer.normalize_loaded_marker("c") is None
+
+
+def test_spells_out_glued_loaded_markers_for_the_model() -> None:
+    # Shared conversations wrote «3d9c» and «2d9fc»: the model read them as 3d9f and 2d9fm,
+    # or stopped to ask what the c meant.
+    normalizer = CastellNormalizer(ScoreTable.default())
+
+    assert (
+        normalizer.spell_out_loaded_markers("Vella 4d9 4d10fm 3d9c 2d9fc")
+        == "Vella 4d9 4d10fm 3d9 carregat 2d9f carregat"
+    )
+    assert (
+        normalizer.spell_out_loaded_markers("9d9f(c), pd9fmpC i 4d8pc.")
+        == "9d9f carregat, pd9fmp carregat i 4d8p carregat."
+    )
+
+
+def test_leaves_words_and_known_notations_alone() -> None:
+    normalizer = CastellNormalizer(ScoreTable.default())
+
+    for text in (
+        "Ric i Barcelona fan el 4d8, el 9d9fm i el 3d9 c",
+        "carregat c 5dc 4d10fmc8",
+    ):
+        assert normalizer.spell_out_loaded_markers(text) == text
