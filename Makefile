@@ -20,11 +20,15 @@ IOS_DERIVED_DATA := build/ios
 IOS_APP := $(IOS_DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/$(IOS_SCHEME).app
 GRADLE := cd android && ./gradlew $(GRADLE_FLAGS) -Pcastells.buildProfile=$(CASTELLS_BUILD_PROFILE)
 
-.PHONY: deploy-testflight ios-build ios-verify android-build android-lint android-verify android-install
+.PHONY: deploy-testflight play-bundle ios-build ios-verify android-build android-lint android-verify android-install
 
 # Uploads the public app to TestFlight; see scripts/deploy-testflight.sh.
 deploy-testflight:
 	./scripts/deploy-testflight.sh $(ARGS)
+
+# Builds the signed Google Play bundle of the public app; see scripts/build-play-bundle.sh.
+play-bundle:
+	./scripts/build-play-bundle.sh $(ARGS)
 
 # An unsigned build of the app for a generic iPhone.
 ios-build:

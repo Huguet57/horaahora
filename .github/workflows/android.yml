@@ -5,12 +5,14 @@ on:
     paths:
       - "android/**"
       - "Makefile"
+      - "Version.xcconfig"
       - "scripts/app_profiles/**"
       - ".github/workflows/android.yml"
   push:
     paths:
       - "android/**"
       - "Makefile"
+      - "Version.xcconfig"
       - "scripts/app_profiles/**"
       - ".github/workflows/android.yml"
   workflow_dispatch:

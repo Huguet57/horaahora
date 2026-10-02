@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source "$(dirname -- "${BASH_SOURCE[0]}")/release-common.sh"
+
 DEPLOY_REPOSITORY_ROOT=''
 DEPLOY_TEMPORARY_ROOT=''
 DEPLOY_SOURCE_DIRECTORY=''
@@ -34,10 +36,10 @@ Usage: scripts/deploy-testflight.sh [options]
 
 Build and upload La calculadora de l'Aleta to TestFlight from an exact Git ref.
 It archives the public app (scheme HoraAHoraApp); the internal app is never uploaded.
+The version comes from Version.xcconfig at that ref.
 
 Options:
   --ref REF                 Git ref to deploy (default: origin/main)
-  --marketing-version VER   Override CFBundleShortVersionString (for example: 1.1)
   --build-number NUMBER     Positive integer build number (default: Unix UTC timestamp)
   --skip-tests              Skip Python and Swift tests
   --dry-run                 Print the resolved deploy plan without building or uploading
@@ -56,27 +58,8 @@ fail_usage() {
   return 2
 }
 
-require_command() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    printf 'Error: required command not found: %s\n' "$1" >&2
-    return 1
-  fi
-}
-
-print_command() {
-  printf '+'
-  printf ' %q' "$@"
-  printf '\n'
-}
-
-run_command() {
-  print_command "$@"
-  "$@"
-}
-
 main() {
   local ref='origin/main'
-  local marketing_version=''
   local build_number=''
   local skip_tests=false
   local dry_run=false
@@ -92,11 +75,6 @@ main() {
       --build-number)
         (($# >= 2)) || { fail_usage '--build-number requires a value'; return $?; }
         build_number=$2
-        shift 2
-        ;;
-      --marketing-version)
-        (($# >= 2)) || { fail_usage '--marketing-version requires a value'; return $?; }
-        marketing_version=$2
         shift 2
         ;;
       --skip-tests)
@@ -136,11 +114,6 @@ main() {
     fail_usage "build number must be a positive integer: $build_number"
     return $?
   fi
-  if [[ -n "$marketing_version" && ! "$marketing_version" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
-    fail_usage \
-      "marketing version must contain two or three numeric components: $marketing_version"
-    return $?
-  fi
 
   require_command git
 
@@ -158,19 +131,18 @@ main() {
     return 1
   fi
 
+  local marketing_version
+  marketing_version=$(read_marketing_version "$repository_root" "$source_commit")
+
   printf 'Source ref: %s\n' "$ref"
   printf 'Source commit: %s\n' "$source_commit"
-  if [[ -n "$marketing_version" ]]; then
-    printf 'Marketing version: %s\n' "$marketing_version"
-  else
-    printf 'Marketing version: project setting\n'
-  fi
+  printf 'Marketing version: %s\n' "$marketing_version"
   printf 'Build number: %s\n' "$build_number"
 
-  local -a archive_overrides=("CURRENT_PROJECT_VERSION=$build_number")
-  if [[ -n "$marketing_version" ]]; then
-    archive_overrides+=("MARKETING_VERSION=$marketing_version")
-  fi
+  local -a archive_overrides=(
+    "CURRENT_PROJECT_VERSION=$build_number"
+    "MARKETING_VERSION=$marketing_version"
+  )
 
   if [[ "$dry_run" == true ]]; then
     print_command git -C "$repository_root" worktree add --detach '<temporary-source>' "$source_commit"
@@ -261,7 +233,7 @@ main() {
     printf 'Error: archived build is %s; expected %s.\n' "$archived_build" "$build_number" >&2
     return 1
   fi
-  if [[ -n "$marketing_version" && "$archived_version" != "$marketing_version" ]]; then
+  if [[ "$archived_version" != "$marketing_version" ]]; then
     printf 'Error: archived version is %s; expected %s.\n' \
       "$archived_version" "$marketing_version" >&2
     return 1

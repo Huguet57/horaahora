@@ -35,7 +35,7 @@ Estat auditat el 22 de juliol de 2026. Aquesta llista separa el que queda prepar
 
 ## Pujada recomanada
 
-1. Amb els canvis ja a `main`, executa `make deploy-testflight` en un Mac amb el compte Apple de l'equip `B94LUNLMW9` configurat a Xcode. El script arxiva en Release l'app pública del commit exacte d'`origin/main`, fa servir els segons Unix UTC com a build i atura la pujada si l'arxiu no apunta al backend de producció, si `CASTELLS_BUILD_PROFILE` no és `public` o si l'arxiu no és `com.ahuguet.castellsenvena`.
+1. Amb els canvis ja a `main`, i `Version.xcconfig` amb la versió que vols publicar, executa `make deploy-testflight` en un Mac amb el compte Apple de l'equip `B94LUNLMW9` configurat a Xcode. El script arxiva en Release l'app pública del commit exacte d'`origin/main`, fa servir els segons Unix UTC com a build i atura la pujada si l'arxiu no apunta al backend de producció, si `CASTELLS_BUILD_PROFILE` no és `public` o si l'arxiu no és `com.ahuguet.castellsenvena`.
 2. Espera que el build es processi, completa export compliance si Apple ho demana i assigna'l primer a un grup intern.
 
 No pugis un **Product → Archive** fet des d'Xcode: agafaria el build 5 del projecte, més baix que el 1790470034 que la 1.4 ja té a App Store Connect, i la pujada es rebutjaria. Si cal fixar el build, passa `--build-number` al script.
