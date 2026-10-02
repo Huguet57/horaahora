@@ -4,6 +4,7 @@ import itertools
 
 from backend.domain.calculator.labels import meaningful_performance_labels
 from backend.domain.calculator.models import (
+    MAX_PERFORMANCES,
     CalculationResult,
     Outcome,
     ParsedCastellQuery,
@@ -33,6 +34,18 @@ class ScoringEngine:
             )
         if query.intent not in {"lookup", "total", "comparison"} or not query.performances:
             raise ValueError("El càlcul exigeix almenys una actuació")
+        if len(query.performances) > MAX_PERFORMANCES:
+            return CalculationResult(
+                reply=(
+                    f"Puc comparar fins a {MAX_PERFORMANCES} actuacions alhora i aquí n'hi ha "
+                    f"{len(query.performances)}. Treu-ne alguna o fes la comparació en dues parts."
+                ),
+                intent=query.intent,
+                performances=[],
+                winner_label=None,
+                warnings=[],
+                needs_clarification=True,
+            )
 
         warnings: list[str] = []
         unknown_notations: list[str] = []
@@ -91,6 +104,11 @@ class ScoringEngine:
                 needs_clarification=True,
             )
 
+        if len(performance_results) > 2:
+            # Three or more sides read as a classification; sorted() keeps ties in input order.
+            performance_results = sorted(
+                performance_results, key=lambda result: result.total, reverse=True
+            )
         winner_label: str | None = None
         if len(performance_results) > 1:
             best = max(result.total for result in performance_results)

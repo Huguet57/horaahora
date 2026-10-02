@@ -216,3 +216,64 @@ def test_trailing_c_marks_a_glued_castell_as_loaded() -> None:
         Outcome.UNLOADED,
     ]
     assert result.performances[0].total == 4295 + 4095 + 4525
+
+
+def test_ranks_three_or_more_performances_by_total() -> None:
+    # A shared conversation asked to «ordena la meva porra» and got the colles in input order.
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("Reus", ("4d9f", Outcome.UNLOADED)),
+                performance("Vella", ("4d10fm", Outcome.UNLOADED)),
+                performance("Moixis", ("4d9f", Outcome.UNLOADED)),
+                performance("Joves", ("4d9sf", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    # Ties keep the order the user wrote them in.
+    assert [item.label for item in result.performances] == ["Vella", "Joves", "Reus", "Moixis"]
+    assert result.reply.startswith("Vella:")
+    assert result.winner_label == "Vella"
+
+
+def test_two_performances_keep_the_order_they_were_written_in() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("Joves", ("4d9sf", Outcome.UNLOADED)),
+                performance("Vella", ("4d10fm", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert [item.label for item in result.performances] == ["Joves", "Vella"]
+
+
+def test_a_twelve_colla_porra_is_calculated() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[performance(f"Colla {n}", ("5d8", Outcome.UNLOADED)) for n in range(12)],
+        )
+    )
+
+    assert not result.needs_clarification
+    assert len(result.performances) == 12
+
+
+def test_more_performances_than_the_limit_ask_to_split_them() -> None:
+    # A 12-colla porra used to fail with a provider error on every turn.
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[performance(f"Colla {n}", ("5d8", Outcome.UNLOADED)) for n in range(17)],
+        )
+    )
+
+    assert result.needs_clarification
+    assert result.performances == []
+    assert "fins a 16" in result.reply
+    assert "17" in result.reply

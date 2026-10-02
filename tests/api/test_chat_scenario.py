@@ -79,10 +79,22 @@ def test_complete_scenario_reaches_both_model_stages_without_original_messages(r
     }
 
 
+def test_scenario_accepts_a_twelve_colla_porra():
+    body = request_body()
+    body["scenario"] = [
+        {"label": f"Colla {n}", "castells": [{"notation": "5de8", "outcome": "unloaded"}]}
+        for n in range(12)
+    ]
+    model = ScenarioChatModel()
+    response = make_test_client(chat_model=model).post("/v1/chat", json=body)
+    assert response.status_code == 200
+    assert len(model.scenarios[0]) == 12
+
+
 @pytest.mark.parametrize(
     "invalid",
     [
-        SCENARIO * 5,
+        SCENARIO * 9,
         [{"label": "A", "castells": SCENARIO[0]["castells"] * 3}],
         [{"label": "A" * 101, "castells": []}],
         [{"label": "A", "castells": [{"notation": "x" * 33, "outcome": "unloaded"}]}],

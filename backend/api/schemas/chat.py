@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from backend.domain.calculator.models import (
+    MAX_PERFORMANCES,
     CalculationResult,
     Outcome,
     ParsedCastell,
@@ -40,7 +41,9 @@ class ChatRequestSchema(BaseModel):
     ruleset: Literal["concurs-2026"] = "concurs-2026"
     messages: list[ChatMessageSchema] = Field(min_length=1, max_length=12)
     # Latest complete calculation, independent of the prose history window.
-    scenario: list[ScenarioPerformanceSchema] = Field(default_factory=list, max_length=8)
+    scenario: list[ScenarioPerformanceSchema] = Field(
+        default_factory=list, max_length=MAX_PERFORMANCES
+    )
     # Older app versions never send it: their users were told nothing is stored.
     share_for_improvement: bool = False
 
