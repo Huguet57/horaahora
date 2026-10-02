@@ -6,6 +6,9 @@ from typing import Literal
 
 from backend.domain.contest.models import ContestKnowledgeQuery, ScorePresentation
 
+# A porra can list a whole jornada of the Concurs; both apps scroll the comparison sideways.
+MAX_PERFORMANCES = 16
+
 
 class Outcome(str, Enum):
     LOADED = "loaded"

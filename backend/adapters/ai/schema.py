@@ -137,7 +137,8 @@ class QueryRoutingPayload(StrictPayloadModel):
         "aclariment",
         "no_compatible",
     ]
-    actuacions: list[ParsedPerformancePayload] = Field(max_length=8)
+    # The scoring engine enforces MAX_PERFORMANCES with a readable reply.
+    actuacions: list[ParsedPerformancePayload]
     aclariment: str | None = Field(max_length=500)
     consulta_concurs: ContestKnowledgeQueryPayload | None
     resposta: str | None = Field(max_length=1_500)
@@ -190,7 +191,8 @@ class ResolvedQueryPayload(StrictPayloadModel):
         "aclariment",
         "no_compatible",
     ]
-    actuacions: list[ParsedPerformancePayload] = Field(max_length=8)
+    # The scoring engine enforces MAX_PERFORMANCES with a readable reply.
+    actuacions: list[ParsedPerformancePayload]
     aclariment: str | None = Field(max_length=500)
     resposta: str | None = Field(max_length=1_500)
 

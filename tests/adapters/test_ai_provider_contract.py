@@ -258,6 +258,23 @@ def test_score_ranking_route_requires_a_castell_for_relative_selections(selectio
         QueryRoutingPayload.model_validate(invalid)
 
 
+def test_payloads_leave_the_performance_limit_to_the_engine() -> None:
+    # The provider schema drops maxItems, so a 12-colla porra used to fail validation
+    # with a generic provider error instead of reaching the engine.
+    actuacions = [
+        {"nom": f"Colla {n}", "castells": [{"notació": "5d8", "resultat": "descarregat"}]}
+        for n in range(20)
+    ]
+
+    routed = QueryRoutingPayload.model_validate(dict(CALCULATION_ROUTE, actuacions=actuacions))
+    resolved = ResolvedQueryPayload.model_validate(
+        dict(RECALCULATION_RESOLUTION, actuacions=actuacions)
+    )
+
+    assert len(routed.to_domain().performances) == 20
+    assert len(resolved.to_domain().performances) == 20
+
+
 def test_resolution_payload_keeps_information_and_calculation_exclusive() -> None:
     information = ResolvedQueryPayload.model_validate(INFORMATION_RESOLUTION).to_domain()
     recalculation = ResolvedQueryPayload.model_validate(RECALCULATION_RESOLUTION).to_domain()
