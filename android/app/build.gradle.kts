@@ -34,7 +34,7 @@ android {
     defaultConfig {
         applicationId = "com.ahuguet.castellsenvena"
         versionCode = providers.gradleProperty("castells.versionCode").orNull?.toInt() ?: 1
-        versionName = "1.3"
+        versionName = "1.8"
     }
 
     flavorDimensions += "profile"
