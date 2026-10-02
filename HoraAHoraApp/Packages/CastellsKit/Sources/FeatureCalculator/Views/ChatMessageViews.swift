@@ -152,8 +152,13 @@ struct PerformanceSummaryView: View {
                 ForEach(presentation.rows) { row in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(row.notation).font(.caption.monospaced().weight(.semibold))
-                            Text(row.result).font(.caption2).foregroundStyle(.secondary)
+                            Text(row.notation)
+                                .font(.caption.monospaced().weight(.semibold))
+                                .strikethrough(!row.counted)
+                            Text(row.result)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .strikethrough(!row.counted)
                         }
                         .opacity(row.counted ? 1 : 0.55)
                         Spacer()
@@ -249,8 +254,13 @@ struct ComparisonTable: View {
         if column.castells.indices.contains(index) {
             let castell = column.castells[index]
             VStack(alignment: .trailing, spacing: 2) {
-                Text(castell.notation).font(.caption.monospaced().weight(.semibold))
-                Text(detail(for: castell)).font(.caption2).foregroundStyle(.secondary)
+                Text(castell.notation)
+                    .font(.caption.monospaced().weight(.semibold))
+                    .strikethrough(!castell.counted)
+                Text(detail(for: castell))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .strikethrough(!castell.counted)
             }
             .frame(minWidth: 112, alignment: .trailing)
             .opacity(castell.counted ? 1 : 0.55)
@@ -261,8 +271,7 @@ struct ComparisonTable: View {
 
     private func detail(for castell: ComparisonPresentation.Castell) -> String {
         let points = castell.points.formatted(.number.grouping(.automatic))
-        let suffix = castell.counted ? "" : " · no compta"
-        return "\(castell.result) · \(points)\(suffix)"
+        return "\(castell.result) · \(points)"
     }
 }
 
