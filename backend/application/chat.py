@@ -21,6 +21,11 @@ class ChatService:
     ) -> CalculationResult:
         if not history or history[-1].role != "user":
             raise ValueError("L'últim missatge ha de ser de l'usuari")
+        spell_out = self.scoring_engine.normalizer.spell_out_loaded_markers
+        history = [
+            ChatTurn(turn.role, spell_out(turn.content)) if turn.role == "user" else turn
+            for turn in history
+        ]
         current = history[-1]
         # An app suggestion that opens a conversation has a fixed interpretation.
         query = app_prompt_query(current.content) if len(history) == 1 and not scenario else None

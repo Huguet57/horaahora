@@ -1,5 +1,5 @@
 {
-  "description": "Edit misreadings seen in shared calculator conversations (2026-09-30/10-01), paraphrased: adding versus replacing a castell, a verb carried over a list or to a second colla, and «els dos de 10». Totals come from the scoring engine.",
+  "description": "Edit misreadings seen in shared calculator conversations (2026-09-30/10-01), paraphrased: adding versus replacing a castell, a verb carried over a list or to a second colla, «els dos de 10», and a glued c for carregat (2026-10-01: «3d9c», «2d9fc»). Totals come from the scoring engine.",
   "scenarios": [
     {
       "id": "shared_add_castell_keeps_the_rest",
@@ -495,6 +495,88 @@
             "totals": {
               "Vella": 15835,
               "Verds": 14375
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_glued_c_is_loaded",
+      "category": "shared_regressions",
+      "history": [],
+      "scenario": [],
+      "steps": [
+        {
+          "message": "Calcula'm aquesta porra:\nVilafranca 3d10fm 4d10fm 9d9fc pd9fmpc\nVella 4d9 4d10fm 3d9c 2d9fc\nJoves 4d9 3d10fmc 2d9fc",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "performances": [
+              {
+                "label": "Vilafranca",
+                "castells": [
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "9de9f",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "Pde9fmp",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Vella",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "4de10fm",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de9sf",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Joves",
+                "castells": [
+                  {
+                    "canonical": "4de9sf",
+                    "outcome": "unloaded"
+                  },
+                  {
+                    "canonical": "3de10fm",
+                    "outcome": "loaded"
+                  },
+                  {
+                    "canonical": "2de9sm",
+                    "outcome": "loaded"
+                  }
+                ]
+              }
+            ],
+            "totals": {
+              "Vilafranca": 14375,
+              "Vella": 14780,
+              "Joves": 12545
             }
           }
         }
