@@ -1,1 +1,0 @@
-"""Editorial source adapters."""

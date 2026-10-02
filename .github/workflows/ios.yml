@@ -6,7 +6,6 @@ on:
       - "HoraAHoraApp/**"
       - "Makefile"
       - "Version.xcconfig"
-      - "scripts/app_profiles/**"
       - ".github/workflows/ios.yml"
   push:
     branches: [main]
@@ -14,7 +13,6 @@ on:
       - "HoraAHoraApp/**"
       - "Makefile"
       - "Version.xcconfig"
-      - "scripts/app_profiles/**"
       - ".github/workflows/ios.yml"
   workflow_dispatch:
 
@@ -62,11 +60,5 @@ jobs:
           path: ${{ runner.temp }}/ios-ui-tests.xcresult
           if-no-files-found: ignore
 
-      # Each app is built unsigned in Release and inspected: the public one must not link the
-      # internal sections or have push entitlements, and the internal one must keep them under
-      # its own bundle identifier.
-      - name: Build and inspect the public app
-        run: make ios-build ios-verify CASTELLS_BUILD_PROFILE=public CONFIGURATION=Release
-
-      - name: Build and inspect the internal app
-        run: make ios-build ios-verify CASTELLS_BUILD_PROFILE=internal CONFIGURATION=Release
+      - name: Build the unsigned app
+        run: make ios-build CONFIGURATION=Release

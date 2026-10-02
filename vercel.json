@@ -8,10 +8,6 @@
   },
   "crons": [
     {
-      "path": "/internal/cron/hour-by-hour",
-      "schedule": "* * * * *"
-    },
-    {
       "path": "/internal/cron/maintenance",
       "schedule": "17 3 * * *"
     }

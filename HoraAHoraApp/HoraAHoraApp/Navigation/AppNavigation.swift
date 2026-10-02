@@ -26,7 +26,7 @@ extension View {
     }
 }
 
-/// The tabs both apps share, with the same titles and icons.
+/// The app's tabs, with their titles and icons.
 extension View {
     func calculatorTabItem() -> some View {
         tabItem { Label("Calculadora", systemImage: "plus.forwardslash.minus") }

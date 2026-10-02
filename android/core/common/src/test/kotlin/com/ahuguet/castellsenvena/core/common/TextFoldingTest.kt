@@ -15,7 +15,6 @@ class TextFoldingTest {
     @Test
     fun wordsSplitOnAnyWhitespaceIncludingNonBreakingSpaces() {
         assertEquals(listOf("Colla", "Vella"), TextFolding.words("  Colla \tVella \n"))
-        assertEquals("Colla Vella", TextFolding.collapseWhitespace(" Colla   Vella "))
     }
 
     @Test

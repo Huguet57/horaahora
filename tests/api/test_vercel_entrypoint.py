@@ -19,12 +19,12 @@ def test_vercel_entrypoint_exposes_the_portable_api(monkeypatch) -> None:
 
     assert client.get("/health").json() == {"status": "ok"}
     paths = app.openapi()["paths"]
-    assert {
+    assert set(paths) == {
+        "/health",
+        "/health/ready",
         "/v1/chat",
-        "/v1/events",
-        "/v1/hour-by-hour",
-        "/v1/push-subscriptions/{installation_id}",
-    } <= set(paths)
+        "/internal/cron/maintenance",
+    }
 
 
 def test_vercel_runs_the_backend_in_paris() -> None:
@@ -33,6 +33,5 @@ def test_vercel_runs_the_backend_in_paris() -> None:
 
     assert config["regions"] == ["cdg1"]
     assert config["crons"] == [
-        {"path": "/internal/cron/hour-by-hour", "schedule": "* * * * *"},
         {"path": "/internal/cron/maintenance", "schedule": "17 3 * * *"},
     ]

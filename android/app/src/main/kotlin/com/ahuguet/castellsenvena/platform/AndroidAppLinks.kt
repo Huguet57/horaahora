@@ -34,7 +34,8 @@ class AndroidAppLinks(private val context: Context) : AppLinks {
         }
     }
 
-    override fun openExternally(url: String) {
+    /** Another app, such as the browser. */
+    private fun openExternally(url: String) {
         start(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 

@@ -104,7 +104,7 @@ data class CastellsColors(
     val success: Color,
     /** Harmonized with BrandRed, like the Material custom colors. */
     val warning: Color,
-    /** Featured groups and winning results, in the gold of starred items on Android. */
+    /** Winning results, in the gold of starred items on Android. */
     val star: Color,
 )
 

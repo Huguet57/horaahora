@@ -4,20 +4,15 @@ Aquest document separa els controls de privacitat ja disponibles del treball fut
 
 ## Implementat
 
-- La secció «Ajustos» centralitza la privacitat, el suport, les fonts i la informació de l'app; a l'app interna, també les notificacions.
-- L'app pública no inclou avisos de notícies: no demana el permís, no registra tokens ni inclou Firebase. Si s'hi actualitza una instal·lació que els tenia activats, la primera vegada que s'obre en treu els avisos del sistema i dona de baixa la subscripció al backend, fins que el backend ho confirma. Els punts sobre tokens d'aquesta llista descriuen l'app interna i les versions anteriors.
+- La secció «Ajustos» centralitza la privacitat, el suport, les fonts i la informació de l'app.
+- L'app no inclou avisos de notícies: no demana el permís, no registra tokens ni inclou Firebase. Les subscripcions d'avisos de les versions anteriors deixen de rebre'n perquè el backend de la calculadora ja no n'envia; Hora a Hora és ara una app separada.
 - «Política de privacitat» obre `/privacy`, que mostra la versió catalana i permet canviar a castellà o anglès amb enllaços HTML estàtics.
 - El contacte `tenimaletaapp@gmail.com` és accessible des d'Ajustos.
 - L'identificador tècnic aleatori de la instal·lació es mostra i es pot copiar.
 - «Contacta amb suport» prepara un correu editable amb la versió, el número de build i l'identificador tècnic. L'usuari pot revisar-lo, modificar-lo o cancel·lar-lo, i només es transmet quan prem manualment el botó d'enviament.
 - No s'exporten ni s'adjunten converses al correu de suport.
-- El backend registra i revoca tokens APNs associats només a l'identificador aleatori d'instal·lació; l'app iOS no inclou Firebase ni OneSignal.
-- L'app Android registra tokens de Firebase Cloud Messaging amb el mateix contracte i la plataforma `android`. Només demana el token quan l'usuari activa els avisos, l'esborra quan els desactiva i no inclou Google Analytics per a Firebase.
-- Els tokens es desen a Supabase exclusivament per lliurar notificacions, es reenvien quan APNs els rota i se substitueixen per una marca de revocació quan l'usuari desactiva els avisos o Apple els invalida.
-- El rate limiting, el contingut sincronitzat, l'outbox i les entregues també es conserven a PostgreSQL; l'historial complet de converses continua només al dispositiu.
+- El rate limiting i les converses compartides es conserven a PostgreSQL; l'historial complet de converses continua només al dispositiu.
 - «Millora la calculadora» (Ajustos, activada per defecte) desa al backend les consultes de les converses noves, la resposta o l'error i un identificador aleatori de la conversa durant 90 dies, sense l'identificador d'instal·lació ni la IP. La base és l'interès legítim: la calculadora ho explica en obrir la primera conversa amb l'opció de no compartir-ho, i només es comparteixen converses començades després de l'avís. Les versions anteriors de l'app no envien el camp `share_for_improvement` i el backend no en desa res.
-
-- Les notificacions sincronitzen el llindar d'interès i les colles seguides amb el backend. Jev rep només el contingut públic de les notícies; la personalització es calcula al backend.
 
 ## Pendent
 

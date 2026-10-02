@@ -62,8 +62,6 @@ fun <S> SectionScaffold(
                             selected = section == selectedSection,
                             onClick = { onSelectSection(section) },
                             icon = { Icon(section.icon, contentDescription = null) },
-                            // One line even with six sections, as the internal app has with its
-                            // hidden ones shown.
                             label = { Text(section.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         )
                     }

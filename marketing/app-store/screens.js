@@ -8,18 +8,6 @@ window.SCREENS = [
     subtitle: "La calculadora castellera<br>que funciona com un xat.",
   },
   {
-    id: "02-calendari",
-    raw: "raw/02-calendari.png",
-    title: "Totes les diades,<br>en un calendari",
-    subtitle: "Qui actua, on i a quina hora.",
-  },
-  {
-    id: "03-actualitat",
-    raw: "raw/03-actualitat.png",
-    title: "Tota l’actualitat,<br>hora a hora",
-    subtitle: "Revista Castells i El Món Casteller,<br>en un sol lloc.",
-  },
-  {
     id: "04-comparador",
     raw: "raw/04-comparador.png",
     title: "Compara actuacions,<br>ronda a ronda",

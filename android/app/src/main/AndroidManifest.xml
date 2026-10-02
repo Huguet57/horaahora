@@ -6,9 +6,6 @@
     <!--
         No backup: the installation identifier and the stored conversations
         belong to this device, like on iOS.
-
-        The public app ends here. The internal app adds its news notifications in
-        src/internal/AndroidManifest.xml.
     -->
     <application
         android:name=".CastellsApplication"

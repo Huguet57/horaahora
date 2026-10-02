@@ -66,10 +66,10 @@ struct SettingsLinkLabel: View {
     }
 }
 
-/// The look of the settings pages, which the internal app's settings share.
+/// The look of the settings pages.
 extension View {
     @ViewBuilder
-    public func settingsListStyle() -> some View {
+    func settingsListStyle() -> some View {
         #if os(iOS)
         listStyle(.insetGrouped)
         #else
@@ -87,7 +87,7 @@ extension View {
     }
 
     @ViewBuilder
-    public func settingsInlineNavigationTitle() -> some View {
+    func settingsInlineNavigationTitle() -> some View {
         #if os(iOS)
         navigationBarTitleDisplayMode(.inline)
         #else

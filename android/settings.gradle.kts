@@ -4,7 +4,7 @@ pluginManagement {
         google {
             content {
                 includeGroupByRegex("com\\.android(\\..*)?")
-                includeGroupByRegex("com\\.google\\.(android|firebase|gms|testing)(\\..*)?")
+                includeGroupByRegex("com\\.google\\.(android|testing)(\\..*)?")
                 includeGroupByRegex("androidx(\\..*)?")
             }
         }
@@ -19,7 +19,7 @@ dependencyResolutionManagement {
         google {
             content {
                 includeGroupByRegex("com\\.android(\\..*)?")
-                includeGroupByRegex("com\\.google\\.(android|firebase|gms|testing)(\\..*)?")
+                includeGroupByRegex("com\\.google\\.(android|testing)(\\..*)?")
                 includeGroupByRegex("androidx(\\..*)?")
             }
         }
@@ -39,13 +39,9 @@ include(
     ":core:network",
     ":core:database",
     ":core:data",
-    ":core:internaldata",
-    ":feature:hourbyhour:presentation",
-    ":feature:agenda:presentation",
     ":feature:calculator:presentation",
     ":feature:scoretable:presentation",
     ":feature:settings:presentation",
-    ":feature:internalsettings:presentation",
 )
 
 // Android modules need the Android SDK and Google's Maven repository. Pass
@@ -54,11 +50,8 @@ if (providers.gradleProperty("castells.jvmOnly").orNull != "true") {
     include(
         ":app",
         ":core:designsystem",
-        ":feature:hourbyhour:ui",
-        ":feature:agenda:ui",
         ":feature:calculator:ui",
         ":feature:scoretable:ui",
         ":feature:settings:ui",
-        ":feature:internalsettings:ui",
     )
 }

@@ -1,6 +1,6 @@
 # Política de privacitat — La calculadora de l'Aleta
 
-**Darrera actualització:** 27 de setembre de 2026
+**Darrera actualització:** 2 d'octubre de 2026
 
 Aquesta política explica com tracta les dades personals la versió actual de **La calculadora de l'Aleta**, una app gratuïta i sense compte d'usuari.
 
@@ -16,8 +16,7 @@ No s'ha designat un delegat de protecció de dades perquè, atesa la naturalesa 
 ### Dades desades només al dispositiu
 
 - L'historial complet de les converses de la calculadora, inclosos els títols. Les consultes que es comparteixen per millorar la calculadora s'expliquen més avall.
-- Còpies locals del contingut consultat a l'app, com notícies i actuacions, per millorar la disponibilitat i la lectura sense connexió.
-- Preferències locals de visualització. Quan s'activen notificacions, el llindar d'interès i les colles seguides també es sincronitzen amb el backend, tal com s'explica a continuació.
+- Preferències locals de visualització.
 
 Les converses es poden eliminar individualment. Les dades locals restants desapareixen quan es desinstal·la l'app o se n'eliminen les dades des del sistema.
 
@@ -39,14 +38,6 @@ Les converses compartides es conserven 90 dies i després s'eliminen automàtica
 
 En connectar-se al servei es poden processar l'adreça IP, la data i l'hora, la ruta sol·licitada, l'estat de la resposta i informació tècnica imprescindible per prestar el servei, limitar abusos i diagnosticar incidències.
 
-### Notificacions
-
-Si s'activen voluntàriament les notificacions, el sistema operatiu gestiona el permís i el servei de notificacions de la plataforma assigna un token a aquesta instal·lació: a iOS, Apple Push Notification service (APNs), d'Apple; a Android, Firebase Cloud Messaging (FCM), de Google. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app, l'idioma i la plataforma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple o Google invaliden el token, el backend el substitueix immediatament per una marca de revocació. A Android, l'app només demana el token a FCM quan s'activen les notificacions i l'esborra quan es desactiven.
-
-Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'app per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token de notificació, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.
-
-El llindar i la selecció de colles desats a la subscripció es buiden quan es revoca el token; la còpia local es conserva. Les còpies temporals utilitzades per preparar un avís s'eliminen en completar o ometre'n la classificació.
-
 ### Comunicacions de suport
 
 Quan se selecciona «Contacta amb suport», l'app prepara un correu editable amb la versió, el número de build i l'identificador tècnic. Aquesta informació només es transmet si l'usuari revisa el correu i prem manualment el botó d'enviament; també pot cancel·lar-lo.
@@ -55,25 +46,24 @@ Si l'usuari l'envia, es tractaran l'adreça de correu, el contingut del missatge
 
 ## 3. Finalitats i bases jurídiques
 
-- **Prestar el servei sol·licitat:** mostrar contingut i respondre consultes de la calculadora. La base és l'execució del servei demanat per l'usuari.
+- **Prestar el servei sol·licitat:** respondre les consultes de la calculadora. La base és l'execució del servei demanat per l'usuari.
 - **Seguretat i estabilitat:** limitar peticions abusives, prevenir frau i diagnosticar errors. La base és l'interès legítim a protegir i mantenir el servei, ponderat amb els drets dels usuaris.
 - **Millorar la calculadora:** desar les converses compartides per detectar errors i millorar les respostes. La base és l'interès legítim a millorar un servei gratuït, ponderat amb els drets dels usuaris: s'informa abans de començar, només es desen converses noves, sense identificadors del dispositiu i durant 90 dies. Desactivar «Millora la calculadora» a Ajustos és la manera immediata d'exercir el dret d'oposició.
-- **Funcions opcionals i suport:** gestionar les notificacions activades i la informació enviada voluntàriament a suport. La base és el consentiment o l'acció voluntària, que es pot retirar en qualsevol moment.
+- **Suport:** gestionar la informació enviada voluntàriament a suport. La base és el consentiment o l'acció voluntària, que es pot retirar en qualsevol moment.
 
-Les dades necessàries per respondre una consulta i protegir el servei són imprescindibles per oferir aquestes funcions. Les notificacions, el contacte amb suport i la compartició de converses per millorar la calculadora són opcionals.
+Les dades necessàries per respondre una consulta i protegir el servei són imprescindibles per oferir aquestes funcions. El contacte amb suport i la compartició de converses per millorar la calculadora són opcionals.
 
 ## 4. Proveïdors i destinataris
 
 - **Vercel:** allotjament i execució del backend. La funció principal es configura a París (`cdg1`), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.
-- **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat, les subscripcions de notificacions actives i les converses compartides per millorar la calculadora.
+- **Supabase:** base de dades PostgreSQL gestionada a la regió de París on es conserven els comptadors tècnics de seguretat i les converses compartides per millorar la calculadora.
 - **OpenRouter:** encamina les consultes de la calculadora cap al model d'intel·ligència artificial. Les peticions s'envien amb `data_collection: "deny"`, perquè no s'encaminin a proveïdors que les puguin utilitzar per entrenar models. OpenRouter conserva metadades tècniques de cada petició, com el nombre de tokens i la latència, i pot assignar una categoria temàtica anònima a una petita mostra de consultes, però no en desa el contingut.
 - **Google (Gemini):** interpretació lingüística de les consultes de la calculadora, rebudes a través d'OpenRouter.
-- **TypeSafe AI (Jev):** classificació de contingut públic de les notícies per rellevància i colles implicades.
-- **Apple:** distribució de l'app a iOS, permisos del sistema i APNs quan s'activen notificacions.
-- **Google (Firebase Cloud Messaging i Google Play):** distribució de l'app a Android i lliurament de notificacions amb FCM quan s'activen.
+- **Apple:** distribució de l'app a iOS.
+- **Google (Google Play):** distribució de l'app a Android.
 - **Google/Gmail:** recepció i gestió dels correus enviats voluntàriament al contacte de suport o privacitat.
 
-Revista Castells i la Coordinadora de Colles Castelleres de Catalunya (CCCC) no reben consultes, identificadors ni perfils d'usuari. L'app només mostra contingut atribuït i enllaços a les seves fonts oficials.
+El Concurs de Castells, d'on surt la taula oficial de puntuacions, i la Coordinadora de Colles Castelleres de Catalunya (CCCC), d'on surt la llista de colles, no reben consultes, identificadors ni perfils d'usuari. L'app només mostra les dades atribuïdes i enllaços a les seves fonts oficials.
 
 ## 5. Transferències internacionals
 
@@ -84,18 +74,17 @@ Alguns proveïdors o subencarregats poden tractar dades fora de l'Espai Econòmi
 - **Dades locals:** fins que s'elimina cada conversa o es desinstal·la l'app.
 - **Converses compartides per millorar la calculadora:** 90 dies des de cada consulta; després s'eliminen automàticament.
 - **Limitador de peticions:** les claus tècniques es mantenen durant una finestra de 10 minuts.
-- **Subscripció de notificacions:** el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs o FCM el rebutgen. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.
 - **Logs de Vercel:** aproximadament 1 dia amb el pla actual.
 - **Google (Gemini):** no utilitza les consultes per entrenar models. Segons el servei de Google que atengui la petició, les pot conservar fins a 55 dies per prevenir abusos, llevat que una obligació legal exigeixi una altra conservació.
 - **Correus de suport o privacitat:** fins a 12 mesos després de resoldre la consulta, tret que sigui necessari conservar-los més temps per complir una obligació legal o defensar reclamacions.
 
 ## 7. Publicitat, analítica i decisions automatitzades
 
-No hi ha publicitat, tracking entre apps o webs, perfilat comercial ni SDK addicional d'analítica o crash reporting. A Android, l'app inclou el SDK de Firebase Cloud Messaging només per lliurar les notificacions, sense Google Analytics per a Firebase. La calculadora automatitza la interpretació i el càlcul de puntuacions, però no pren decisions amb efectes jurídics ni similars sobre les persones.
+No hi ha publicitat, tracking entre apps o webs, perfilat comercial ni SDK addicional d'analítica o crash reporting. La calculadora automatitza la interpretació i el càlcul de puntuacions, però no pren decisions amb efectes jurídics ni similars sobre les persones.
 
 ## 8. Enllaços externs
 
-Quan s'obre un enllaç de Revista Castells, CCCC, Google Maps o qualsevol servei extern, el servei de destinació tracta la connexió segons la seva pròpia política de privacitat. La calculadora de l'Aleta no controla aquests tractaments.
+Quan s'obre un enllaç al web del Concurs de Castells o a qualsevol servei extern, el servei de destinació tracta la connexió segons la seva pròpia política de privacitat. La calculadora de l'Aleta no controla aquests tractaments.
 
 ## 9. Drets
 

@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,15 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.ahuguet.castellsenvena.core.designsystem.theme.LocalReduceMotion
 import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfiguration
-import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsCredit
 
-/**
- * Ajustos and its subpages: privacy, help and the app with the sources of its data.
- *
- * An app can add its own rows at the top ([leadingContent]), which can open one subpage of
- * its own ([extraSubpage]); more sources ([additionalCredits]); and a handler for taps on the
- * version row ([onVersionTap]), which returns what the row says for a moment, or null.
- */
+/** Ajustos and its subpage: privacy, help and the app with the sources of its data. */
 @Composable
 fun SettingsScreen(
     configuration: SettingsConfiguration,
@@ -33,10 +25,6 @@ fun SettingsScreen(
     onContactSupport: (String) -> Unit,
     onCopyIdentifier: (String) -> Unit,
     modifier: Modifier = Modifier,
-    additionalCredits: List<SettingsCredit> = emptyList(),
-    onVersionTap: (() -> String?)? = null,
-    extraSubpage: @Composable (onBack: () -> Unit) -> Unit = {},
-    leadingContent: @Composable ColumnScope.(openExtraSubpage: () -> Unit) -> Unit = {},
 ) {
     var destination by rememberSaveable { mutableStateOf<SettingsDestination?>(null) }
     val reduceMotion = LocalReduceMotion.current
@@ -66,20 +54,16 @@ fun SettingsScreen(
                 onOpenUrl = onOpenUrl,
                 onContactSupport = onContactSupport,
                 onCopyIdentifier = onCopyIdentifier,
-                onVersionTap = onVersionTap,
-                leadingContent = { leadingContent { destination = SettingsDestination.EXTRA } },
             )
 
             SettingsDestination.SOURCES -> SourcesAndCreditsScreen(
-                credits = configuration.credits + additionalCredits,
+                credits = configuration.credits,
                 onOpenUrl = onOpenUrl,
                 onBack = back,
             )
-
-            SettingsDestination.EXTRA -> extraSubpage(back)
         }
     }
 }
 
-/** The subpages of Ajustos: the sources of the data, and the one an app adds. */
-private enum class SettingsDestination { SOURCES, EXTRA }
+/** The subpages of Ajustos: the sources of the data. */
+private enum class SettingsDestination { SOURCES }

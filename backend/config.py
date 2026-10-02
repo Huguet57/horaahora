@@ -3,10 +3,6 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-# The internal development app (CASTELLS_BUILD_PROFILE=internal) adds this suffix to the
-# public app's bundle ID and package name, so APNs knows it as a different topic.
-INTERNAL_APP_SUFFIX = ".internal"
-
 
 @dataclass(frozen=True, slots=True)
 class Settings:
@@ -15,36 +11,11 @@ class Settings:
     ai_model: str = ""
     ai_api_key: str = ""
     ai_base_url: str = ""
-    jev_api_key: str = ""
-    jev_model: str = "jev-1.13.0"
-    hour_by_hour_source_enabled: bool = True
-    hour_by_hour_refresh_seconds: int = 300
-    hour_by_hour_sources: tuple[str, ...] = ()
-    revista_castells_url: str = "https://revistacastells.cat/castells-hora-a-hora/"
-    agenda_source: str = "disabled"
-    agenda_refresh_seconds: int = 1_800
-    agenda_refresh_on_request: bool = False
-    agenda_sync_interval_seconds: int = 86_400
-    agenda_sync_months_back: int = 1
-    agenda_sync_months_ahead: int = 12
-    cccc_agenda_url: str = "https://castellscat.cat/public/ca/agenda"
-    cccc_agenda_fixture_path: str = "backend/data/cccc_agenda_fixture.html"
-    cccc_agenda_snapshot_path: str = "backend/data/cccc_agenda_poc_2026_07.html"
-    cccc_agenda_authorized: bool = False
     rate_limit_max_requests: int = 30
     rate_limit_window_seconds: int = 600
     rate_limit_hash_secret: str = "test-rate-limit-secret"
     vercel_env: str = ""
     cron_secret: str = ""
-    push_delivery_enabled: bool = False
-    apns_key_p8: str = ""
-    apns_key_id: str = ""
-    apns_team_id: str = ""
-    apns_bundle_id: str = "com.ahuguet.castellsenvena"
-    # Firebase Cloud Messaging for the Android app: the JSON key of a service
-    # account allowed to send messages, and the app's package name.
-    fcm_service_account_json: str = ""
-    android_package_name: str = "com.ahuguet.castellsenvena"
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -59,76 +30,12 @@ class Settings:
             ai_model=os.getenv("AI_MODEL", ""),
             ai_api_key=os.getenv("AI_API_KEY", ""),
             ai_base_url=os.getenv("AI_BASE_URL", ""),
-            jev_api_key=os.getenv("JEV_API_KEY", ""),
-            jev_model=os.getenv("JEV_MODEL", defaults.jev_model),
-            hour_by_hour_source_enabled=_bool_env("HOUR_BY_HOUR_SOURCE_ENABLED", True),
-            hour_by_hour_refresh_seconds=int(os.getenv("HOUR_BY_HOUR_REFRESH_SECONDS", "300")),
-            hour_by_hour_sources=_list_env("HOUR_BY_HOUR_SOURCES", defaults.hour_by_hour_sources),
-            revista_castells_url=os.getenv("REVISTA_CASTELLS_URL", defaults.revista_castells_url),
-            agenda_source=os.getenv("AGENDA_SOURCE", defaults.agenda_source).lower(),
-            agenda_refresh_seconds=int(os.getenv("AGENDA_REFRESH_SECONDS", "1800")),
-            agenda_refresh_on_request=_bool_env("AGENDA_REFRESH_ON_REQUEST", False),
-            agenda_sync_interval_seconds=int(os.getenv("AGENDA_SYNC_INTERVAL_SECONDS", "86400")),
-            agenda_sync_months_back=int(os.getenv("AGENDA_SYNC_MONTHS_BACK", "1")),
-            agenda_sync_months_ahead=int(os.getenv("AGENDA_SYNC_MONTHS_AHEAD", "12")),
-            cccc_agenda_url=os.getenv("CCCC_AGENDA_URL", defaults.cccc_agenda_url),
-            cccc_agenda_fixture_path=os.getenv(
-                "CCCC_AGENDA_FIXTURE_PATH", defaults.cccc_agenda_fixture_path
-            ),
-            cccc_agenda_snapshot_path=os.getenv(
-                "CCCC_AGENDA_SNAPSHOT_PATH", defaults.cccc_agenda_snapshot_path
-            ),
-            cccc_agenda_authorized=_bool_env("CCCC_AGENDA_AUTHORIZED", False),
             rate_limit_max_requests=int(os.getenv("RATE_LIMIT_MAX_REQUESTS", "30")),
             rate_limit_window_seconds=int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "600")),
             rate_limit_hash_secret=rate_limit_hash_secret,
             vercel_env=os.getenv("VERCEL_ENV", "").lower(),
             cron_secret=os.getenv("CRON_SECRET", ""),
-            push_delivery_enabled=_bool_env("PUSH_DELIVERY_ENABLED", False),
-            apns_key_p8=os.getenv("APNS_KEY_P8", ""),
-            apns_key_id=os.getenv("APNS_KEY_ID", ""),
-            apns_team_id=os.getenv("APNS_TEAM_ID", ""),
-            apns_bundle_id=os.getenv("APNS_BUNDLE_ID", defaults.apns_bundle_id),
-            fcm_service_account_json=os.getenv("FCM_SERVICE_ACCOUNT_JSON", ""),
-            android_package_name=os.getenv("ANDROID_PACKAGE_NAME", defaults.android_package_name),
         )
-
-    @property
-    def can_deliver_push(self) -> bool:
-        return self.vercel_env == "production" and self.push_delivery_enabled
-
-    @property
-    def apns_environment(self) -> str:
-        return "production" if self.vercel_env == "production" else "development"
-
-    def push_topic(self, platform: str, app_id: str | None = None) -> str | None:
-        """The app a subscription belongs to: the iOS bundle or the Android package.
-
-        Requests without `app_id` come from the public app, as every version before the
-        internal app did. The internal development app is a separate app, with the public
-        identifier plus INTERNAL_APP_SUFFIX. Any other app gets None.
-        """
-        public = self.android_package_name if platform == "android" else self.apns_bundle_id
-        if app_id is None or app_id == public:
-            return public
-        if app_id == public + INTERNAL_APP_SUFFIX:
-            return app_id
-        return None
-
-
-def _bool_env(name: str, default: bool) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _list_env(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    values = (item.strip().lower() for item in value.split(","))
-    return tuple(dict.fromkeys(item for item in values if item))
 
 
 def migration_database_url_from_env() -> str:

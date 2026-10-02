@@ -1,47 +1,13 @@
-from pathlib import Path
-
-from backend.adapters.ai.jev import JevNewsInterestClassifier
-from backend.adapters.content.article_text import PublisherArticleTextSource
-from backend.adapters.content.cccc_agenda import (
-    CCCCAgendaFixtureSource,
-    CCCCAgendaHTMLSource,
-    CCCCAgendaSnapshotSource,
-)
-from backend.adapters.content.combined_hour_by_hour import CombinedHourByHourSource
-from backend.adapters.content.group_directory import load_group_directory
 from backend.adapters.contest.snapshot import SnapshotContestKnowledgeRepository
-from backend.adapters.notifications.apns import APNsAuthorizationTokenProvider, APNsGateway
-from backend.adapters.notifications.fcm import FCMGateway, GoogleServiceAccountTokenProvider
-from backend.adapters.notifications.routing import PlatformRoutingGateway
-from backend.adapters.persistence.agenda_repository import SQLAlchemyAgendaRepository
 from backend.adapters.persistence.database import Database
-from backend.adapters.persistence.hour_by_hour_repository import SQLAlchemyHourByHourRepository
-from backend.adapters.persistence.notification_repository import SQLAlchemyNotificationRepository
-from backend.adapters.persistence.push_subscription_repository import (
-    SQLAlchemyPushSubscriptionRepository,
-)
 from backend.adapters.persistence.shared_conversation_repository import (
     SQLAlchemySharedConversationRepository,
 )
 from backend.adapters.rate_limit.postgres import PostgresRateLimiter
-from backend.application.notification_ingestion import NotificationIngestionService
-from backend.composition.hour_by_hour_sources import disabled_source_ids, enabled_sources
 from backend.config import Settings
 from backend.domain.calculator.ports import ChatModel
 from backend.domain.calculator.sharing import SharedConversationRepository
-from backend.domain.content.ports import (
-    AgendaRepository,
-    AgendaSource,
-    HourByHourRepository,
-    HourByHourSource,
-)
 from backend.domain.contest.ports import ContestKnowledgeRepository
-from backend.domain.notifications.models import (
-    NotificationDisposition,
-    NotificationSendResult,
-    PushPlatform,
-)
-from backend.domain.notifications.ports import NotificationGateway, NotificationRepository
 from backend.domain.rate_limit import RateLimiter
 
 
@@ -83,42 +49,8 @@ def build_database(settings: Settings) -> Database:
     return Database(settings.database_url)
 
 
-def build_hour_by_hour_repository(
-    database: Database,
-) -> HourByHourRepository:
-    return SQLAlchemyHourByHourRepository(database)
-
-
-def build_hour_by_hour_source(settings: Settings) -> HourByHourSource | None:
-    if not settings.hour_by_hour_source_enabled:
-        return None
-    return CombinedHourByHourSource(enabled_sources(settings))
-
-
-def build_agenda_repository(database: Database) -> AgendaRepository:
-    return SQLAlchemyAgendaRepository(database)
-
-
-def build_push_repository(database: Database) -> SQLAlchemyPushSubscriptionRepository:
-    return SQLAlchemyPushSubscriptionRepository(database)
-
-
-def build_notification_repository(database: Database) -> NotificationRepository:
-    return SQLAlchemyNotificationRepository(database)
-
-
 def build_shared_conversation_repository(database: Database) -> SharedConversationRepository:
     return SQLAlchemySharedConversationRepository(database)
-
-
-def build_notification_ingestion(settings: Settings, repository: NotificationRepository):
-    return NotificationIngestionService(
-        repository,
-        JevNewsInterestClassifier(settings.jev_api_key, settings.jev_model),
-        load_group_directory().groups,
-        article_source=PublisherArticleTextSource(),
-        disabled_source_ids=disabled_source_ids(settings),
-    )
 
 
 def build_rate_limiter(settings: Settings, database: Database) -> RateLimiter:
@@ -128,72 +60,3 @@ def build_rate_limiter(settings: Settings, database: Database) -> RateLimiter:
         max_requests=settings.rate_limit_max_requests,
         window_seconds=settings.rate_limit_window_seconds,
     )
-
-
-def build_notification_gateway(settings: Settings) -> NotificationGateway:
-    if not settings.can_deliver_push:
-        return _PushDisabledGateway()
-    missing = [
-        name
-        for name, value in (
-            ("APNS_KEY_P8", settings.apns_key_p8),
-            ("APNS_KEY_ID", settings.apns_key_id),
-            ("APNS_TEAM_ID", settings.apns_team_id),
-        )
-        if not value
-    ]
-    if missing:
-        raise RuntimeError(f"Falten secrets APNs: {', '.join(missing)}")
-    gateways: dict[PushPlatform, NotificationGateway] = {
-        PushPlatform.IOS: APNsGateway(
-            authorization_token=APNsAuthorizationTokenProvider(
-                key_p8=settings.apns_key_p8,
-                key_id=settings.apns_key_id,
-                team_id=settings.apns_team_id,
-            )
-        )
-    }
-    # Android is optional: until Firebase is configured, its deliveries fail
-    # with PushServiceNotConfigured and iOS keeps working.
-    if settings.fcm_service_account_json:
-        gateways[PushPlatform.ANDROID] = build_fcm_gateway(settings.fcm_service_account_json)
-    return PlatformRoutingGateway(gateways)
-
-
-def build_fcm_gateway(service_account_json: str) -> FCMGateway:
-    try:
-        access_token = GoogleServiceAccountTokenProvider(service_account_json)
-    except (ValueError, KeyError, TypeError) as error:
-        raise RuntimeError(
-            "FCM_SERVICE_ACCOUNT_JSON ha de ser la clau JSON d'un compte de servei de Firebase"
-        ) from error
-    return FCMGateway(project_id=access_token.project_id, access_token=access_token)
-
-
-class _PushDisabledGateway:
-    def send(self, _delivery) -> NotificationSendResult:
-        return NotificationSendResult(NotificationDisposition.FAILED, "PushDisabled")
-
-
-def build_agenda_source(settings: Settings) -> AgendaSource | None:
-    if settings.agenda_source == "disabled":
-        return None
-    if settings.agenda_source == "fixture":
-        return CCCCAgendaFixtureSource(_data_path(settings.cccc_agenda_fixture_path))
-    if settings.agenda_source == "cccc_snapshot":
-        _require_agenda_authorization(settings, "usar la instantània oficial")
-        return CCCCAgendaSnapshotSource(_data_path(settings.cccc_agenda_snapshot_path))
-    if settings.agenda_source == "cccc_html":
-        _require_agenda_authorization(settings, "activar la font HTML real")
-        return CCCCAgendaHTMLSource(settings.cccc_agenda_url)
-    raise RuntimeError(f"AGENDA_SOURCE no suportat: {settings.agenda_source}")
-
-
-def _data_path(configured_path: str) -> Path:
-    path = Path(configured_path)
-    return path if path.is_absolute() else Path(__file__).parents[2] / path
-
-
-def _require_agenda_authorization(settings: Settings, action: str) -> None:
-    if not settings.cccc_agenda_authorized:
-        raise RuntimeError(f"CCCC_AGENDA_AUTHORIZED=true és obligatori per {action}")

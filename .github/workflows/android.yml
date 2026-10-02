@@ -6,14 +6,12 @@ on:
       - "android/**"
       - "Makefile"
       - "Version.xcconfig"
-      - "scripts/app_profiles/**"
       - ".github/workflows/android.yml"
   push:
     paths:
       - "android/**"
       - "Makefile"
       - "Version.xcconfig"
-      - "scripts/app_profiles/**"
       - ".github/workflows/android.yml"
   workflow_dispatch:
 
@@ -42,39 +40,17 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # The Firebase configuration stays out of the public repository. Only the internal
-      # app uses it, and only if it lists the internal app; the public app has no news
-      # notifications. Without the secret (for example on pull requests from forks) both
-      # apps still build.
-      - name: Firebase configuration
-        env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
-            printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
-            echo "Firebase configured for the internal app, if it lists it."
-          else
-            echo "No GOOGLE_SERVICES_JSON secret: the internal app is built without news notifications."
-          fi
-
       # The steps share one Gradle daemon, which setup-gradle stops at the end of the job.
       - name: Unit tests
         run: ./gradlew test
 
-      # Each profile is built, linted and inspected: the public APKs must not contain the
-      # internal sections, Firebase or the notification permission, and the internal ones
-      # must keep them under their own application id.
-      - name: Build, lint and inspect the public app
+      - name: Build and lint the app
         working-directory: .
-        run: make android-build android-lint android-verify CASTELLS_BUILD_PROFILE=public
-
-      - name: Build, lint and inspect the internal app
-        working-directory: .
-        run: make android-build android-lint android-verify CASTELLS_BUILD_PROFILE=internal
+        run: make android-build android-lint
 
       - name: Upload the debug APKs
         uses: actions/upload-artifact@v4
         with:
           name: la-calculadora-debug-apks
-          path: android/app/build/outputs/apk/*/debug/*.apk
+          path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error

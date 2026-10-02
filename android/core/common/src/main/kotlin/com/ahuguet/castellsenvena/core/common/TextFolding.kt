@@ -34,9 +34,6 @@ object TextFolding {
         return words
     }
 
-    /** Joins the words of [value] with single spaces. */
-    fun collapseWhitespace(value: String): String = words(value).joinToString(" ")
-
     /** Whether [text] contains [query], ignoring case and accents. */
     fun containsIgnoringCaseAndAccents(text: String, query: String): Boolean =
         fold(text).contains(fold(query))

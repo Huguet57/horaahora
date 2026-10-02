@@ -95,17 +95,6 @@ def test_runtime_settings_reject_sqlite_even_outside_production(
         Settings.from_env()
 
 
-def test_preview_can_never_deliver_real_pushes() -> None:
-    settings = Settings(
-        database_url="postgresql+psycopg://user:secret@host/app",
-        vercel_env="preview",
-        push_delivery_enabled=True,
-    )
-
-    assert settings.can_deliver_push is False
-    assert settings.apns_environment == "development"
-
-
 def test_database_readiness_executes_a_real_query() -> None:
     database = Database("sqlite+pysqlite:///:memory:")
 

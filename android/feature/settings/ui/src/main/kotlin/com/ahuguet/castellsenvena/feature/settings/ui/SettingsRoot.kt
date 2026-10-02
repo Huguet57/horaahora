@@ -1,8 +1,6 @@
 package com.ahuguet.castellsenvena.feature.settings.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
@@ -20,15 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -50,12 +43,8 @@ internal fun SettingsRoot(
     onOpenUrl: (String) -> Unit,
     onContactSupport: (String) -> Unit,
     onCopyIdentifier: (String) -> Unit,
-    onVersionTap: (() -> String?)?,
-    leadingContent: @Composable ColumnScope.() -> Unit,
 ) {
     SettingsScaffold(title = "Ajustos") {
-        leadingContent()
-
         SectionHeader("Privacitat i dades")
         ListRow(
             title = "Política de privacitat",
@@ -74,50 +63,18 @@ internal fun SettingsRoot(
         CopyIdentifierRow(identifier = configuration.technicalIdentifier, onCopy = onCopyIdentifier)
 
         SectionHeader("Sobre ${configuration.appName}")
-        VersionRow(configuration = configuration, onTap = onVersionTap)
+        ListRow(
+            title = configuration.appName,
+            subtitle = configuration.versionAndBuild,
+            leadingIcon = Icons.Outlined.Info,
+            modifier = Modifier.semantics(mergeDescendants = true) {},
+        )
         ListRow(
             title = "Fonts i crèdits",
             leadingIcon = Icons.AutoMirrored.Outlined.MenuBook,
             onClick = onOpenSources,
         )
     }
-}
-
-/**
- * The app and its version. Without [onTap] the row does nothing. With it, a tap asks
- * [onTap] what to say, and the row says it for a moment, without the ripple that would
- * give a hidden gesture away.
- */
-@Composable
-private fun VersionRow(configuration: SettingsConfiguration, onTap: (() -> String?)?) {
-    var message by remember { mutableStateOf<String?>(null) }
-    val currentOnTap by rememberUpdatedState(onTap)
-    val haptics = LocalHapticFeedback.current
-    LaunchedEffect(message) {
-        if (message != null) {
-            delay(2_000)
-            message = null
-        }
-    }
-    val taps = if (onTap == null) {
-        Modifier
-    } else {
-        Modifier.pointerInput(Unit) {
-            detectTapGestures {
-                val said = currentOnTap?.invoke() ?: return@detectTapGestures
-                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                message = said
-            }
-        }
-    }
-    ListRow(
-        title = configuration.appName,
-        subtitle = message ?: configuration.versionAndBuild,
-        leadingIcon = Icons.Outlined.Info,
-        modifier = Modifier
-            .semantics(mergeDescendants = true) {}
-            .then(taps),
-    )
 }
 
 /** Copies the identifier support asks for; confirms it for two seconds. */

@@ -4,17 +4,11 @@ import FeatureSettings
 struct AppConfiguration {
     let apiBaseURL: URL
     let supportEmail: String
-    /// The name on the home screen, which tells the public app and the internal one apart.
+    /// The name on the home screen.
     let appName: String
     let appVersion: String
     let buildNumber: String
     let technicalIdentifier: String
-    /// `com.ahuguet.castellsenvena`, or `com.ahuguet.castellsenvena.internal` in the internal
-    /// app: the backend files push subscriptions under it.
-    let bundleIdentifier: String
-    /// Where the internal app subscribes to news notifications, and where the public app
-    /// unsubscribes the ones an earlier version turned on.
-    let apnsEnvironment: String
     let concursCastellsURL: URL?
 
     var settingsConfiguration: SettingsConfiguration {
@@ -40,11 +34,6 @@ struct AppConfiguration {
         guard let apiBaseURL = URL(string: configuredBaseURL) else {
             preconditionFailure("CastellsAPIBaseURL no és una URL vàlida")
         }
-        #if DEBUG
-        let apnsEnvironment = "development"
-        #else
-        let apnsEnvironment = "production"
-        #endif
 
         return AppConfiguration(
             apiBaseURL: apiBaseURL,
@@ -57,8 +46,6 @@ struct AppConfiguration {
             technicalIdentifier: InstallationIdentifierStore(
                 userDefaults: userDefaults
             ).currentIdentifier(),
-            bundleIdentifier: bundle.bundleIdentifier ?? "com.ahuguet.castellsenvena",
-            apnsEnvironment: apnsEnvironment,
             // No hi ha encara una URL oficial versionada i estable per a la taula del 2026.
             concursCastellsURL: nil
         )

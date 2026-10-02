@@ -1,7 +1,6 @@
 # Captures de l'App Store
 
-Quatre captures per a iPhone, una per a cada part de l'app: calculadora, calendari,
-actualitat i comparador. Són PNG sense canal alfa en dues mides; App Store Connect només en
+Dues captures per a iPhone, una per a cada part de l'app: calculadora i comparador. Són PNG sense canal alfa en dues mides; App Store Connect només en
 necessita una, i les pantalles més petites s'escalen automàticament:
 
 - `output/6.9/`: 1320 × 2868, per a l'apartat «iPhone 6,9"».
@@ -11,8 +10,6 @@ necessita una, i les pantalles més petites s'escalen automàticament:
 | Fitxer | Titular | Subtítol |
 | --- | --- | --- |
 | `01-calculadora.png` | Qui guanya? Pregunta-ho. | La calculadora castellera que funciona com un xat. |
-| `02-calendari.png` | Totes les diades, en un calendari | Qui actua, on i a quina hora. |
-| `03-actualitat.png` | Tota l’actualitat, hora a hora | Revista Castells i El Món Casteller, en un sol lloc. |
 | `04-comparador.png` | Compara actuacions, ronda a ronda | Canvia un castell i mira qui guanya al moment. |
 
 ## Com es generen
@@ -47,13 +44,7 @@ l'app contra producció amb `Debug.local.xcconfig` (vegeu el README principal) o
 
 2. Contingut de cada captura:
    - **Calculadora:** «Si la Vella fa 4 net, 4d10fm i 3 net carregat, i Vilafranca 3 i 4 de 10 i pilar de 9 carregat, qui guanya?» i, després, «I si la Vella descarrega el 3 net?». Captura amb la conversa desplaçada fins a dalt.
-   - **Calendari:** colles seguides a l'Agenda: Capgrossos de Mataró, Castellers de Vilafranca i la Colla Jove de Castellers de Sitges. Dia seleccionat: dissabte 26 de setembre del 2026 (Santa Tecla a Sitges).
    - **Comparador:** escenari VERDS · VELLA · JOVES, amb castells que no compten per veure les regles.
-   - **Actualitat:** avisos activats i, amb l'Hora a Hora oberta, una notificació amb el mateix format que envia el backend (`title` = titular, `body` = resum):
-
-     ```bash
-     xcrun simctl push booted com.ahuguet.castellsenvena push.json
-     ```
 
 3. Desa cada captura a `raw/` amb `xcrun simctl io booted screenshot --type=png raw/<nom>.png`.
 
@@ -64,5 +55,3 @@ ha de quedar per sobre d'aquesta alçada, i la barra de pestanyes queda fora.
 
 - Les captures mostren el vermell de marca com a color d'accent de l'app. Han d'anar
   amb una versió que ja porti aquest canvi.
-- Els titulars de l'actualitat i els noms de Revista Castells i El Món Casteller són
-  seus: cal que hi estiguin d'acord abans de fer-los servir en promoció.

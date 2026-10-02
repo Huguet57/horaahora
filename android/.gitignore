@@ -7,6 +7,3 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
-
-# Firebase configuration of the push project; see README.
-app/google-services.json

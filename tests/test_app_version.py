@@ -1,4 +1,4 @@
-"""Both apps take their visible version from Version.xcconfig, and only from there."""
+"""The iOS and Android apps take their visible version from Version.xcconfig, and only from there."""
 
 from __future__ import annotations
 
@@ -44,11 +44,8 @@ def test_the_android_app_does_not_set_its_own_version_name() -> None:
     sys.platform != "darwin" or shutil.which("xcodebuild") is None,
     reason="Reading Xcode build settings requires xcodebuild",
 )
-@pytest.mark.parametrize("scheme", ["HoraAHoraApp", "HoraAHoraAppInternal"])
 @pytest.mark.parametrize("configuration", ["Debug", "Release"])
-def test_xcode_builds_take_the_version_from_the_version_file(
-    scheme: str, configuration: str
-) -> None:
+def test_xcode_builds_take_the_version_from_the_version_file(configuration: str) -> None:
     result = subprocess.run(
         [
             "xcodebuild",
@@ -56,7 +53,7 @@ def test_xcode_builds_take_the_version_from_the_version_file(
             "-project",
             str(XCODE_PROJECT),
             "-scheme",
-            scheme,
+            "HoraAHoraApp",
             "-configuration",
             configuration,
         ],
