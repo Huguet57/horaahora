@@ -116,7 +116,7 @@ private fun ComparisonCastellCell(castell: ComparisonPresentation.Castell?) {
         Text(castell.notation, style = notationStyle.struckThroughUnless(castell.counted))
         Text(
             text = "${castell.result} · ${CatalanNumbers.grouped(castell.points)}",
-            style = detailStyle.merge(TabularNumbers).struckThroughUnless(castell.counted),
+            style = detailStyle.merge(TabularNumbers),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -196,11 +196,7 @@ internal fun PerformanceSummary(presentation: PerformanceSummaryPresentation) {
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(row.notation, style = notationStyle.struckThroughUnless(row.counted))
-                        Text(
-                            text = row.result,
-                            style = detailStyle.struckThroughUnless(row.counted),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text(row.result, style = detailStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(
                         text = CatalanNumbers.grouped(row.points),

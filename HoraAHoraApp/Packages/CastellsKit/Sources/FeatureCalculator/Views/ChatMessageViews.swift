@@ -155,10 +155,7 @@ struct PerformanceSummaryView: View {
                             Text(row.notation)
                                 .font(.caption.monospaced().weight(.semibold))
                                 .strikethrough(!row.counted)
-                            Text(row.result)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .strikethrough(!row.counted)
+                            Text(row.result).font(.caption2).foregroundStyle(.secondary)
                         }
                         .opacity(row.counted ? 1 : 0.55)
                         Spacer()
@@ -257,10 +254,7 @@ struct ComparisonTable: View {
                 Text(castell.notation)
                     .font(.caption.monospaced().weight(.semibold))
                     .strikethrough(!castell.counted)
-                Text(detail(for: castell))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .strikethrough(!castell.counted)
+                Text(detail(for: castell)).font(.caption2).foregroundStyle(.secondary)
             }
             .frame(minWidth: 112, alignment: .trailing)
             .opacity(castell.counted ? 1 : 0.55)
