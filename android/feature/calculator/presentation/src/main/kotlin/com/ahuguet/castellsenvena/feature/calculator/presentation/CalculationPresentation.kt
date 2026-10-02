@@ -1,7 +1,6 @@
 package com.ahuguet.castellsenvena.feature.calculator.presentation
 
 import com.ahuguet.castellsenvena.core.domain.chat.ChatResponse
-import com.ahuguet.castellsenvena.core.domain.chat.ScoredCastellResponse
 
 /**
  * How an assistant answer is drawn. The prose reply is the fallback when none
@@ -32,20 +31,6 @@ fun castellResultLabel(outcome: String): String = when (outcome) {
     "attempt" -> "Intent"
     else -> outcome.split(' ').joinToString(" ") { word ->
         word.lowercase().replaceFirstChar(Char::titlecase)
-    }
-}
-
-/**
- * Why an uncounted castell is left out, with the comparator's wording; null when it counts.
- * An attempt already reads «Intent», so it needs no extra label.
- */
-fun notCountedReasonLabel(castell: ScoredCastellResponse): String? {
-    if (castell.counted) return null
-    return when (castell.reason) {
-        "duplicate_structure" -> "repetit"
-        "loaded_limit" -> "3r carregat"
-        "outside_top_three" -> "fora de les 3"
-        else -> null
     }
 }
 

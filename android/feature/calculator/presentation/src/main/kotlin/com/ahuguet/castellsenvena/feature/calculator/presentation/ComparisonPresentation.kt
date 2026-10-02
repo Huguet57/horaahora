@@ -12,13 +12,13 @@ data class ComparisonPresentation(
     val margin: Int?,
     val summary: String,
     val maximumCastellCount: Int,
+    val notCountedNote: String?,
 ) {
     data class Castell(
         val notation: String,
         val result: String,
         val points: Int,
         val counted: Boolean,
-        val notCountedReason: String?,
     )
 
     data class Column(
@@ -51,7 +51,6 @@ data class ComparisonPresentation(
                             result = castellResultLabel(castell.outcome),
                             points = castell.points,
                             counted = castell.counted,
-                            notCountedReason = notCountedReasonLabel(castell),
                         )
                     },
                     isWinner = performance.label == response.winnerLabel,
@@ -79,6 +78,7 @@ data class ComparisonPresentation(
                 margin = margin,
                 summary = summary,
                 maximumCastellCount = columns.maxOf { it.castells.size },
+                notCountedNote = NotCountedNote.text(displayLabels.zip(response.performances.map { it.castells })),
             )
         }
 

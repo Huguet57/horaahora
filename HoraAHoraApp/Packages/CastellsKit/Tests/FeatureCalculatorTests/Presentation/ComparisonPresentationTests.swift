@@ -20,6 +20,7 @@ final class ComparisonPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.margin, 825)
         XCTAssertEqual(presentation.summary, "Guanya Vella per 825 punts.")
         XCTAssertEqual(presentation.maximumCastellCount, 1)
+        XCTAssertNil(presentation.notCountedNote)
     }
 
     func testOnlyBuildsForComparisonsWithAtLeastTwoPerformances() throws {
@@ -71,7 +72,7 @@ final class ComparisonPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.columns.map(\.label), ["A", "B"])
     }
 
-    func testCellsSayWhyACastellDoesNotCount() throws {
+    func testNoteNamesTheCollaOfEachUncountedCastell() throws {
         let uncountedJSON = Self.responseJSON.replacingOccurrences(
             of: #""points": 4105,\#n          "counted": true,\#n          "reason": null"#,
             with: #""points": 4105,\#n          "counted": false,\#n          "reason": "duplicate_structure""#
@@ -84,8 +85,7 @@ final class ComparisonPresentationTests: XCTestCase {
 
         let presentation = try XCTUnwrap(ComparisonPresentation(response: response))
 
-        XCTAssertNil(presentation.columns[0].castells[0].notCountedReason)
-        XCTAssertEqual(presentation.columns[1].castells[0].notCountedReason, "repetit")
+        XCTAssertEqual(presentation.notCountedNote, "No compta — Joves: 4de9sf (repetit).")
     }
 
     private static let responseJSON = #"""

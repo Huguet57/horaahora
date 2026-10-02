@@ -7,12 +7,12 @@ struct PerformanceSummaryPresentation {
         let result: String
         let points: Int
         let counted: Bool
-        let notCountedReason: String?
     }
 
     let title: String
     let rows: [Row]
     let total: Int
+    let notCountedNote: String?
 
     init?(response: ChatResponse) {
         guard
@@ -29,11 +29,11 @@ struct PerformanceSummaryPresentation {
                 notation: castell.canonical ?? castell.input,
                 result: Self.resultLabel(castell.outcome),
                 points: castell.points,
-                counted: castell.counted,
-                notCountedReason: castell.notCountedReason
+                counted: castell.counted
             )
         }
         total = performance.total
+        notCountedNote = NotCountedNote.text(for: [(performance.label, performance.castells)])
     }
 
     private static func resultLabel(_ outcome: String) -> String {

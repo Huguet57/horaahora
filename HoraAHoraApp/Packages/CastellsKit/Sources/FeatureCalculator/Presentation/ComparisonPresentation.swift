@@ -8,7 +8,6 @@ struct ComparisonPresentation {
         let result: String
         let points: Int
         let counted: Bool
-        let notCountedReason: String?
     }
 
     struct Column: Identifiable {
@@ -24,6 +23,7 @@ struct ComparisonPresentation {
     let margin: Int?
     let summary: String
     let maximumCastellCount: Int
+    let notCountedNote: String?
 
     init?(response: ChatResponse) {
         guard
@@ -44,14 +44,16 @@ struct ComparisonPresentation {
                         notation: castell.canonical ?? castell.input,
                         result: Self.resultLabel(castell.outcome),
                         points: castell.points,
-                        counted: castell.counted,
-                        notCountedReason: castell.notCountedReason
+                        counted: castell.counted
                     )
                 },
                 isWinner: performance.label == response.winnerLabel
             )
         }
         maximumCastellCount = columns.map(\.castells.count).max() ?? 0
+        notCountedNote = NotCountedNote.text(
+            for: zip(displayLabels, response.performances).map { ($0, $1.castells) }
+        )
 
         if let sourceWinner = response.winnerLabel,
            let winnerIndex = response.performances.firstIndex(where: { $0.label == sourceWinner }) {

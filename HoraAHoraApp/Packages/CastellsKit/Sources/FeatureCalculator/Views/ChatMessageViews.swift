@@ -153,7 +153,7 @@ struct PerformanceSummaryView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(row.notation).font(.caption.monospaced().weight(.semibold))
-                            Text(detail(for: row)).font(.caption2).foregroundStyle(.secondary)
+                            Text(row.result).font(.caption2).foregroundStyle(.secondary)
                         }
                         .opacity(row.counted ? 1 : 0.55)
                         Spacer()
@@ -174,12 +174,9 @@ struct PerformanceSummaryView: View {
             .padding(11)
             .background(Color.primary.opacity(0.045))
             .clipShape(RoundedRectangle(cornerRadius: 11))
+            NotCountedNoteText(note: presentation.notCountedNote)
         }
         .accessibilityElement(children: .contain)
-    }
-
-    private func detail(for row: PerformanceSummaryPresentation.Row) -> String {
-        row.result + notCountedSuffix(counted: row.counted, reason: row.notCountedReason)
     }
 }
 
@@ -231,6 +228,7 @@ struct ComparisonTable: View {
             }
             .background(Color.primary.opacity(0.045))
             .clipShape(RoundedRectangle(cornerRadius: 11))
+            NotCountedNoteText(note: presentation.notCountedNote)
 
             if let winner = presentation.winnerLabel, let margin = presentation.margin {
                 Label(
@@ -263,12 +261,20 @@ struct ComparisonTable: View {
 
     private func detail(for castell: ComparisonPresentation.Castell) -> String {
         let points = castell.points.formatted(.number.grouping(.automatic))
-        let suffix = notCountedSuffix(counted: castell.counted, reason: castell.notCountedReason)
+        let suffix = castell.counted ? "" : " · no compta"
         return "\(castell.result) · \(points)\(suffix)"
     }
 }
 
-private func notCountedSuffix(counted: Bool, reason: String?) -> String {
-    guard !counted else { return "" }
-    return reason.map { " · no compta · \($0)" } ?? " · no compta"
+private struct NotCountedNoteText: View {
+    let note: String?
+
+    var body: some View {
+        if let note {
+            Text(note)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
 }

@@ -47,13 +47,13 @@ data class PerformanceSummaryPresentation(
     val title: String,
     val rows: List<Row>,
     val total: Int,
+    val notCountedNote: String?,
 ) {
     data class Row(
         val notation: String,
         val result: String,
         val points: Int,
         val counted: Boolean,
-        val notCountedReason: String?,
     )
 
     companion object {
@@ -73,10 +73,10 @@ data class PerformanceSummaryPresentation(
                         result = castellResultLabel(castell.outcome),
                         points = castell.points,
                         counted = castell.counted,
-                        notCountedReason = notCountedReasonLabel(castell),
                     )
                 },
                 total = performance.total,
+                notCountedNote = NotCountedNote.text(listOf(performance.label to performance.castells)),
             )
         }
     }

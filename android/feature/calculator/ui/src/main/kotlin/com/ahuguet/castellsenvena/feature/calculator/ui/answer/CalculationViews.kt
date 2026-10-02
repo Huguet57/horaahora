@@ -93,6 +93,7 @@ internal fun ComparisonTable(presentation: ComparisonPresentation) {
                 minColumnWidths = listOf(0.dp) + presentation.columns.map { 112.dp },
             )
         }
+        NotCountedNoteText(presentation.notCountedNote)
 
         val winner = presentation.winnerLabel
         val margin = presentation.margin
@@ -112,19 +113,13 @@ private fun ComparisonCastellCell(castell: ComparisonPresentation.Castell?) {
     }
     Column(horizontalAlignment = Alignment.End, modifier = Modifier.alpha(if (castell.counted) 1f else 0.55f)) {
         Text(castell.notation, style = notationStyle)
-        val suffix = notCountedSuffix(castell.counted, castell.notCountedReason)
+        val suffix = if (castell.counted) "" else " · no compta"
         Text(
             text = "${castell.result} · ${CatalanNumbers.grouped(castell.points)}$suffix",
             style = detailStyle.merge(TabularNumbers),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-}
-
-private fun notCountedSuffix(counted: Boolean, reason: String?): String = when {
-    counted -> ""
-    reason != null -> " · no compta · $reason"
-    else -> " · no compta"
 }
 
 @Composable
@@ -201,11 +196,7 @@ internal fun PerformanceSummary(presentation: PerformanceSummaryPresentation) {
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Text(row.notation, style = notationStyle)
-                        Text(
-                            text = row.result + notCountedSuffix(row.counted, row.notCountedReason),
-                            style = detailStyle,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text(row.result, style = detailStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(
                         text = CatalanNumbers.grouped(row.points),
@@ -224,6 +215,14 @@ internal fun PerformanceSummary(presentation: PerformanceSummaryPresentation) {
                 )
             }
         }
+        NotCountedNoteText(presentation.notCountedNote)
+    }
+}
+
+@Composable
+private fun NotCountedNoteText(note: String?) {
+    if (note != null) {
+        Text(note, style = detailStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

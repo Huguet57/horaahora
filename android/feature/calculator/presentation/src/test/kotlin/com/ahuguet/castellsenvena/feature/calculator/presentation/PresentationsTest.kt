@@ -123,10 +123,11 @@ class PresentationsTest {
         assertEquals(listOf("3de10sm", "2de10fmp"), presentation.rows.map { it.notation })
         assertEquals("Descarregat", presentation.rows.first().result)
         assertEquals(20_615, presentation.total)
+        assertNull(presentation.notCountedNote)
     }
 
     @Test
-    fun uncountedCastellsSayWhyTheyDoNotCount() {
+    fun noteSaysWhichCastellsDoNotCountAndWhy() {
         // Shared conversations: a castell that stopped counting looked like the calculator ignored it.
         val response = ChatResponse(
             reply = "Joves: Pde7sf carregat, 3de9sf carregat. Total: 10.445 punts.",
@@ -138,6 +139,7 @@ class PresentationsTest {
                     castells = listOf(
                         castell("pd7sf", "Pde7sf", 5_280, outcome = "loaded"),
                         castell("3d9sf", "3de9sf", 5_165, outcome = "loaded"),
+                        castell("3d10fm", "3de10fm", 3_755, outcome = "loaded", counted = false, reason = "loaded_limit"),
                         castell("2d9sm", "2de9sm", 4_685, outcome = "loaded", counted = false, reason = "loaded_limit"),
                         castell("3d9f", "3de9f", 1_910, counted = false, reason = "duplicate_structure"),
                         castell("5d8", "5de8", 1_385, counted = false, reason = "outside_top_three"),
@@ -154,21 +156,20 @@ class PresentationsTest {
         val presentation = assertNotNull(PerformanceSummaryPresentation.from(response))
 
         assertEquals(
-            listOf(null, null, "3r carregat", "repetit", "fora de les 3", null),
-            presentation.rows.map { it.notCountedReason },
+            "No compten: 3de10fm i 2de9sm (només compten 2 carregats), 3de9f (repetit), 5de8 (fora de les 3 millors).",
+            presentation.notCountedNote,
         )
     }
 
     @Test
-    fun comparisonCellsSayWhyACastellDoesNotCount() {
+    fun comparisonNoteNamesTheCollaOfEachUncountedCastell() {
         val response = comparison(
             second = castell("2d9sm", "2de9sm", 4_685, outcome = "loaded", counted = false, reason = "loaded_limit"),
         )
 
         val presentation = assertNotNull(ComparisonPresentation.from(response))
 
-        assertNull(presentation.columns[0].castells.single().notCountedReason)
-        assertEquals("3r carregat", presentation.columns[1].castells.single().notCountedReason)
+        assertEquals("No compta — Joves: 2de9sm (només compten 2 carregats).", presentation.notCountedNote)
     }
 
     @Test

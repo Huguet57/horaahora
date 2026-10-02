@@ -43,9 +43,10 @@ final class PerformanceSummaryPresentationTests: XCTestCase {
         XCTAssertEqual(presentation?.rows.map(\.notation), ["3de10sm", "2de10fmp"])
         XCTAssertEqual(presentation?.rows.first?.result, "Descarregat")
         XCTAssertEqual(presentation?.total, 20_615)
+        XCTAssertNil(presentation?.notCountedNote)
     }
 
-    func testUncountedCastellsSayWhyTheyDoNotCount() {
+    func testNoteSaysWhichCastellsDoNotCountAndWhy() {
         // Shared conversations: a castell that stopped counting looked like the calculator ignored it.
         func castell(
             _ canonical: String,
@@ -72,6 +73,7 @@ final class PerformanceSummaryPresentationTests: XCTestCase {
                     castells: [
                         castell("Pde7sf", "loaded", 5_280),
                         castell("3de9sf", "loaded", 5_165),
+                        castell("3de10fm", "loaded", 3_755, reason: "loaded_limit"),
                         castell("2de9sm", "loaded", 4_685, reason: "loaded_limit"),
                         castell("3de9f", "unloaded", 1_910, reason: "duplicate_structure"),
                         castell("5de8", "unloaded", 1_385, reason: "outside_top_three"),
@@ -88,8 +90,9 @@ final class PerformanceSummaryPresentationTests: XCTestCase {
         let presentation = PerformanceSummaryPresentation(response: response)
 
         XCTAssertEqual(
-            presentation?.rows.map(\.notCountedReason),
-            [nil, nil, "3r carregat", "repetit", "fora de les 3", nil]
+            presentation?.notCountedNote,
+            "No compten: 3de10fm i 2de9sm (només compten 2 carregats), 3de9f (repetit), "
+                + "5de8 (fora de les 3 millors)."
         )
     }
 
