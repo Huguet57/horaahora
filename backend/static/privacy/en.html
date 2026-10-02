@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Privacy policy</h1>
-  <p class="meta"><strong>La calculadora de l'Aleta</strong> · Last updated: 27 September 2026</p>
+  <p class="meta"><strong>La calculadora de l'Aleta</strong> · Last updated: 2 October 2026</p>
   <p>This policy explains how the current version of La calculadora de l'Aleta, a free app with no user accounts, processes personal data.</p>
 
   <h2>1. Controller</h2>
@@ -43,8 +43,7 @@
   <h3>Data stored only on the device</h3>
   <ul>
     <li>The full history of your calculator conversations, including their titles. The queries you share to improve the calculator are explained below.</li>
-    <li>Local copies of content viewed in the app, such as news and performances, to improve availability and offline reading.</li>
-    <li>Local display preferences. When notifications are enabled, the interest threshold and followed groups are also synchronized with the backend, as explained below.</li>
+    <li>Local display preferences.</li>
   </ul>
   <p>Conversations can be deleted individually. Other local data is removed when the app is uninstalled or its data is deleted through the operating system.</p>
 
@@ -60,36 +59,29 @@
   <h3>Technical data</h3>
   <p>When you connect to the service, the IP address, date and time, requested path, response status and technical information strictly required to provide the service, limit abuse and diagnose incidents may be processed.</p>
 
-  <h3>Notifications</h3>
-  <p>If you voluntarily enable notifications, the operating system manages the permission and the platform's notification service assigns a token to this installation: Apple Push Notification service (APNs), from Apple, on iOS; Firebase Cloud Messaging (FCM), from Google, on Android. The app sends the backend that token, the random installation identifier, app version, language and platform so that requested alerts can be delivered. They are not used for analytics, advertising or tracking. When notifications are disabled or Apple or Google invalidates the token, the backend immediately replaces it with a revocation marker. On Android, the app only requests the token from FCM when you enable notifications and deletes it when you disable them.</p>
-
-  <p>While notifications are enabled, the minimum interest level (Low, Medium or High) and groups selected in the app are also sent to personalize alerts. Changes synchronize when the app is opened; while offline, the server uses the last settings it received. Jev, from TypeSafe AI, classifies public news titles, summaries and, when available, article bodies and public text from accompanying links, distinguishing their origin. It does not receive notification tokens, installation identifiers or personal preferences. Our backend combines the classification with followed groups.</p>
-  <p>The threshold and group selection stored in the subscription are cleared when the token is revoked; the local copy is retained. Temporary copies used to prepare an alert are cleared when its classification finishes or is skipped.</p>
-
   <h3>Support communications</h3>
   <p>When you select “Contact support”, the app prepares an editable email containing the version, build number and technical identifier. This information is only transmitted if you review the email and manually tap the send button; you can also cancel it. If you send it, your email address, message contents and any files you choose to attach will be processed. The app does not export conversations or attach them automatically.</p>
 
   <h2>3. Purposes and legal bases</h2>
   <ul>
-    <li><strong>Providing the requested service:</strong> displaying content and answering calculator queries. The legal basis is performance of the service requested by the user.</li>
+    <li><strong>Providing the requested service:</strong> answering calculator queries. The legal basis is performance of the service requested by the user.</li>
     <li><strong>Security and stability:</strong> limiting abusive requests, preventing fraud and diagnosing errors. The legal basis is the legitimate interest in protecting and maintaining the service, balanced against users' rights.</li>
     <li><strong>Improving the calculator:</strong> storing shared conversations to detect errors and improve answers. The legal basis is the legitimate interest in improving a free service, balanced against your rights: you are told before it starts, only new conversations are stored, without device identifiers and for 90 days. Turning off «Millora la calculadora» in Ajustos (Settings) is the immediate way to exercise your right to object.</li>
-    <li><strong>Optional features and support:</strong> managing notifications you enable and information you choose to send to support. The legal basis is your consent or voluntary action, which you may withdraw at any time.</li>
+    <li><strong>Support:</strong> managing information you choose to send to support. The legal basis is your consent or voluntary action, which you may withdraw at any time.</li>
   </ul>
-  <p>Data needed to answer a query and protect the service is required to provide those features. Notifications, contacting support and sharing conversations to improve the calculator are optional.</p>
+  <p>Data needed to answer a query and protect the service is required to provide those features. Contacting support and sharing conversations to improve the calculator are optional.</p>
 
   <h2>4. Providers and recipients</h2>
   <ul>
     <li><strong>Vercel:</strong> backend hosting and execution. The primary function is configured in Paris (<code>cdg1</code>), although Vercel and its subprocessors may process data in other countries.</li>
-    <li><strong>Supabase:</strong> managed PostgreSQL database in the Paris region storing synchronized content, technical security counters, active notification subscriptions and conversations shared to improve the calculator.</li>
+    <li><strong>Supabase:</strong> managed PostgreSQL database in the Paris region storing technical security counters and conversations shared to improve the calculator.</li>
     <li><strong>OpenRouter:</strong> routes calculator queries to the AI model. Requests are sent with <code>data_collection: "deny"</code> so they are not routed to providers that may use them to train models. OpenRouter keeps technical metadata for each request, such as token counts and latency, and may assign an anonymous topic category to a small sample of queries, but does not store their content.</li>
     <li><strong>Google (Gemini):</strong> linguistic interpretation of calculator queries, received through OpenRouter.</li>
-    <li><strong>TypeSafe AI (Jev):</strong> classifies public news content by relevance and the groups involved.</li>
-    <li><strong>Apple:</strong> iOS app distribution, system permissions and APNs when you enable notifications.</li>
-    <li><strong>Google (Firebase Cloud Messaging and Google Play):</strong> Android app distribution and delivery of notifications through FCM when you enable them.</li>
+    <li><strong>Apple:</strong> iOS app distribution.</li>
+    <li><strong>Google (Google Play):</strong> Android app distribution.</li>
     <li><strong>Google/Gmail:</strong> receiving and managing emails you voluntarily send to the support or privacy contact.</li>
   </ul>
-  <p>Revista Castells and the Coordinadora de Colles Castelleres de Catalunya (CCCC) do not receive queries, identifiers or user profiles. The app only displays attributed content and links to their official sources.</p>
+  <p>The Concurs de Castells, source of the official score table, and the Coordinadora de Colles Castelleres de Catalunya (CCCC), source of the list of groups, do not receive queries, identifiers or user profiles. The app only displays the attributed data and links to their official sources.</p>
 
   <h2>5. International transfers</h2>
   <p>Some providers or subprocessors may process data outside the European Economic Area. Where applicable, these transfers rely on adequacy decisions, European Commission standard contractual clauses or other safeguards recognised by the GDPR. You may request further information through the privacy contact.</p>
@@ -99,17 +91,16 @@
     <li><strong>Local data:</strong> until you delete each conversation or uninstall the app.</li>
     <li><strong>Conversations shared to improve the calculator:</strong> 90 days from each query, after which they are deleted automatically.</li>
     <li><strong>Rate limiter:</strong> technical keys are kept for a 10-minute window.</li>
-    <li><strong>Notification subscription:</strong> the token is retained while alerts are enabled and is revoked immediately when they are disabled or APNs or FCM rejects it. Installations not renewed for 180 days are invalidated; delivery records are kept for no more than 30 days.</li>
     <li><strong>Vercel logs:</strong> approximately 1 day under the current plan.</li>
     <li><strong>Google (Gemini):</strong> does not use queries to train models. Depending on the Google service that handles the request, it may retain them for up to 55 days for abuse monitoring, unless a legal obligation requires a different period.</li>
     <li><strong>Support or privacy emails:</strong> for up to 12 months after the query is resolved, unless longer retention is needed to meet a legal obligation or defend legal claims.</li>
   </ul>
 
   <h2>7. Advertising, analytics and automated decisions</h2>
-  <p>There is no advertising, cross-app or cross-site tracking, commercial profiling, or additional analytics or crash-reporting SDK. On Android, the app includes the Firebase Cloud Messaging SDK only to deliver notifications, without Google Analytics for Firebase. The calculator automates interpretation and scoring, but it does not make decisions that have legal or similarly significant effects on people.</p>
+  <p>There is no advertising, cross-app or cross-site tracking, commercial profiling, or additional analytics or crash-reporting SDK. The calculator automates interpretation and scoring, but it does not make decisions that have legal or similarly significant effects on people.</p>
 
   <h2>8. External links</h2>
-  <p>When you open a link to Revista Castells, CCCC, Google Maps or another external service, the destination service processes the connection under its own privacy policy. La calculadora de l'Aleta does not control that processing.</p>
+  <p>When you open a link to the Concurs de Castells website or another external service, the destination service processes the connection under its own privacy policy. La calculadora de l'Aleta does not control that processing.</p>
 
   <h2>9. Your rights</h2>
   <p>You may request access, rectification, erasure, restriction, objection or portability of your data, and withdraw consent without affecting earlier processing, by emailing <a href="mailto:tenimaletaapp@gmail.com">tenimaletaapp@gmail.com</a>. Requests will generally be answered within one month.</p>
@@ -123,7 +114,7 @@
   <p>Proportionate measures are applied: HTTPS communications, restricted infrastructure access and, for shared conversations, storage without device identifiers and automatic deletion after 90 days. No system is completely infallible.</p>
   <p>Material changes will be published at these same URLs and the date will be updated. If a change requires consent, it will be requested before the change applies.</p>
 
-  <footer>La calculadora de l'Aleta · Privacy policy · 27 September 2026</footer>
+  <footer>La calculadora de l'Aleta · Privacy policy · 2 October 2026</footer>
 </main>
 </body>
 </html>

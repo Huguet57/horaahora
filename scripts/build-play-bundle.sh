@@ -8,8 +8,8 @@ BUILD_REPOSITORY_ROOT=''
 BUILD_TEMPORARY_ROOT=''
 BUILD_SOURCE_DIRECTORY=''
 BUILD_WORKTREE_ADDED=false
-# Only the public app goes to Google Play; the internal app never does.
-PUBLIC_APPLICATION_ID='com.ahuguet.castellsenvena'
+# The app that Google Play receives.
+APPLICATION_ID='com.ahuguet.castellsenvena'
 # Google Play refuses a larger versionCode. Unix seconds stay below it until 2036.
 MAX_VERSION_CODE=2100000000
 
@@ -31,7 +31,7 @@ usage() {
   cat <<'EOF'
 Usage: scripts/build-play-bundle.sh [options]
 
-Build the signed Google Play bundle (AAB) of the public app from an exact Git ref.
+Build the signed Google Play bundle (AAB) of the app from an exact Git ref.
 The version name comes from Version.xcconfig at that ref. Upload the bundle in the
 Play Console.
 
@@ -97,13 +97,6 @@ main() {
     esac
   done
 
-  local build_profile=${CASTELLS_BUILD_PROFILE:-public}
-  if [[ "$build_profile" != public ]]; then
-    printf 'Error: Google Play only receives the public app; CASTELLS_BUILD_PROFILE is %s.\n' \
-      "$build_profile" >&2
-    return 2
-  fi
-
   if [[ -z "$version_code" ]]; then
     version_code=$(generate_version_code)
   fi
@@ -140,7 +133,6 @@ main() {
 
   local -a gradle_command=(
     ./gradlew
-    -Pcastells.buildProfile=public
     "-Pcastells.versionCode=$version_code"
     :app:bundleRelease
   )
@@ -180,14 +172,14 @@ main() {
     run_command "${gradle_command[@]}"
   )
 
-  local bundle_path="$source_directory/android/app/build/outputs/bundle/publicRelease/app-public-release.aab"
+  local bundle_path="$source_directory/android/app/build/outputs/bundle/release/app-release.aab"
   local built_package built_version_code built_version_name
   built_package=$(manifest_value "$bundle_path" package)
   built_version_code=$(manifest_value "$bundle_path" android:versionCode)
   built_version_name=$(manifest_value "$bundle_path" android:versionName)
-  if [[ "$built_package" != "$PUBLIC_APPLICATION_ID" ]]; then
+  if [[ "$built_package" != "$APPLICATION_ID" ]]; then
     printf 'Error: the bundle is %s; Google Play only receives %s.\n' \
-      "$built_package" "$PUBLIC_APPLICATION_ID" >&2
+      "$built_package" "$APPLICATION_ID" >&2
     return 1
   fi
   if [[ "$built_version_code" != "$version_code" || "$built_version_name" != "$version_name" ]]; then

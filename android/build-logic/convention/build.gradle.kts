@@ -39,7 +39,6 @@ dependencies {
         compileOnly(libs.android.gradleApi)
         runtimeOnly(libs.android.gradlePlugin)
         runtimeOnly(libs.compose.compiler.gradlePlugin)
-        runtimeOnly(libs.google.services.gradlePlugin)
     }
 }
 

@@ -7,27 +7,14 @@ package com.ahuguet.castellsenvena.core.data.storage
 interface KeyValueStore {
     fun getString(key: String): String?
     fun putString(key: String, value: String)
-    fun getBoolean(key: String): Boolean?
-    fun putBoolean(key: String, value: Boolean)
-    fun remove(key: String)
 }
 
 class InMemoryKeyValueStore : KeyValueStore {
-    private val values = mutableMapOf<String, Any>()
+    private val values = mutableMapOf<String, String>()
 
-    override fun getString(key: String): String? = values[key] as? String
+    override fun getString(key: String): String? = values[key]
 
     override fun putString(key: String, value: String) {
         values[key] = value
-    }
-
-    override fun getBoolean(key: String): Boolean? = values[key] as? Boolean
-
-    override fun putBoolean(key: String, value: Boolean) {
-        values[key] = value
-    }
-
-    override fun remove(key: String) {
-        values.remove(key)
     }
 }

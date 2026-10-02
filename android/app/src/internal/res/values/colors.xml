@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- A dark launcher icon, so nobody takes the internal app for the public one. -->
-    <color name="ic_launcher_background">#FF1C1B1F</color>
-    <color name="brand_red">#FFD32B1F</color>
-</resources>

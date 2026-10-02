@@ -238,11 +238,11 @@ def test_deploy_refuses_an_archive_that_does_not_use_the_production_backend(
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="TestFlight deploy requires macOS")
-def test_deploy_refuses_an_archive_of_the_internal_app(tmp_path: Path) -> None:
+def test_deploy_refuses_an_archive_of_another_app(tmp_path: Path) -> None:
     environment = fake_xcodebuild_environment(
         tmp_path,
         "https://castells-superapp-poc.vercel.app",
-        bundle_identifier="com.ahuguet.castellsenvena.internal",
+        bundle_identifier="com.ahuguet.horaahora",
     )
 
     result = run_fake_deploy(environment)
@@ -250,38 +250,13 @@ def test_deploy_refuses_an_archive_of_the_internal_app(tmp_path: Path) -> None:
     errors = [line for line in result.stderr.splitlines() if line.startswith("Error:")]
     assert result.returncode != 0
     assert errors == [
-        "Error: the archive is com.ahuguet.castellsenvena.internal; "
+        "Error: the archive is com.ahuguet.horaahora; "
         "TestFlight only receives com.ahuguet.castellsenvena."
     ]
     assert not (tmp_path / "exported").exists()
 
 
-@pytest.mark.parametrize("command", ["script", "make"])
-def test_the_internal_app_is_never_deployed(command: str) -> None:
-    environment = os.environ | {"CASTELLS_BUILD_PROFILE": "internal"}
-    arguments = ["--dry-run", "--skip-tests", "--ref", "HEAD", "--build-number", "1774400000"]
-
-    if command == "script":
-        result = run_script(*arguments, env=environment)
-    else:
-        result = subprocess.run(
-            ["make", "deploy-testflight", f"ARGS={' '.join(arguments)}"],
-            cwd=REPOSITORY_ROOT,
-            env=environment,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-    assert result.returncode != 0
-    assert (
-        "Error: TestFlight only receives the public app; CASTELLS_BUILD_PROFILE is internal."
-        in result.stderr
-    )
-    assert "Source commit" not in result.stdout
-
-
-def test_the_dry_run_archives_the_public_scheme() -> None:
+def test_the_dry_run_archives_the_app_scheme() -> None:
     result = run_script(
         "--dry-run",
         "--skip-tests",
@@ -289,7 +264,6 @@ def test_the_dry_run_archives_the_public_scheme() -> None:
         "HEAD",
         "--build-number",
         "1774400000",
-        env=os.environ | {"CASTELLS_BUILD_PROFILE": "public"},
     )
 
     assert result.returncode == 0, result.stderr

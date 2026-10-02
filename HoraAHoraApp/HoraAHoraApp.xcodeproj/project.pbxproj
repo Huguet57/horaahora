@@ -8,11 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		F1000001 /* ScoreTableUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2000001 /* ScoreTableUITests.swift */; };
-		A1000001 /* InternalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* InternalApp.swift */; };
-		A1000002 /* InternalContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* InternalContentView.swift */; };
-		A1000003 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppDelegate.swift */; };
-		A1000004 /* HourByHourNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000005 /* HourByHourNotificationManager.swift */; };
-		A1000005 /* InternalAppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000006 /* InternalAppDependencies.swift */; };
 		A1000006 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007 /* AppConfiguration.swift */; };
 		A1000007 /* AppNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000008 /* AppNavigation.swift */; };
 		A1000008 /* StartupLoadingGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009 /* StartupLoadingGate.swift */; };
@@ -25,28 +20,9 @@
 		A1000015 /* FeatureCalculator in Frameworks */ = {isa = PBXBuildFile; productRef = A1100015 /* FeatureCalculator */; };
 		A1000016 /* FeatureSettings in Frameworks */ = {isa = PBXBuildFile; productRef = A1100016 /* FeatureSettings */; };
 		A1000017 /* FeatureScoreTable in Frameworks */ = {isa = PBXBuildFile; productRef = A1100017 /* FeatureScoreTable */; };
-		C1000006 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007 /* AppConfiguration.swift */; };
-		C1000007 /* AppNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000008 /* AppNavigation.swift */; };
-		C1000008 /* StartupLoadingGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009 /* StartupLoadingGate.swift */; };
-		C1000009 /* StartupLoadingContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000010 /* StartupLoadingContainer.swift */; };
-		C1000010 /* StartupLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* StartupLoadingView.swift */; };
-		C1000011 /* CoreDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000001 /* CoreDependencies.swift */; };
-		C1000111 /* CastellsDomain in Frameworks */ = {isa = PBXBuildFile; productRef = C1100011 /* CastellsDomain */; };
-		C1000112 /* CastellsData in Frameworks */ = {isa = PBXBuildFile; productRef = C1100012 /* CastellsData */; };
-		C1000113 /* FeatureHourByHour in Frameworks */ = {isa = PBXBuildFile; productRef = C1100013 /* FeatureHourByHour */; };
-		C1000114 /* FeatureAgenda in Frameworks */ = {isa = PBXBuildFile; productRef = C1100014 /* FeatureAgenda */; };
-		C1000115 /* FeatureCalculator in Frameworks */ = {isa = PBXBuildFile; productRef = C1100015 /* FeatureCalculator */; };
-		C1000116 /* FeatureSettings in Frameworks */ = {isa = PBXBuildFile; productRef = C1100016 /* FeatureSettings */; };
-		C1000117 /* FeatureScoreTable in Frameworks */ = {isa = PBXBuildFile; productRef = C1100017 /* FeatureScoreTable */; };
-		C1000118 /* FeatureInternalSettings in Frameworks */ = {isa = PBXBuildFile; productRef = C1100018 /* FeatureInternalSettings */; };
-		C1000119 /* CastellsInternalData in Frameworks */ = {isa = PBXBuildFile; productRef = C1100019 /* CastellsInternalData */; };
-		C1000201 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2000001 /* Assets.xcassets */; };
-		C1000202 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B2000002 /* PrivacyInfo.xcprivacy */; };
-		D1000001 /* PublicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000001 /* PublicApp.swift */; };
-		D1000002 /* PublicAppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000002 /* PublicAppDependencies.swift */; };
-		D1000003 /* PublicContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000003 /* PublicContentView.swift */; };
-		D1000004 /* IOSLegacyNewsNotificationsSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000004 /* IOSLegacyNewsNotificationsSystem.swift */; };
-		E1000001 /* CoreDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000001 /* CoreDependencies.swift */; };
+		D1000001 /* CalculatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000001 /* CalculatorApp.swift */; };
+		D1000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000003 /* ContentView.swift */; };
+		E1000001 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000001 /* AppDependencies.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,12 +38,6 @@
 /* Begin PBXFileReference section */
 		F2000001 /* ScoreTableUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreTableUITests.swift; sourceTree = "<group>"; };
 		F2000002 /* HoraAHoraAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HoraAHoraAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		4DBB36832F2CC02F0080CD51 /* HoraAHoraAppInternal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HoraAHoraAppInternal.entitlements; sourceTree = "<group>"; };
-		A2000001 /* InternalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalApp.swift; sourceTree = "<group>"; };
-		A2000002 /* InternalContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalContentView.swift; sourceTree = "<group>"; };
-		A2000003 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A2000005 /* HourByHourNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourByHourNotificationManager.swift; sourceTree = "<group>"; };
-		A2000006 /* InternalAppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalAppDependencies.swift; sourceTree = "<group>"; };
 		A2000007 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		A2000008 /* AppNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigation.swift; sourceTree = "<group>"; };
 		A2000009 /* StartupLoadingGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingGate.swift; sourceTree = "<group>"; };
@@ -79,12 +49,9 @@
 		A2000004 /* HoraAHoraApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HoraAHoraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B2000002 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		C2000004 /* HoraAHoraAppInternal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HoraAHoraAppInternal.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D2000001 /* PublicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicApp.swift; sourceTree = "<group>"; };
-		D2000002 /* PublicAppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicAppDependencies.swift; sourceTree = "<group>"; };
-		D2000003 /* PublicContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicContentView.swift; sourceTree = "<group>"; };
-		D2000004 /* IOSLegacyNewsNotificationsSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSLegacyNewsNotificationsSystem.swift; sourceTree = "<group>"; };
-		E2000001 /* CoreDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDependencies.swift; sourceTree = "<group>"; };
+		D2000001 /* CalculatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorApp.swift; sourceTree = "<group>"; };
+		D2000003 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E2000001 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,22 +64,6 @@
 				A1000015 /* FeatureCalculator in Frameworks */,
 				A1000016 /* FeatureSettings in Frameworks */,
 				A1000017 /* FeatureScoreTable in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C3000001 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C1000111 /* CastellsDomain in Frameworks */,
-				C1000112 /* CastellsData in Frameworks */,
-				C1000119 /* CastellsInternalData in Frameworks */,
-				C1000113 /* FeatureHourByHour in Frameworks */,
-				C1000114 /* FeatureAgenda in Frameworks */,
-				C1000115 /* FeatureCalculator in Frameworks */,
-				C1000116 /* FeatureSettings in Frameworks */,
-				C1000117 /* FeatureScoreTable in Frameworks */,
-				C1000118 /* FeatureInternalSettings in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,8 +96,7 @@
 				A4000006 /* Configuration */,
 				A4000007 /* Navigation */,
 				A4000009 /* Startup */,
-				D4000001 /* Public */,
-				C4000001 /* Internal */,
+				D4000001 /* App */,
 			);
 			path = HoraAHoraApp;
 			sourceTree = "<group>";
@@ -155,7 +105,6 @@
 			isa = PBXGroup;
 			children = (
 				A2000004 /* HoraAHoraApp.app */,
-				C2000004 /* HoraAHoraAppInternal.app */,
 				F2000002 /* HoraAHoraAppUITests.xctest */,
 			);
 			name = Products;
@@ -164,7 +113,7 @@
 		A4000005 /* Composition */ = {
 			isa = PBXGroup;
 			children = (
-				E2000001 /* CoreDependencies.swift */,
+				E2000001 /* AppDependencies.swift */,
 			);
 			path = Composition;
 			sourceTree = "<group>";
@@ -196,28 +145,13 @@
 			path = Startup;
 			sourceTree = "<group>";
 		};
-		C4000001 /* Internal */ = {
+		D4000001 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				4DBB36832F2CC02F0080CD51 /* HoraAHoraAppInternal.entitlements */,
-				A2000001 /* InternalApp.swift */,
-				A2000006 /* InternalAppDependencies.swift */,
-				A2000002 /* InternalContentView.swift */,
-				A2000003 /* AppDelegate.swift */,
-				A2000005 /* HourByHourNotificationManager.swift */,
+				D2000001 /* CalculatorApp.swift */,
+				D2000003 /* ContentView.swift */,
 			);
-			path = Internal;
-			sourceTree = "<group>";
-		};
-		D4000001 /* Public */ = {
-			isa = PBXGroup;
-			children = (
-				D2000001 /* PublicApp.swift */,
-				D2000002 /* PublicAppDependencies.swift */,
-				D2000003 /* PublicContentView.swift */,
-				D2000004 /* IOSLegacyNewsNotificationsSystem.swift */,
-			);
-			path = Public;
+			path = App;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -258,34 +192,6 @@
 			productReference = A2000004 /* HoraAHoraApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		C5000001 /* HoraAHoraAppInternal */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C7000003 /* Build configuration list for PBXNativeTarget "HoraAHoraAppInternal" */;
-			buildPhases = (
-				C6000001 /* Sources */,
-				C3000001 /* Frameworks */,
-				C6100001 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = HoraAHoraAppInternal;
-			packageProductDependencies = (
-				C1100011 /* CastellsDomain */,
-				C1100012 /* CastellsData */,
-				C1100019 /* CastellsInternalData */,
-				C1100013 /* FeatureHourByHour */,
-				C1100014 /* FeatureAgenda */,
-				C1100015 /* FeatureCalculator */,
-				C1100016 /* FeatureSettings */,
-				C1100017 /* FeatureScoreTable */,
-				C1100018 /* FeatureInternalSettings */,
-			);
-			productName = HoraAHoraAppInternal;
-			productReference = C2000004 /* HoraAHoraAppInternal.app */;
-			productType = "com.apple.product-type.application";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -313,7 +219,6 @@
 			projectRoot = "";
 			targets = (
 				A5000001 /* HoraAHoraApp */,
-				C5000001 /* HoraAHoraAppInternal */,
 				F5000001 /* HoraAHoraAppUITests */,
 			);
 		};
@@ -326,15 +231,6 @@
 			files = (
 				B1000001 /* Assets.xcassets in Resources */,
 				B1000002 /* PrivacyInfo.xcprivacy in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C6100001 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C1000201 /* Assets.xcassets in Resources */,
-				C1000202 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,34 +247,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D1000001 /* PublicApp.swift in Sources */,
-				D1000003 /* PublicContentView.swift in Sources */,
-				D1000002 /* PublicAppDependencies.swift in Sources */,
-				D1000004 /* IOSLegacyNewsNotificationsSystem.swift in Sources */,
-				E1000001 /* CoreDependencies.swift in Sources */,
+				D1000001 /* CalculatorApp.swift in Sources */,
+				D1000003 /* ContentView.swift in Sources */,
+				E1000001 /* AppDependencies.swift in Sources */,
 				A1000006 /* AppConfiguration.swift in Sources */,
 				A1000007 /* AppNavigation.swift in Sources */,
 				A1000008 /* StartupLoadingGate.swift in Sources */,
 				A1000009 /* StartupLoadingContainer.swift in Sources */,
 				A1000010 /* StartupLoadingView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C6000001 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1000001 /* InternalApp.swift in Sources */,
-				A1000002 /* InternalContentView.swift in Sources */,
-				A1000003 /* AppDelegate.swift in Sources */,
-				A1000004 /* HourByHourNotificationManager.swift in Sources */,
-				A1000005 /* InternalAppDependencies.swift in Sources */,
-				C1000011 /* CoreDependencies.swift in Sources */,
-				C1000006 /* AppConfiguration.swift in Sources */,
-				C1000007 /* AppNavigation.swift in Sources */,
-				C1000008 /* StartupLoadingGate.swift in Sources */,
-				C1000009 /* StartupLoadingContainer.swift in Sources */,
-				C1000010 /* StartupLoadingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -511,64 +387,6 @@
 			};
 			name = Release;
 		};
-		C9000003 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = A2000012 /* Debug.xcconfig */;
-			buildSettings = {
-				APS_ENVIRONMENT = development;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconInternal;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = HoraAHoraApp/Internal/HoraAHoraAppInternal.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = B94LUNLMW9;
-				INFOPLIST_FILE = HoraAHoraApp/Info.plist;
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Aleta interna";
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.ahuguet.castellsenvena.internal;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Debug;
-		};
-		C9000004 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APS_ENVIRONMENT = production;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconInternal;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CASTELLS_API_BASE_URL = "https://castells-superapp-poc.vercel.app";
-				CODE_SIGN_ENTITLEMENTS = HoraAHoraApp/Internal/HoraAHoraAppInternal.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = B94LUNLMW9;
-				INFOPLIST_FILE = HoraAHoraApp/Info.plist;
-				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Aleta interna";
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.ahuguet.castellsenvena.internal;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -592,15 +410,6 @@
 			buildConfigurations = (
 				A9000003 /* Debug */,
 				A9000004 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		C7000003 /* Build configuration list for PBXNativeTarget "HoraAHoraAppInternal" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C9000003 /* Debug */,
-				C9000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -634,42 +443,6 @@
 		A1100017 /* FeatureScoreTable */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FeatureScoreTable;
-		};
-		C1100011 /* CastellsDomain */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = CastellsDomain;
-		};
-		C1100012 /* CastellsData */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = CastellsData;
-		};
-		C1100013 /* FeatureHourByHour */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FeatureHourByHour;
-		};
-		C1100014 /* FeatureAgenda */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FeatureAgenda;
-		};
-		C1100015 /* FeatureCalculator */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FeatureCalculator;
-		};
-		C1100016 /* FeatureSettings */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FeatureSettings;
-		};
-		C1100017 /* FeatureScoreTable */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FeatureScoreTable;
-		};
-		C1100018 /* FeatureInternalSettings */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FeatureInternalSettings;
-		};
-		C1100019 /* CastellsInternalData */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = CastellsInternalData;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

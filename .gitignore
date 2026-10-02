@@ -12,3 +12,4 @@ __pycache__/
 .env.*
 !.env.example
 *.local.xcconfig
+build/

@@ -9,7 +9,6 @@ def test_readiness_returns_503_when_postgres_is_unavailable(monkeypatch) -> None
     client = make_test_client(
         settings=Settings(
             database_url="sqlite+pysqlite:///:memory:",
-            hour_by_hour_source_enabled=False,
         ),
         database=database,
     )

@@ -66,12 +66,6 @@ private struct CastellsCodingKey: CodingKey {
             result + part.prefix(1).uppercased() + part.dropFirst()
         }
         return [
-            "sourceId": "sourceID",
-            "externalId": "externalID",
-            "articleUrl": "articleURL",
-            "actionUrl": "actionURL",
-            "sourceUrl": "sourceURL",
-            "officialUrl": "officialURL",
             "conversationId": "conversationID",
             "installationId": "installationID",
         ][camel] ?? camel

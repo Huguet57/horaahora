@@ -3,7 +3,7 @@ dependencyResolutionManagement {
         google {
             content {
                 includeGroupByRegex("com\\.android(\\..*)?")
-                includeGroupByRegex("com\\.google\\.(android|firebase|gms|testing)(\\..*)?")
+                includeGroupByRegex("com\\.google\\.(android|testing)(\\..*)?")
                 includeGroupByRegex("androidx(\\..*)?")
             }
         }

@@ -19,12 +19,11 @@ Envia una captura, el model de dispositiu, la versió d'iOS i els passos exactes
 - Les converses es desen localment. Per interpretar una consulta, s'envien al backend com a màxim els darrers 12 missatges, l'últim escenari de càlcul complet de la conversa i un identificador aleatori d'instal·lació; no s'utilitzen per publicitat ni tracking. Amb «Millora la calculadora» (activada per defecte i desactivable a Ajustos), les converses noves es desen 90 dies sense identificadors del dispositiu per millorar les respostes.
 - Ajustos obre la política de privacitat i prepara un correu de suport editable amb la versió, el build i l'identificador tècnic; no s'envia res fins que l'usuari ho confirma manualment i no s'exporten converses.
 - La puntuació final es calcula amb un motor determinista i la taula 2026 versionada; la IA només interpreta el llenguatge.
-- Les fonts editorials es mostren amb atribució i enllaç de retorn.
-- L'app no demana permís de notificacions ni registra tokens APNs. Si una versió anterior tenia els avisos activats, en obrir-se deixa de registrar-se a APNs i en demana la baixa al backend.
+- L'app no demana permís de notificacions ni registra tokens APNs.
 
 ### Sense seccions ocultes
 
-Des de la versió que separa l'app pública de l'app interna, el build que es puja no conté Hora a Hora, Agenda ni cap gest secret. La nota sobre seccions ocultes que es copiava a **App Review Information → Notes** (guideline 2.3.1) ja no s'aplica a aquestes versions i s'ha de treure d'App Store Connect en enviar-les. Aquest repositori no modifica App Store Connect.
+El build que es puja no conté Hora a Hora, Agenda ni cap gest secret: són una app separada. La nota sobre seccions ocultes que es copiava a **App Review Information → Notes** (guideline 2.3.1) ja no s'aplica a aquestes versions i s'ha de treure d'App Store Connect en enviar-les. Aquest repositori no modifica App Store Connect.
 
 ## Camps que s'han de completar manualment
 

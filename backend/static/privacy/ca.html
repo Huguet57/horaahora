@@ -31,7 +31,7 @@
   </nav>
 
   <h1>Política de privacitat</h1>
-  <p class="meta"><strong>La calculadora de l'Aleta</strong> · Darrera actualització: 27 de setembre de 2026</p>
+  <p class="meta"><strong>La calculadora de l'Aleta</strong> · Darrera actualització: 2 d'octubre de 2026</p>
 
   <p>Aquesta política explica com tracta les dades personals la versió actual de La calculadora de l'Aleta, una app gratuïta i sense compte d'usuari.</p>
 
@@ -44,8 +44,7 @@
   <h3>Dades desades només al dispositiu</h3>
   <ul>
     <li>L'historial complet de les teves converses de la calculadora, inclosos els títols. Les consultes que comparteixes per millorar la calculadora s'expliquen més avall.</li>
-    <li>Còpies locals del contingut consultat a l'app, com notícies i actuacions, per millorar la disponibilitat i la lectura sense connexió.</li>
-    <li>Preferències locals de visualització. Quan s'activen notificacions, el llindar d'interès i les colles seguides també es sincronitzen amb el backend, tal com s'explica a continuació.</li>
+    <li>Preferències locals de visualització.</li>
   </ul>
   <p>Les converses es poden eliminar individualment. Les dades locals restants desapareixen quan es desinstal·la l'app o se n'eliminen les dades des del sistema.</p>
 
@@ -61,36 +60,29 @@
   <h3>Dades tècniques</h3>
   <p>En connectar-te al servei es poden processar l'adreça IP, la data i l'hora, la ruta sol·licitada, l'estat de la resposta i informació tècnica imprescindible per prestar el servei, limitar abusos i diagnosticar incidències.</p>
 
-  <h3>Notificacions</h3>
-  <p>Si actives voluntàriament les notificacions, el sistema operatiu gestiona el permís i el servei de notificacions de la plataforma assigna un token a aquesta instal·lació: a iOS, Apple Push Notification service (APNs), d'Apple; a Android, Firebase Cloud Messaging (FCM), de Google. L'app envia al backend aquest token, l'identificador aleatori d'instal·lació, la versió de l'app, l'idioma i la plataforma per poder lliurar els avisos sol·licitats. No s'utilitzen per analítica, publicitat ni seguiment. En desactivar les notificacions o quan Apple o Google invaliden el token, el backend el substitueix immediatament per una marca de revocació. A Android, l'app només demana el token a FCM quan actives les notificacions i l'esborra quan les desactives.</p>
-
-  <p>Amb les notificacions actives, també s'envien el nivell mínim d'interès (Low, Medium o High) i les colles seleccionades a l'app per personalitzar els avisos. Els canvis se sincronitzen en obrir l'app; sense connexió s'aplica l'última configuració rebuda pel servidor. Jev, de TypeSafe AI, classifica el títol, el resum i, quan està disponible, el cos públic de les notícies i el text públic dels enllaços que les acompanyen, distingint-ne la procedència. No rep el token de notificació, l'identificador d'instal·lació ni les preferències personals. La combinació amb les colles seguides es calcula al nostre backend.</p>
-  <p>El llindar i la selecció de colles desats a la subscripció es buiden quan es revoca el token; la còpia local es conserva. Les còpies temporals utilitzades per preparar un avís s'eliminen en completar o ometre'n la classificació.</p>
-
   <h3>Comunicacions de suport</h3>
   <p>Quan selecciones «Contacta amb suport», l'app prepara un correu editable amb la versió, el número de build i l'identificador tècnic. Aquesta informació només es transmet si revises el correu i prems manualment el botó d'enviament; també el pots cancel·lar. Si l'envies, es tractaran l'adreça de correu, el contingut del missatge i els fitxers que decideixis adjuntar. L'app no exporta converses ni les adjunta automàticament.</p>
 
   <h2>3. Finalitats i bases jurídiques</h2>
   <ul>
-    <li><strong>Prestar el servei sol·licitat:</strong> mostrar contingut i respondre consultes de la calculadora. La base és l'execució del servei demanat per l'usuari.</li>
+    <li><strong>Prestar el servei sol·licitat:</strong> respondre les consultes de la calculadora. La base és l'execució del servei demanat per l'usuari.</li>
     <li><strong>Seguretat i estabilitat:</strong> limitar peticions abusives, prevenir frau i diagnosticar errors. La base és l'interès legítim a protegir i mantenir el servei, ponderat amb els drets dels usuaris.</li>
     <li><strong>Millorar la calculadora:</strong> desar les converses compartides per detectar errors i millorar les respostes. La base és l'interès legítim a millorar un servei gratuït, ponderat amb els teus drets: t'ho expliquem abans de començar, només es desen converses noves, sense identificadors del dispositiu i durant 90 dies. Desactivar «Millora la calculadora» a Ajustos és la manera immediata d'exercir el dret d'oposició.</li>
-    <li><strong>Funcions opcionals i suport:</strong> gestionar les notificacions que activis i la informació que decideixis enviar a suport. La base és el teu consentiment o acció voluntària, que pots retirar en qualsevol moment.</li>
+    <li><strong>Suport:</strong> gestionar la informació que decideixis enviar a suport. La base és el teu consentiment o acció voluntària, que pots retirar en qualsevol moment.</li>
   </ul>
-  <p>Les dades necessàries per respondre una consulta i protegir el servei són imprescindibles per oferir aquestes funcions. Les notificacions, el contacte amb suport i la compartició de converses per millorar la calculadora són opcionals.</p>
+  <p>Les dades necessàries per respondre una consulta i protegir el servei són imprescindibles per oferir aquestes funcions. El contacte amb suport i la compartició de converses per millorar la calculadora són opcionals.</p>
 
   <h2>4. Proveïdors i destinataris</h2>
   <ul>
     <li><strong>Vercel:</strong> allotjament i execució del backend. La funció principal es configura a París (<code>cdg1</code>), tot i que Vercel i els seus subencarregats poden tractar dades en altres països.</li>
-    <li><strong>Supabase:</strong> base de dades PostgreSQL gestionada a la regió de París on es conserven el contingut sincronitzat, els comptadors tècnics de seguretat, les subscripcions de notificacions actives i les converses compartides per millorar la calculadora.</li>
+    <li><strong>Supabase:</strong> base de dades PostgreSQL gestionada a la regió de París on es conserven els comptadors tècnics de seguretat i les converses compartides per millorar la calculadora.</li>
     <li><strong>OpenRouter:</strong> encamina les consultes de la calculadora cap al model d'intel·ligència artificial. Les peticions s'envien amb <code>data_collection: "deny"</code>, perquè no s'encaminin a proveïdors que les puguin utilitzar per entrenar models. OpenRouter conserva metadades tècniques de cada petició, com el nombre de tokens i la latència, i pot assignar una categoria temàtica anònima a una petita mostra de consultes, però no en desa el contingut.</li>
     <li><strong>Google (Gemini):</strong> interpretació lingüística de les consultes de la calculadora, rebudes a través d'OpenRouter.</li>
-    <li><strong>TypeSafe AI (Jev):</strong> classificació de contingut públic de les notícies per rellevància i colles implicades.</li>
-    <li><strong>Apple:</strong> distribució de l'app a iOS, permisos del sistema i APNs quan actives notificacions.</li>
-    <li><strong>Google (Firebase Cloud Messaging i Google Play):</strong> distribució de l'app a Android i lliurament de notificacions amb FCM quan les actives.</li>
+    <li><strong>Apple:</strong> distribució de l'app a iOS.</li>
+    <li><strong>Google (Google Play):</strong> distribució de l'app a Android.</li>
     <li><strong>Google/Gmail:</strong> recepció i gestió dels correus que enviïs voluntàriament al contacte de suport o privacitat.</li>
   </ul>
-  <p>Revista Castells i la Coordinadora de Colles Castelleres de Catalunya (CCCC) no reben consultes, identificadors ni perfils d'usuari. L'app només mostra contingut atribuït i enllaços a les seves fonts oficials.</p>
+  <p>El Concurs de Castells, d'on surt la taula oficial de puntuacions, i la Coordinadora de Colles Castelleres de Catalunya (CCCC), d'on surt la llista de colles, no reben consultes, identificadors ni perfils d'usuari. L'app només mostra les dades atribuïdes i enllaços a les seves fonts oficials.</p>
 
   <h2>5. Transferències internacionals</h2>
   <p>Alguns proveïdors o subencarregats poden tractar dades fora de l'Espai Econòmic Europeu. Quan correspon, aquestes transferències es basen en decisions d'adequació, clàusules contractuals tipus de la Comissió Europea o altres garanties reconegudes pel RGPD. Pots demanar més informació al correu de privacitat.</p>
@@ -100,17 +92,16 @@
     <li><strong>Dades locals:</strong> fins que eliminis cada conversa o desinstal·lis l'app.</li>
     <li><strong>Converses compartides per millorar la calculadora:</strong> 90 dies des de cada consulta; després s'eliminen automàticament.</li>
     <li><strong>Limitador de peticions:</strong> les claus tècniques es mantenen durant una finestra de 10 minuts.</li>
-    <li><strong>Subscripció de notificacions:</strong> el token es conserva mentre els avisos estan actius i es revoca immediatament en desactivar-los o quan APNs o FCM el rebutgen. Les instal·lacions que no es renoven durant 180 dies s'invaliden; els registres d'entrega es conserven com a màxim 30 dies.</li>
     <li><strong>Logs de Vercel:</strong> aproximadament 1 dia amb el pla actual.</li>
     <li><strong>Google (Gemini):</strong> no utilitza les consultes per entrenar models. Segons el servei de Google que atengui la petició, les pot conservar fins a 55 dies per prevenir abusos, llevat que una obligació legal exigeixi una altra conservació.</li>
     <li><strong>Correus de suport o privacitat:</strong> fins a 12 mesos després de resoldre la consulta, tret que sigui necessari conservar-los més temps per complir una obligació legal o defensar reclamacions.</li>
   </ul>
 
   <h2>7. Publicitat, analítica i decisions automatitzades</h2>
-  <p>No hi ha publicitat, tracking entre apps o webs, perfilat comercial ni SDK addicional d'analítica o crash reporting. A Android, l'app inclou el SDK de Firebase Cloud Messaging només per lliurar les notificacions, sense Google Analytics per a Firebase. La calculadora automatitza la interpretació i el càlcul de puntuacions, però no pren decisions amb efectes jurídics ni similars sobre les persones.</p>
+  <p>No hi ha publicitat, tracking entre apps o webs, perfilat comercial ni SDK addicional d'analítica o crash reporting. La calculadora automatitza la interpretació i el càlcul de puntuacions, però no pren decisions amb efectes jurídics ni similars sobre les persones.</p>
 
   <h2>8. Enllaços externs</h2>
-  <p>Quan obres un enllaç de Revista Castells, CCCC, Google Maps o qualsevol servei extern, el servei de destinació tracta la connexió segons la seva pròpia política de privacitat. La calculadora de l'Aleta no controla aquests tractaments.</p>
+  <p>Quan obres un enllaç al web del Concurs de Castells o a qualsevol servei extern, el servei de destinació tracta la connexió segons la seva pròpia política de privacitat. La calculadora de l'Aleta no controla aquests tractaments.</p>
 
   <h2>9. Drets</h2>
   <p>Pots demanar l'accés, rectificació, supressió, limitació, oposició o portabilitat de les teves dades, i retirar el consentiment sense afectar el tractament anterior, escrivint a <a href="mailto:tenimaletaapp@gmail.com">tenimaletaapp@gmail.com</a>. Es respondrà, amb caràcter general, en el termini d'un mes.</p>
@@ -124,7 +115,7 @@
   <p>S'apliquen mesures proporcionades: comunicacions HTTPS, accés restringit a la infraestructura i, per a les converses compartides, conservació sense identificadors del dispositiu amb eliminació automàtica als 90 dies. Cap sistema és completament infal·lible.</p>
   <p>Els canvis materials es publicaran en aquestes mateixes URLs i se n'actualitzarà la data. Si un canvi requereix consentiment, es demanarà abans d'aplicar-lo.</p>
 
-  <footer>La calculadora de l'Aleta · Política de privacitat · 27 de setembre de 2026</footer>
+  <footer>La calculadora de l'Aleta · Política de privacitat · 2 d'octubre de 2026</footer>
 </main>
 </body>
 </html>

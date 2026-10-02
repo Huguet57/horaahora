@@ -151,7 +151,6 @@ def test_maintenance_deletes_shared_conversations_after_ninety_days() -> None:
     client = make_test_client(
         settings=Settings(
             database_url="sqlite+pysqlite:///:memory:",
-            hour_by_hour_source_enabled=False,
             vercel_env="production",
             cron_secret="cron-secret",
         ),

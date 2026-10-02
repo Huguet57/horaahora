@@ -11,8 +11,8 @@ DEPLOY_WORKTREE_ADDED=false
 DEPLOY_KEEP_ARTIFACTS=false
 # Debug builds talk to a local backend; what reaches TestFlight must use production.
 PRODUCTION_API_BASE_URL='https://castells-superapp-poc.vercel.app'
-# Only the public app goes to TestFlight and the App Store; the internal app never does.
-PUBLIC_BUNDLE_IDENTIFIER='com.ahuguet.castellsenvena'
+# The app that TestFlight and the App Store receive.
+BUNDLE_IDENTIFIER='com.ahuguet.castellsenvena'
 
 cleanup_deploy() {
   local exit_code=$?
@@ -35,7 +35,7 @@ usage() {
 Usage: scripts/deploy-testflight.sh [options]
 
 Build and upload La calculadora de l'Aleta to TestFlight from an exact Git ref.
-It archives the public app (scheme HoraAHoraApp); the internal app is never uploaded.
+It archives the scheme HoraAHoraApp.
 The version comes from Version.xcconfig at that ref.
 
 Options:
@@ -99,13 +99,6 @@ main() {
         ;;
     esac
   done
-
-  local build_profile=${CASTELLS_BUILD_PROFILE:-public}
-  if [[ "$build_profile" != public ]]; then
-    printf 'Error: TestFlight only receives the public app; CASTELLS_BUILD_PROFILE is %s.\n' \
-      "$build_profile" >&2
-    return 2
-  fi
 
   if [[ -z "$build_number" ]]; then
     build_number=$(generate_build_number)
@@ -238,9 +231,9 @@ main() {
       "$archived_version" "$marketing_version" >&2
     return 1
   fi
-  if [[ "$bundle_identifier" != "$PUBLIC_BUNDLE_IDENTIFIER" ]]; then
+  if [[ "$bundle_identifier" != "$BUNDLE_IDENTIFIER" ]]; then
     printf 'Error: the archive is %s; TestFlight only receives %s.\n' \
-      "$bundle_identifier" "$PUBLIC_BUNDLE_IDENTIFIER" >&2
+      "$bundle_identifier" "$BUNDLE_IDENTIFIER" >&2
     return 1
   fi
 

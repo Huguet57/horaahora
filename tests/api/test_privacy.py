@@ -11,7 +11,6 @@ from tests.support.application import application_overrides
 def make_client() -> TestClient:
     settings = Settings(
         database_url="sqlite://",
-        hour_by_hour_source_enabled=False,
         rate_limit_max_requests=100,
     )
     app = create_app(
@@ -136,12 +135,21 @@ def test_localized_privacy_pages_are_static_and_complete() -> None:
         assert "Neon" not in response.text
         assert "cdg1" in response.text
         assert "Apple" in response.text
-        assert "APNs" in response.text
         assert "Google" in response.text
         assert "Gmail" in response.text
         assert "AEPD" in response.text
         assert "CCCC" in response.text
-        assert "Revista Castells" in response.text
+        assert "Concurs de Castells" in response.text
+        for moved_feature in (
+            "APNs",
+            "FCM",
+            "Firebase",
+            "Jev",
+            "TypeSafe",
+            "Revista Castells",
+            "Google Maps",
+        ):
+            assert moved_feature not in response.text
         assert "TotCastells" not in response.text
         for stale_promise in (
             "persistència pròpia",
@@ -166,7 +174,7 @@ def test_privacy_routes_are_web_documents_owned_by_the_privacy_module() -> None:
     paths = client.app.openapi()["paths"]
     privacy_routes = {route.path: route for route in privacy_router.routes}
 
-    assert {"/v1/chat", "/v1/events", "/v1/hour-by-hour"} <= set(paths)
+    assert "/v1/chat" in paths
     assert "/privacy" not in paths
     assert "/privacy/{locale}" not in paths
     assert set(privacy_routes) == {"/privacy", "/privacy/{locale}"}
@@ -200,6 +208,8 @@ def test_catalan_policy_document_has_no_draft_placeholders_or_old_name() -> None
     assert "interès legítim a millorar" in policy
     assert "persistència pròpia dels xats" not in policy
     assert "`cdg1`" in policy
+    for moved_feature in ("Notificacions", "APNs", "Firebase", "Jev", "Revista Castells"):
+        assert moved_feature not in policy
     assert "TotCastells" not in policy
     assert "[nom" not in policy.lower()
     assert "[correu" not in policy.lower()
@@ -213,12 +223,10 @@ def test_only_explicit_conversation_sharing_remains_pending() -> None:
     assert "## Implementat" in followups
     assert "secció «Ajustos»" in followups
     assert "correu editable" in followups
-    assert "tokens APNs" in followups
     assert "## Pendent" in followups
     assert "compartició explícita de converses" in followups
-    implemented, pending = followups.split("## Pendent", 1)
+    implemented, _pending = followups.split("## Pendent", 1)
     assert "«Millora la calculadora»" in implemented
-    assert "registre i revocació de tokens APNs" not in pending
     assert "Afegir una pantalla" not in followups
     assert "Preparar un correu" not in followups
 

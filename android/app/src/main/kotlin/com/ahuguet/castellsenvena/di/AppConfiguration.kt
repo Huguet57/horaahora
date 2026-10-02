@@ -5,22 +5,11 @@ import com.ahuguet.castellsenvena.feature.settings.presentation.SettingsConfigur
 /** The facts of this build and installation. */
 data class AppConfiguration(
     val apiBaseUrl: String,
-    /**
-     * `development` for debug builds and `production` for release builds, as on iOS: where the
-     * internal app subscribes to news notifications, and where the public app unsubscribes the
-     * ones an earlier version turned on.
-     */
-    val pushEnvironment: String,
-    /** The name on the launcher, which tells the public app and the internal one apart. */
+    /** The name on the launcher. */
     val appName: String,
     val appVersion: String,
     val buildNumber: String,
     val technicalIdentifier: String,
-    /**
-     * `com.ahuguet.castellsenvena`, or `com.ahuguet.castellsenvena.internal` in the internal
-     * app: the backend files push subscriptions under it.
-     */
-    val applicationId: String,
 ) {
     val settingsConfiguration: SettingsConfiguration
         get() = SettingsConfiguration(
@@ -36,6 +25,5 @@ data class AppConfiguration(
 
     companion object {
         const val SUPPORT_EMAIL = "tenimaletaapp@gmail.com"
-        const val PUSH_PLATFORM = "android"
     }
 }

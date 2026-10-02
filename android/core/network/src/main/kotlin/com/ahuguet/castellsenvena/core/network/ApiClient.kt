@@ -21,26 +21,13 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
-/**
- * The HTTP client of the Castells backend. The remote services build on it: those both apps
- * use are in this module, and those of the internal app's sections, which only read, in
- * :core:internaldata.
- */
+/** The HTTP client of the Castells backend. The remote services of this module build on it. */
 class ApiClient(
     baseUrl: String,
     private val httpClient: OkHttpClient = defaultHttpClient(),
 ) {
     private val baseUrl: HttpUrl = baseUrl.toHttpUrl()
     private val json: Json = CastellsJson
-
-    suspend fun <T> get(
-        path: String,
-        query: List<Pair<String, String>> = emptyList(),
-        deserializer: DeserializationStrategy<T>,
-    ): T {
-        val request = Request.Builder().url(url(path, query)).get().build()
-        return decode(execute(request), deserializer)
-    }
 
     internal suspend fun <B, T> post(
         path: String,
@@ -55,24 +42,7 @@ class ApiClient(
         return decode(execute(request), deserializer)
     }
 
-    internal suspend fun <B> put(path: String, body: B, serializer: SerializationStrategy<B>) {
-        val request = Request.Builder()
-            .url(url(path))
-            .put(json.encodeToString(serializer, body).toRequestBody(JSON_MEDIA_TYPE))
-            .build()
-        execute(request)
-    }
-
-    internal suspend fun delete(path: String, query: List<Pair<String, String>> = emptyList()) {
-        val request = Request.Builder().url(url(path, query)).delete().build()
-        execute(request)
-    }
-
-    private fun url(path: String, query: List<Pair<String, String>> = emptyList()): HttpUrl {
-        val builder = baseUrl.newBuilder().addPathSegments(path.trimStart('/'))
-        for ((name, value) in query) builder.addQueryParameter(name, value)
-        return builder.build()
-    }
+    private fun url(path: String): HttpUrl = baseUrl.newBuilder().addPathSegments(path.trimStart('/')).build()
 
     private suspend fun execute(request: Request): String {
         val result = try {

@@ -4,7 +4,7 @@ import java.util.UUID
 
 /**
  * The random identifier of this installation. It is the only identifier the
- * backend receives, for rate limiting and push subscriptions.
+ * backend receives, for rate limiting.
  */
 class InstallationIdentifierStore(
     private val store: KeyValueStore,

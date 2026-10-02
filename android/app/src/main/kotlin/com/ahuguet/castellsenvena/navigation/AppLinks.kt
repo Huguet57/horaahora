@@ -5,9 +5,6 @@ interface AppLinks {
     /** A web page shown on top of the app, like the iOS in-app browser. */
     fun openInApp(url: String)
 
-    /** Another app: a map, the official agenda in the browser. */
-    fun openExternally(url: String)
-
     fun composeEmail(mailtoUrl: String)
 
     fun copyToClipboard(text: String)

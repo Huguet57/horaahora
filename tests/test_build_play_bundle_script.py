@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 import subprocess
 import time
@@ -52,7 +51,7 @@ def test_default_version_code_is_the_current_unix_timestamp() -> None:
     assert before <= int(result.stdout.strip()) <= after
 
 
-def test_dry_run_builds_the_public_bundle_with_the_committed_version(tmp_path: Path) -> None:
+def test_dry_run_builds_the_bundle_with_the_committed_version(tmp_path: Path) -> None:
     version = committed_version()
 
     result = run_script(
@@ -68,7 +67,6 @@ def test_dry_run_builds_the_public_bundle_with_the_committed_version(tmp_path: P
     assert result.returncode == 0, result.stderr
     assert f"Version: {version}\n" in result.stdout
     assert "Version code: 1790941076\n" in result.stdout
-    assert "-Pcastells.buildProfile=public" in result.stdout
     assert "-Pcastells.versionCode=1790941076" in result.stdout
     assert ":app:bundleRelease" in result.stdout
     assert f"{tmp_path}/castells-en-vena-{version}-1790941076.aab" in result.stdout
@@ -81,30 +79,6 @@ def test_invalid_version_codes_are_rejected_before_building(version_code: str) -
 
     assert result.returncode == 2
     assert "version code must be an integer from 1 to 2100000000" in result.stderr
-
-
-@pytest.mark.parametrize("command", ["script", "make"])
-def test_the_internal_app_never_gets_a_play_bundle(command: str) -> None:
-    environment = os.environ | {"CASTELLS_BUILD_PROFILE": "internal"}
-    arguments = ["--dry-run", "--ref", "HEAD", "--version-code", "1790941076"]
-
-    if command == "script":
-        result = run_script(*arguments, env=environment)
-    else:
-        result = subprocess.run(
-            ["make", "play-bundle", f"ARGS={' '.join(arguments)}"],
-            cwd=REPOSITORY_ROOT,
-            env=environment,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-    assert result.returncode != 0
-    assert (
-        "Error: Google Play only receives the public app; CASTELLS_BUILD_PROFILE is internal."
-        in result.stderr
-    )
 
 
 def test_make_target_delegates_to_the_script() -> None:

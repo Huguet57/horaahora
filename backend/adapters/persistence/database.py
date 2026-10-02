@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-from contextlib import contextmanager
-from threading import Lock
-
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool, StaticPool
@@ -18,8 +14,6 @@ def normalize_database_url(database_url: str) -> str:
 
 
 class Database:
-    _sqlite_advisory_lock = Lock()
-
     def __init__(self, database_url: str) -> None:
         if not database_url:
             raise RuntimeError("DATABASE_URL és obligatòria")
@@ -39,24 +33,3 @@ class Database:
             return True
         except Exception:
             return False
-
-    @contextmanager
-    def advisory_lock(self, key: int) -> Iterator[bool]:
-        if self.engine.dialect.name != "postgresql":
-            acquired = self._sqlite_advisory_lock.acquire(blocking=False)
-            try:
-                yield acquired
-            finally:
-                if acquired:
-                    self._sqlite_advisory_lock.release()
-            return
-
-        with self.engine.connect() as connection:
-            acquired = bool(
-                connection.scalar(text("SELECT pg_try_advisory_lock(:key)"), {"key": key})
-            )
-            try:
-                yield acquired
-            finally:
-                if acquired:
-                    connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": key})
