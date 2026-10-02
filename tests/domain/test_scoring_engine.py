@@ -277,3 +277,119 @@ def test_more_performances_than_the_limit_ask_to_split_them() -> None:
     assert result.performances == []
     assert "fins a 16" in result.reply
     assert "17" in result.reply
+
+
+def variants_of_5d8_7d8_2d8f(*loaded: str) -> list[tuple[str, Outcome]]:
+    return [
+        (notation, Outcome.LOADED if notation in loaded else Outcome.UNLOADED)
+        for notation in ("5d8", "7d8", "td8f")
+    ]
+
+
+def reference(label: str, *castells: tuple[str, Outcome]) -> ParsedPerformance:
+    return ParsedPerformance(
+        label=label,
+        castells=[
+            ParsedCastell(notation=notation, outcome=outcome) for notation, outcome in castells
+        ],
+        reference=True,
+    )
+
+
+BASE_3610 = (("7d8", Outcome.UNLOADED), ("td8f", Outcome.UNLOADED), ("4d8a", Outcome.LOADED))
+
+
+def test_variants_against_a_reference_say_which_ones_beat_it() -> None:
+    # Shared 2026-10-02: «what can stay loaded and still beat it?» got six full
+    # performances and «Guanya B: tot descarregat», which ranks the variants instead.
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                reference("Actuació base", *BASE_3610),
+                performance("B: tot descarregat", *variants_of_5d8_7d8_2d8f()),
+                performance("B: 7d8 carregat", *variants_of_5d8_7d8_2d8f("7d8")),
+                performance("B: 2d8f carregat", *variants_of_5d8_7d8_2d8f("td8f")),
+                performance("B: 5d8 carregat", *variants_of_5d8_7d8_2d8f("5d8")),
+                performance("B: tot carregat", *variants_of_5d8_7d8_2d8f("5d8", "7d8", "td8f")),
+            ],
+        )
+    )
+
+    assert [item.total for item in result.performances] == [3685, 3610, 3500, 3480, 3450, 2155]
+    assert result.winner_label == "B: tot descarregat"
+    assert result.reply == (
+        "Per superar «Actuació base» (3.610 punts) només serveix «B: tot descarregat»: "
+        "3.685 punts, 75 més. Per sota hi queden «B: 7d8 carregat» 3.500 punts (−110), "
+        "«B: 2d8f carregat» 3.480 punts (−130), «B: 5d8 carregat» 3.450 punts (−160) i "
+        "«B: tot carregat» 2.155 punts (−1.455)."
+    )
+
+
+def test_no_variant_beats_the_reference() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                reference("Actuació base", *BASE_3610),
+                performance("7d8 carregat", *variants_of_5d8_7d8_2d8f("7d8")),
+                performance("5d8 carregat", *variants_of_5d8_7d8_2d8f("5d8")),
+            ],
+        )
+    )
+
+    assert result.reply == (
+        "Cap variant supera «Actuació base» (3.610 punts): «7d8 carregat» 3.500 punts (−110) "
+        "i «5d8 carregat» 3.450 punts (−160)."
+    )
+
+
+def test_every_variant_beats_the_reference() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                reference("Rival", ("5d8", Outcome.LOADED), ("7d8", Outcome.LOADED)),
+                performance("Tot descarregat", *variants_of_5d8_7d8_2d8f()),
+                performance("7d8 carregat", *variants_of_5d8_7d8_2d8f("7d8")),
+            ],
+        )
+    )
+
+    assert result.reply == (
+        "Totes les variants superen «Rival» (2.055 punts): «Tot descarregat» 3.685 punts "
+        "(+1.630) i «7d8 carregat» 3.500 punts (+1.445)."
+    )
+
+
+def test_several_variants_beat_the_reference_and_one_ties() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                reference("Rival", ("5d8", Outcome.UNLOADED), ("7d8", Outcome.LOADED)),
+                performance("Tot descarregat", *variants_of_5d8_7d8_2d8f()),
+                performance("2d8f carregat", *variants_of_5d8_7d8_2d8f("td8f")),
+                performance("Igual", ("7d8", Outcome.LOADED), ("5d8", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert result.reply == (
+        "Per superar «Rival» (2.290 punts) serveixen «Tot descarregat» 3.685 punts (+1.395) "
+        "i «2d8f carregat» 3.480 punts (+1.190). «Igual» hi empata a 2.290 punts."
+    )
+
+
+def test_a_reference_against_a_single_variant_is_a_plain_comparison() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                reference("Actuació base", *BASE_3610),
+                performance("7d8 carregat", *variants_of_5d8_7d8_2d8f("7d8")),
+            ],
+        )
+    )
+
+    assert result.reply.endswith("Guanya Actuació base per 110 punts.")

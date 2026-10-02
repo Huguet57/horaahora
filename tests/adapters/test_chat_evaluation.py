@@ -183,3 +183,22 @@ def test_grader_rejects_an_extra_participant_with_the_same_normalized_label():
 
     expected["ignore_labels"] = True
     assert "scenario_state" in check_result(result, expected)
+
+
+def test_grader_checks_the_reference_performance_only_where_one_is_expected():
+    result = {
+        "intent": "comparison",
+        "performances": [
+            {"label": "Rival", "total": 3610, "reference": True, "castells": []},
+            {"label": "Tot descarregat", "total": 3685, "reference": False, "castells": []},
+        ],
+        "needs_clarification": False,
+        "reply": "Per superar «Rival» (3.610 punts) només serveix «Tot descarregat».",
+    }
+
+    assert check_result(result, {"intents": ["comparison"], "reference_total": 3610}) == []
+    assert check_result(result, {"intents": ["comparison"], "reference_total": 3500}) == [
+        "reference"
+    ]
+    # A porra between colles has no reference: marking one changes the reply.
+    assert check_result(result, {"intents": ["comparison"]}) == ["reference"]

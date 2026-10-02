@@ -91,6 +91,7 @@ class ScoringEngine:
                     label=performance_label,
                     total=sum(item.points for item in scored if item.counted),
                     castells=scored,
+                    reference=performance.reference,
                 )
             )
 
@@ -182,6 +183,9 @@ class ScoringEngine:
         return f"{points:,}".replace(",", ".")
 
     def _render_reply(self, performances: list[PerformanceResult], winner_label: str | None) -> str:
+        references = [performance for performance in performances if performance.reference]
+        if len(references) == 1 and len(performances) > 2:
+            return self._render_against_reference(references[0], performances)
         parts: list[str] = []
         for performance in performances:
             counted = [item for item in performance.castells if item.counted]
@@ -205,6 +209,56 @@ class ScoringEngine:
                 difference = max(totals) - sorted(totals, reverse=True)[1]
                 parts.append(f"Guanya {winner_label} per {self._format_points(difference)} punts.")
         return " ".join(parts)
+
+    def _render_against_reference(
+        self, reference: PerformanceResult, performances: list[PerformanceResult]
+    ) -> str:
+        """Answer «what still beats it?»: variants are measured against the reference only."""
+        variants = [performance for performance in performances if performance is not reference]
+        above = [variant for variant in variants if variant.total > reference.total]
+        tied = [variant for variant in variants if variant.total == reference.total]
+        below = [variant for variant in variants if variant.total < reference.total]
+        target = f"«{reference.label}» ({self._format_points(reference.total)} punts)"
+
+        def listed(group: list[PerformanceResult]) -> str:
+            items = []
+            for variant in group:
+                difference = variant.total - reference.total
+                sign = "+" if difference > 0 else "−"
+                items.append(
+                    f"«{variant.label}» {self._format_points(variant.total)} punts "
+                    f"({sign}{self._format_points(abs(difference))})"
+                )
+            return self._joined(items)
+
+        parts: list[str] = []
+        if len(above) == len(variants):
+            return f"Totes les variants superen {target}: {listed(above)}."
+        if len(above) == 1:
+            only = above[0]
+            parts.append(
+                f"Per superar {target} només serveix «{only.label}»: "
+                f"{self._format_points(only.total)} punts, "
+                f"{self._format_points(only.total - reference.total)} més."
+            )
+        elif above:
+            parts.append(f"Per superar {target} serveixen {listed(above)}.")
+        elif not tied:
+            return f"Cap variant supera {target}: {listed(below)}."
+        else:
+            parts.append(f"Cap variant supera {target}.")
+        if tied:
+            names = self._joined([f"«{variant.label}»" for variant in tied])
+            verb = "hi empata" if len(tied) == 1 else "hi empaten"
+            parts.append(f"{names} {verb} a {self._format_points(reference.total)} punts.")
+        if below:
+            verb = "hi queda" if len(below) == 1 else "hi queden"
+            parts.append(f"Per sota {verb} {listed(below)}.")
+        return " ".join(parts)
+
+    @staticmethod
+    def _joined(items: list[str]) -> str:
+        return items[0] if len(items) == 1 else ", ".join(items[:-1]) + f" i {items[-1]}"
 
     @staticmethod
     def _outcome_label(outcome: Outcome) -> str:

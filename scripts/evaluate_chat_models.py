@@ -95,6 +95,9 @@ def check_result(result: dict, expected: dict) -> list[str]:
         wanted = sorted((label_key(label), total) for label, total in expected["totals"].items())
         if actual != wanted:
             failures.append("totals")
+    references = [p["total"] for p in result["performances"] if p.get("reference")]
+    if references != ([expected["reference_total"]] if "reference_total" in expected else []):
+        failures.append("reference")
     if "counted" in expected:
         actual = sorted(
             (

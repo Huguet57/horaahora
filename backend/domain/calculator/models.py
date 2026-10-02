@@ -32,6 +32,8 @@ class ParsedCastell:
 class ParsedPerformance:
     label: str
     castells: list[ParsedCastell]
+    # The performance the user wants to beat while trying variants of their own.
+    reference: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +68,7 @@ class PerformanceResult:
     label: str
     total: int
     castells: list[ScoredCastell]
+    reference: bool = False
 
 
 @dataclass(slots=True)

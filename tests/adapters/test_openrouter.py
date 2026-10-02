@@ -9,8 +9,16 @@ from backend.adapters.ai.openrouter import OpenRouterChatModel, openrouter_schem
 CALCULATION_ROUTE = {
     "intent": "comparació",
     "actuacions": [
-        {"nom": "A", "castells": [{"notació": "5d9f", "resultat": "descarregat"}]},
-        {"nom": "B", "castells": [{"notació": "4d9fa", "resultat": "descarregat"}]},
+        {
+            "nom": "A",
+            "castells": [{"notació": "5d9f", "resultat": "descarregat"}],
+            "referència": False,
+        },
+        {
+            "nom": "B",
+            "castells": [{"notació": "4d9fa", "resultat": "descarregat"}],
+            "referència": False,
+        },
     ],
     "aclariment": None,
     "consulta_concurs": None,

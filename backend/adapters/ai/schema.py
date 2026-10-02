@@ -26,6 +26,7 @@ class ParsedCastellPayload(StrictPayloadModel):
 class ParsedPerformancePayload(StrictPayloadModel):
     nom: str = Field(min_length=1, max_length=100)
     castells: list[ParsedCastellPayload] = Field(max_length=12)
+    referència: bool
 
 
 class ContestKnowledgeQueryPayload(StrictPayloadModel):
@@ -271,6 +272,7 @@ def _to_domain(
                     )
                     for castell in performance.castells
                 ],
+                reference=performance.referència,
             )
             for performance in performances
         ],

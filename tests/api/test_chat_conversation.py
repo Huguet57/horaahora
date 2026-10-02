@@ -88,7 +88,7 @@ def test_conversational_payload_requires_a_nonblank_answer_and_no_calculation(sc
         dict(payload, resposta=None),
         dict(payload, resposta="   "),
         dict(payload, aclariment="Quin castell?"),
-        dict(payload, actuacions=[{"nom": "A", "castells": []}]),
+        dict(payload, actuacions=[{"nom": "A", "castells": [], "referència": False}]),
     ]:
         with pytest.raises(ValueError):
             schema.model_validate(invalid)
@@ -97,7 +97,13 @@ def test_conversational_payload_requires_a_nonblank_answer_and_no_calculation(sc
 def test_routing_does_not_allow_ungrounded_information_in_the_conversation_answer():
     payload = {
         "intent": "consulta",
-        "actuacions": [{"nom": "A", "castells": [{"notació": "5d9f", "resultat": "descarregat"}]}],
+        "actuacions": [
+            {
+                "nom": "A",
+                "castells": [{"notació": "5d9f", "resultat": "descarregat"}],
+                "referència": False,
+            }
+        ],
         "aclariment": None,
         "consulta_concurs": None,
         "resposta": "Una puntuació inventada",
