@@ -12,6 +12,7 @@ struct PerformanceSummaryPresentation {
     let title: String
     let rows: [Row]
     let total: Int
+    let notCountedNote: String?
 
     init?(response: ChatResponse) {
         guard
@@ -32,6 +33,7 @@ struct PerformanceSummaryPresentation {
             )
         }
         total = performance.total
+        notCountedNote = NotCountedNote.text(for: [(performance.label, performance.castells)])
     }
 
     private static func resultLabel(_ outcome: String) -> String {

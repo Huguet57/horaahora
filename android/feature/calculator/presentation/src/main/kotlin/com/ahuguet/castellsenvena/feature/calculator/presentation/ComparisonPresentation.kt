@@ -12,6 +12,7 @@ data class ComparisonPresentation(
     val margin: Int?,
     val summary: String,
     val maximumCastellCount: Int,
+    val notCountedNote: String?,
 ) {
     data class Castell(
         val notation: String,
@@ -77,6 +78,7 @@ data class ComparisonPresentation(
                 margin = margin,
                 summary = summary,
                 maximumCastellCount = columns.maxOf { it.castells.size },
+                notCountedNote = NotCountedNote.text(displayLabels.zip(response.performances.map { it.castells })),
             )
         }
 

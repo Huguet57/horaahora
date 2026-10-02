@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.ahuguet.castellsenvena.core.common.CatalanNumbers
 import com.ahuguet.castellsenvena.core.designsystem.theme.CastellNotation
@@ -93,6 +94,7 @@ internal fun ComparisonTable(presentation: ComparisonPresentation) {
                 minColumnWidths = listOf(0.dp) + presentation.columns.map { 112.dp },
             )
         }
+        NotCountedNoteText(presentation.notCountedNote)
 
         val winner = presentation.winnerLabel
         val margin = presentation.margin
@@ -111,10 +113,9 @@ private fun ComparisonCastellCell(castell: ComparisonPresentation.Castell?) {
         return
     }
     Column(horizontalAlignment = Alignment.End, modifier = Modifier.alpha(if (castell.counted) 1f else 0.55f)) {
-        Text(castell.notation, style = notationStyle)
-        val suffix = if (castell.counted) "" else " · no compta"
+        Text(castell.notation, style = notationStyle.struckThroughUnless(castell.counted))
         Text(
-            text = "${castell.result} · ${CatalanNumbers.grouped(castell.points)}$suffix",
+            text = "${castell.result} · ${CatalanNumbers.grouped(castell.points)}",
             style = detailStyle.merge(TabularNumbers),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -194,7 +195,7 @@ internal fun PerformanceSummary(presentation: PerformanceSummaryPresentation) {
                             .alpha(if (row.counted) 1f else 0.55f),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        Text(row.notation, style = notationStyle)
+                        Text(row.notation, style = notationStyle.struckThroughUnless(row.counted))
                         Text(row.result, style = detailStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(
@@ -214,6 +215,18 @@ internal fun PerformanceSummary(presentation: PerformanceSummaryPresentation) {
                 )
             }
         }
+        NotCountedNoteText(presentation.notCountedNote)
+    }
+}
+
+/** An uncounted castell is struck through; the note under the table says why. */
+private fun TextStyle.struckThroughUnless(counted: Boolean): TextStyle =
+    if (counted) this else merge(TextStyle(textDecoration = TextDecoration.LineThrough))
+
+@Composable
+private fun NotCountedNoteText(note: String?) {
+    if (note != null) {
+        Text(note, style = detailStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

@@ -23,6 +23,7 @@ struct ComparisonPresentation {
     let margin: Int?
     let summary: String
     let maximumCastellCount: Int
+    let notCountedNote: String?
 
     init?(response: ChatResponse) {
         guard
@@ -50,6 +51,9 @@ struct ComparisonPresentation {
             )
         }
         maximumCastellCount = columns.map(\.castells.count).max() ?? 0
+        notCountedNote = NotCountedNote.text(
+            for: zip(displayLabels, response.performances).map { ($0, $1.castells) }
+        )
 
         if let sourceWinner = response.winnerLabel,
            let winnerIndex = response.performances.firstIndex(where: { $0.label == sourceWinner }) {

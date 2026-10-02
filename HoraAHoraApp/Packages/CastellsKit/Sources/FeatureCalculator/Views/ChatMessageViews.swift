@@ -152,7 +152,9 @@ struct PerformanceSummaryView: View {
                 ForEach(presentation.rows) { row in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(row.notation).font(.caption.monospaced().weight(.semibold))
+                            Text(row.notation)
+                                .font(.caption.monospaced().weight(.semibold))
+                                .strikethrough(!row.counted)
                             Text(row.result).font(.caption2).foregroundStyle(.secondary)
                         }
                         .opacity(row.counted ? 1 : 0.55)
@@ -174,6 +176,7 @@ struct PerformanceSummaryView: View {
             .padding(11)
             .background(Color.primary.opacity(0.045))
             .clipShape(RoundedRectangle(cornerRadius: 11))
+            NotCountedNoteText(note: presentation.notCountedNote)
         }
         .accessibilityElement(children: .contain)
     }
@@ -227,6 +230,7 @@ struct ComparisonTable: View {
             }
             .background(Color.primary.opacity(0.045))
             .clipShape(RoundedRectangle(cornerRadius: 11))
+            NotCountedNoteText(note: presentation.notCountedNote)
 
             if let winner = presentation.winnerLabel, let margin = presentation.margin {
                 Label(
@@ -247,7 +251,9 @@ struct ComparisonTable: View {
         if column.castells.indices.contains(index) {
             let castell = column.castells[index]
             VStack(alignment: .trailing, spacing: 2) {
-                Text(castell.notation).font(.caption.monospaced().weight(.semibold))
+                Text(castell.notation)
+                    .font(.caption.monospaced().weight(.semibold))
+                    .strikethrough(!castell.counted)
                 Text(detail(for: castell)).font(.caption2).foregroundStyle(.secondary)
             }
             .frame(minWidth: 112, alignment: .trailing)
@@ -259,7 +265,19 @@ struct ComparisonTable: View {
 
     private func detail(for castell: ComparisonPresentation.Castell) -> String {
         let points = castell.points.formatted(.number.grouping(.automatic))
-        let suffix = castell.counted ? "" : " · no compta"
-        return "\(castell.result) · \(points)\(suffix)"
+        return "\(castell.result) · \(points)"
+    }
+}
+
+private struct NotCountedNoteText: View {
+    let note: String?
+
+    var body: some View {
+        if let note {
+            Text(note)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }

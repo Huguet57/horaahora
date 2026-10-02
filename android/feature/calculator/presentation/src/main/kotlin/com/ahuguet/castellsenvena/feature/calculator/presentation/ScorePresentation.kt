@@ -47,6 +47,7 @@ data class PerformanceSummaryPresentation(
     val title: String,
     val rows: List<Row>,
     val total: Int,
+    val notCountedNote: String?,
 ) {
     data class Row(
         val notation: String,
@@ -75,6 +76,7 @@ data class PerformanceSummaryPresentation(
                     )
                 },
                 total = performance.total,
+                notCountedNote = NotCountedNote.text(listOf(performance.label to performance.castells)),
             )
         }
     }
