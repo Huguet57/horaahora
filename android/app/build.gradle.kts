@@ -21,6 +21,14 @@ val debugApiBaseUrl: String = providers.environmentVariable("CASTELLS_API_BASE_U
     .orElse(providers.gradleProperty("castells.apiBaseUrl.debug"))
     .get()
 
+// The visible version of both apps lives in Version.xcconfig at the repository root.
+val marketingVersion: String =
+    Regex("""(?m)^MARKETING_VERSION = (\S+)$""")
+        .find(rootDir.resolve("../Version.xcconfig").readText())
+        ?.groupValues
+        ?.get(1)
+        ?: error("Version.xcconfig has no MARKETING_VERSION")
+
 // The upload key for Google Play, kept out of the repository. Without it,
 // release builds are unsigned.
 fun signingValue(name: String): String? =
@@ -34,7 +42,7 @@ android {
     defaultConfig {
         applicationId = "com.ahuguet.castellsenvena"
         versionCode = providers.gradleProperty("castells.versionCode").orNull?.toInt() ?: 1
-        versionName = "1.8"
+        versionName = marketingVersion
     }
 
     flavorDimensions += "profile"

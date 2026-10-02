@@ -1,0 +1,5 @@
+// Versió visible de les dues apps: CFBundleShortVersionString a iOS i versionName a Android.
+// Per publicar una versió nova, canvia-la només aquí. El número de build el posen
+// make deploy-testflight i make play-bundle.
+
+MARKETING_VERSION = 1.8

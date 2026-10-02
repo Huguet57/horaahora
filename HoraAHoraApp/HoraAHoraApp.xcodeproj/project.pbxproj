@@ -73,6 +73,7 @@
 		A2000009 /* StartupLoadingGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingGate.swift; sourceTree = "<group>"; };
 		A2000010 /* StartupLoadingContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingContainer.swift; sourceTree = "<group>"; };
 		A2000011 /* StartupLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupLoadingView.swift; sourceTree = "<group>"; };
+		A2000014 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ../Version.xcconfig; sourceTree = SOURCE_ROOT; };
 		A2000012 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		A2000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000004 /* HoraAHoraApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HoraAHoraApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -127,6 +128,7 @@
 		A4000001 = {
 			isa = PBXGroup;
 			children = (
+				A2000014 /* Version.xcconfig */,
 				A4000002 /* HoraAHoraApp */,
 				F4000001 /* HoraAHoraAppUITests */,
 				A4000003 /* Products */,
@@ -415,6 +417,7 @@
 		};
 		A9000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000014 /* Version.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
@@ -425,7 +428,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -437,6 +439,7 @@
 		};
 		A9000002 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000014 /* Version.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
@@ -447,7 +450,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;

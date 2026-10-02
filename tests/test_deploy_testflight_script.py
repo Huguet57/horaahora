@@ -72,21 +72,27 @@ def test_dry_run_pins_the_requested_ref_and_build_number() -> None:
     assert "No upload was performed." in result.stdout
 
 
-def test_dry_run_overrides_the_marketing_version() -> None:
+def committed_version() -> str:
+    version_file = subprocess.run(
+        ["git", "show", "HEAD:Version.xcconfig"],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return re.search(r"^MARKETING_VERSION = (\S+)$", version_file, re.MULTILINE).group(1)
+
+
+def test_dry_run_takes_the_marketing_version_from_the_deployed_commit() -> None:
+    version = committed_version()
+
     result = run_script(
-        "--dry-run",
-        "--skip-tests",
-        "--ref",
-        "HEAD",
-        "--marketing-version",
-        "1.1",
-        "--build-number",
-        "1774400000",
+        "--dry-run", "--skip-tests", "--ref", "HEAD", "--build-number", "1774400000"
     )
 
     assert result.returncode == 0, result.stderr
-    assert "Marketing version: 1.1" in result.stdout
-    assert "MARKETING_VERSION=1.1" in result.stdout
+    assert f"Marketing version: {version}\n" in result.stdout
+    assert f"MARKETING_VERSION={version}" in result.stdout
 
 
 def test_dry_run_uses_the_frozen_python_environment() -> None:
@@ -114,19 +120,6 @@ def test_invalid_build_number_is_rejected_before_building() -> None:
 
     assert result.returncode == 2
     assert "must be a positive integer" in result.stderr
-
-
-def test_invalid_marketing_version_is_rejected_before_building() -> None:
-    result = run_script(
-        "--dry-run",
-        "--ref",
-        "HEAD",
-        "--marketing-version",
-        "1.1-beta",
-    )
-
-    assert result.returncode == 2
-    assert "marketing version must contain two or three numeric components" in result.stderr
 
 
 def fake_xcodebuild_environment(
@@ -192,8 +185,6 @@ def run_fake_deploy(environment: dict[str, str]) -> subprocess.CompletedProcess[
         "--skip-tests",
         "--ref",
         "HEAD",
-        "--marketing-version",
-        "1.1",
         "--build-number",
         "1774400000",
         env=environment,
@@ -221,7 +212,9 @@ def test_deploy_archives_uploads_and_removes_its_temporary_worktree(tmp_path: Pa
         text=True,
     ).stdout
     assert result.returncode == 0, result.stderr
-    assert "Uploading com.ahuguet.castellsenvena 1.1 (1774400000)" in result.stdout
+    assert (
+        f"Uploading com.ahuguet.castellsenvena {committed_version()} (1774400000)" in result.stdout
+    )
     assert "Upload accepted for TestFlight" in result.stdout
     assert (tmp_path / "exported").exists()
     assert worktrees_after == worktrees_before

@@ -310,26 +310,52 @@ La política de privacitat es publica a `/privacy` en català, amb selector cap 
 
 TestFlight i l'App Store només reben l'app pública: `make deploy-testflight` arxiva l'esquema `HoraAHoraApp` i s'atura si `CASTELLS_BUILD_PROFILE` no és `public` o si l'arxiu no és `com.ahuguet.castellsenvena`. L'app pública no té l'entitlement `aps-environment`. El projecte inclou App Icon, privacy manifest i declaració d'exempció de xifrat, i l'app interna té la configuració APNs diferenciada entre Debug i Release. Consulta [la checklist de TestFlight](docs/testflight-readiness.md) abans de crear l'archive signat. Els textos suggerits per a la beta són a [testflight-metadata-ca.md](docs/testflight-metadata-ca.md), la [política de privacitat](docs/privacy-policy-ca.md) es publica des del backend i els [canvis futurs de privacitat de l'app](docs/privacy-app-followups.md) queden documentats separadament.
 
-Per provar, arxivar i pujar l'últim `origin/main` amb una versió de màrqueting explícita
-i un número de build únic:
+### Versions
+
+La versió visible de les dues apps (CFBundleShortVersionString a iOS, `versionName` a Android)
+només és a `Version.xcconfig`, a l'arrel del repositori. L'Xcode la llegeix com a configuració
+base del projecte i el Gradle la llegeix del mateix fitxer. Per publicar una versió nova, canvia
+`MARKETING_VERSION` en aquest fitxer i fusiona-ho a `main`; els dos scripts de publicació la
+prenen del commit que publiquen.
+
+El número de build no es versiona: els dos scripts fan servir els segons Unix UTC, que sempre
+creixen. Així iOS (`CURRENT_PROJECT_VERSION`) i Android (`versionCode`) no repeteixen mai un
+número que la botiga ja tingui.
+
+Per provar, arxivar i pujar l'últim `origin/main` a TestFlight:
 
 ```bash
-make deploy-testflight ARGS="--marketing-version 1.1"
+make deploy-testflight
 ```
 
-El script actualitza `origin/main`, crea un worktree temporal del commit exacte i utilitza
-els segons Unix UTC com a `CURRENT_PROJECT_VERSION`; així el build creix sense modificar
-el projecte ni crear un commit només per canviar-ne el número. Requereix el compte Apple
-configurat a Xcode. El target de `make` delega a `scripts/deploy-testflight.sh` i permet
-passar-li opcions amb `ARGS`. `--marketing-version` permet obrir una train nova quan
-App Store Connect tanca la versió que ja s'ha aprovat per a producció. Per inspeccionar
-el pla, ometre proves o fixar excepcionalment el build:
+El script actualitza `origin/main`, crea un worktree temporal del commit exacte, arxiva amb la
+versió de `Version.xcconfig` i el build Unix i atura la pujada si l'arxiu no coincideix.
+Requereix el compte Apple configurat a Xcode. El target de `make` delega a
+`scripts/deploy-testflight.sh` i permet passar-li opcions amb `ARGS`. Per inspeccionar el pla,
+ometre proves o fixar excepcionalment el build:
 
 ```bash
-make deploy-testflight ARGS="--dry-run --marketing-version 1.1"
-make deploy-testflight ARGS="--skip-tests --marketing-version 1.1"
-make deploy-testflight ARGS="--marketing-version 1.1 --build-number 1774400000"
+make deploy-testflight ARGS="--dry-run"
+make deploy-testflight ARGS="--skip-tests"
+make deploy-testflight ARGS="--build-number 1774400000"
 ```
+
+### Google Play
+
+Per generar l'AAB signat de l'últim `origin/main`:
+
+```bash
+make play-bundle
+```
+
+El script crea un worktree temporal del commit exacte i compila `:app:bundleRelease` de l'app
+pública amb la versió de `Version.xcconfig` i els segons Unix UTC com a `versionCode`. Comprova
+el paquet, la versió i la signatura, i deixa `castells-en-vena-<versió>-<versionCode>.aab` a
+`~/Downloads`; després cal pujar-lo a la Play Console. Necessita `bundletool`
+(`brew install bundletool`), el SDK d'Android (`ANDROID_HOME`, per defecte
+`~/Library/Android/sdk`) i la clau de pujada a `~/.gradle/gradle.properties`
+(`castells.signing.storeFile`, `storePassword`, `keyAlias` i `keyPassword`). Opcions:
+`--ref`, `--version-code`, `--output-dir` i `--dry-run`.
 
 ### Desplegament a Vercel i Supabase
 
