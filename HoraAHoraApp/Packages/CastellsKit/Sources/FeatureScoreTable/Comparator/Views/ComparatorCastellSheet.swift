@@ -14,6 +14,12 @@ struct ComparatorCastellSheet: View {
 
     /// The castell picked in the first step, whose result the second step asks for.
     @State private var pickedNotation: String?
+    /// A castell without manilles, tapped in the first step and waiting to be confirmed.
+    @State private var unlikelyNotation: String?
+
+    /// Castells without manilles that have never been done, each with the one with folre and
+    /// manilles it is easily mistaken for.
+    static let unlikelyCastells = ["3de10sm": "3de10fm", "4de10sm": "4de10fm"]
 
     var body: some View {
         if let colla = store.colla(cell.collaID) {
@@ -37,6 +43,22 @@ struct ComparatorCastellSheet: View {
             .padding(.horizontal, 16)
             .padding(.top, 18)
             .onChange(of: cell) { _, _ in pickedNotation = nil }
+            .alert(
+                "\(unlikelyNotation ?? "") sense manilles?",
+                isPresented: Binding(
+                    get: { unlikelyNotation != nil },
+                    set: { if !$0 { unlikelyNotation = nil } }
+                ),
+                presenting: unlikelyNotation
+            ) { notation in
+                Button("Sí, \(notation)") { pick(notation) }
+                if let alternative = Self.unlikelyCastells[notation] {
+                    Button("No, \(alternative)") { pick(alternative) }
+                }
+                Button("Cancel·la", role: .cancel) {}
+            } message: { _ in
+                Text("No s'ha fet mai.")
+            }
         }
     }
 
@@ -126,10 +148,18 @@ struct ComparatorCastellSheet: View {
         }
     }
 
+    private func pick(_ notation: String) {
+        withAnimation(.snappy(duration: 0.25)) { pickedNotation = notation }
+    }
+
     private func row(_ castell: ScoreTableCastell, isCurrent: Bool, restriction: ComparatorRestriction?) -> some View {
         let isDisabled = restriction != nil && !isCurrent
         return Button {
-            withAnimation(.snappy(duration: 0.25)) { pickedNotation = castell.notation }
+            if Self.unlikelyCastells[castell.notation] != nil, !isCurrent {
+                unlikelyNotation = castell.notation
+            } else {
+                pick(castell.notation)
+            }
         } label: {
             HStack(spacing: 8) {
                 Text(castell.notation)

@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -82,6 +84,12 @@ import kotlinx.coroutines.launch
 private val LadderRowHeight = 48.dp
 
 /**
+ * Castells without manilles that have never been done, each with the one with folre and
+ * manilles it is easily mistaken for.
+ */
+private val UnlikelyCastells = mapOf("3de10sm" to "3de10fm", "4de10sm" to "4de10fm")
+
+/**
  * The bottom sheet for a cell, in two steps. First every castell by points, opened on the
  * cell's castell or, for an empty cell, near what the colles did; the ones the colla may not
  * try are disabled and say why. Then the result of the picked castell, which puts it in the
@@ -97,6 +105,8 @@ internal fun ComparatorCastellSheet(model: ComparatorViewModel, cell: Comparator
     val castell = colla?.rounds?.getOrNull(cell.round)
     // The castell picked in the first step, whose result the second step asks for.
     var pickedNotation by rememberSaveable(cell) { mutableStateOf<String?>(null) }
+    // A castell without manilles, tapped in the first step and waiting to be confirmed.
+    var unlikelyNotation by rememberSaveable(cell) { mutableStateOf<String?>(null) }
     val reduceMotion = LocalReduceMotion.current
 
     fun close() {
@@ -142,7 +152,13 @@ internal fun ComparatorCastellSheet(model: ComparatorViewModel, cell: Comparator
                         anchor = remember(cell) { model.anchor(cell) },
                         current = castell?.notation,
                         restriction = { notation -> model.rules.restriction(notation, cell.round, colla) },
-                        onPick = { pickedNotation = it },
+                        onPick = { notation ->
+                            if (notation in UnlikelyCastells && notation != castell?.notation) {
+                                unlikelyNotation = notation
+                            } else {
+                                pickedNotation = notation
+                            }
+                        },
                     )
                 } else {
                     Column(modifier = Modifier.fillMaxSize()) {
@@ -155,6 +171,42 @@ internal fun ComparatorCastellSheet(model: ComparatorViewModel, cell: Comparator
             }
         }
     }
+
+    unlikelyNotation?.let { notation ->
+        UnlikelyCastellDialog(
+            notation = notation,
+            alternative = UnlikelyCastells[notation],
+            onPick = {
+                unlikelyNotation = null
+                pickedNotation = it
+            },
+            onDismiss = { unlikelyNotation = null },
+        )
+    }
+}
+
+/** Asks whether a castell that has never been done is meant, or the [alternative] it looks like. */
+@Composable
+private fun UnlikelyCastellDialog(
+    notation: String,
+    alternative: String?,
+    onPick: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$notation sense manilles?") },
+        text = { Text("No s'ha fet mai.") },
+        confirmButton = {
+            Row {
+                if (alternative != null) {
+                    TextButton(onClick = { onPick(alternative) }) { Text("No, $alternative") }
+                }
+                TextButton(onClick = { onPick(notation) }) { Text("Sí, $notation") }
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel·la") } },
+    )
 }
 
 @Composable
