@@ -1,4 +1,6 @@
-from backend.domain.calculator.models import ParsedPerformance
+from collections import defaultdict
+
+from backend.domain.calculator.models import Outcome, ParsedPerformance
 
 
 def meaningful_performance_labels(performances: list[ParsedPerformance]) -> list[str]:
@@ -49,7 +51,69 @@ def meaningful_performance_labels(performances: list[ParsedPerformance]) -> list
             fallback_index += 1
         labels[index] = fallback
         used.add(_compact(fallback))
-    return [label for label in labels if label is not None]
+    return _tell_apart_repeated(performances, [label for label in labels if label is not None])
+
+
+def _tell_apart_repeated(performances: list[ParsedPerformance], labels: list[str]) -> list[str]:
+    """Variants the model names alike («Nosaltres» ×4) get what sets each one apart."""
+    groups: dict[str, list[int]] = defaultdict(list)
+    for index, label in enumerate(labels):
+        groups[_compact(label)].append(index)
+    result = list(labels)
+    for indexes in groups.values():
+        if len(indexes) < 2:
+            continue
+        notation_sets = [
+            {_compact(castell.notation) for castell in performances[index].castells}
+            for index in indexes
+        ]
+        if all(notations == notation_sets[0] for notations in notation_sets):
+            proposed = [
+                f"{labels[index]}: {_outcomes_described(performances[index])}" for index in indexes
+            ]
+        else:
+            proposed = []
+            for position, index in enumerate(indexes):
+                others = set().union(
+                    *(values for other, values in enumerate(notation_sets) if other != position)
+                )
+                distinctive = next(
+                    (
+                        castell.notation.strip()
+                        for castell in performances[index].castells
+                        if _compact(castell.notation) not in others
+                    ),
+                    None,
+                )
+                proposed.append(f"{labels[index]} amb {distinctive}" if distinctive else "")
+        if all(proposed) and len({_compact(label) for label in proposed}) == len(proposed):
+            for index, label in zip(indexes, proposed, strict=True):
+                result[index] = label
+        else:
+            for position, index in enumerate(indexes):
+                result[index] = f"{labels[index]} ({chr(ord('A') + position % 26)})"
+    return result
+
+
+def _outcomes_described(performance: ParsedPerformance) -> str:
+    parts = []
+    for outcome, singular, plural in (
+        (Outcome.LOADED, "carregat", "carregats"),
+        (Outcome.ATTEMPT, "intent", "intents"),
+    ):
+        notations = [
+            castell.notation.strip()
+            for castell in performance.castells
+            if castell.outcome is outcome
+        ]
+        if notations:
+            names = (
+                notations[0]
+                if len(notations) == 1
+                else ", ".join(notations[:-1]) + f" i {notations[-1]}"
+            )
+            parts.append(f"{names} {singular if len(notations) == 1 else plural}")
+    return ", ".join(parts) or "tot descarregat"
 
 
 def _is_generic(performance: ParsedPerformance) -> bool:

@@ -393,3 +393,45 @@ def test_a_reference_against_a_single_variant_is_a_plain_comparison() -> None:
     )
 
     assert result.reply.endswith("Guanya Actuació base per 110 punts.")
+
+
+def test_variants_with_the_same_name_are_told_apart_by_what_they_load() -> None:
+    # Production 2026-10-03: the model named every variant «Nosaltres».
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                reference("Rival", *BASE_3610),
+                performance("Nosaltres", *variants_of_5d8_7d8_2d8f()),
+                performance("Nosaltres", *variants_of_5d8_7d8_2d8f("7d8")),
+                performance("Nosaltres", *variants_of_5d8_7d8_2d8f("5d8", "td8f")),
+            ],
+        )
+    )
+
+    assert [item.label for item in result.performances] == [
+        "Nosaltres: tot descarregat",
+        "Rival",
+        "Nosaltres: 7d8 carregat",
+        "Nosaltres: 5d8 i td8f carregats",
+    ]
+    assert result.reply.startswith(
+        "Per superar «Rival» (3.610 punts) només serveix «Nosaltres: tot descarregat»"
+    )
+
+
+def test_same_named_performances_with_different_castells_keep_a_distinct_label() -> None:
+    result = make_engine().calculate(
+        ParsedCastellQuery(
+            intent="comparison",
+            performances=[
+                performance("Vella", ("4d10fm", Outcome.UNLOADED)),
+                performance("Vella", ("3d10fm", Outcome.UNLOADED)),
+            ],
+        )
+    )
+
+    assert [item.label for item in result.performances] == [
+        "Vella amb 4d10fm",
+        "Vella amb 3d10fm",
+    ]
