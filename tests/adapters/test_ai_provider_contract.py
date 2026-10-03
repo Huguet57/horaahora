@@ -20,8 +20,16 @@ from backend.adapters.ai.schema import (
 CALCULATION_ROUTE = {
     "intent": "comparació",
     "actuacions": [
-        {"nom": "A", "castells": [{"notació": "5d9f", "resultat": "descarregat"}]},
-        {"nom": "B", "castells": [{"notació": "4d9fa", "resultat": "descarregat"}]},
+        {
+            "nom": "A",
+            "castells": [{"notació": "5d9f", "resultat": "descarregat"}],
+            "referència": False,
+        },
+        {
+            "nom": "B",
+            "castells": [{"notació": "4d9fa", "resultat": "descarregat"}],
+            "referència": False,
+        },
     ],
     "aclariment": None,
     "consulta_concurs": None,
@@ -83,6 +91,7 @@ RECALCULATION_RESOLUTION = {
                 {"notació": "9d9f", "resultat": "carregat"},
                 {"notació": "4d10fm", "resultat": "carregat"},
             ],
+            "referència": False,
         }
     ],
     "aclariment": None,
@@ -262,7 +271,11 @@ def test_payloads_leave_the_performance_limit_to_the_engine() -> None:
     # The provider schema drops maxItems, so a 12-colla porra used to fail validation
     # with a generic provider error instead of reaching the engine.
     actuacions = [
-        {"nom": f"Colla {n}", "castells": [{"notació": "5d8", "resultat": "descarregat"}]}
+        {
+            "nom": f"Colla {n}",
+            "castells": [{"notació": "5d8", "resultat": "descarregat"}],
+            "referència": False,
+        }
         for n in range(20)
     ]
 
@@ -502,3 +515,18 @@ def test_open_alternatives_route_by_explicit_outcome_and_cover_mixed_results():
     assert "resultats diferents" in CONTEST_ROUTER_PROMPT
     assert "`tots_dos` i `complet`" in CONTEST_ROUTER_PROMPT
     assert "`selecció_rànquing=veïns`, `resultat_puntuacions=tots_dos`" not in CONTEST_ROUTER_PROMPT
+
+
+def test_the_reference_performance_reaches_the_scoring_engine() -> None:
+    route = {
+        **CALCULATION_ROUTE,
+        "actuacions": [
+            {**CALCULATION_ROUTE["actuacions"][0], "referència": True},
+            CALCULATION_ROUTE["actuacions"][1],
+        ],
+    }
+
+    query = QueryRoutingPayload.model_validate(route).to_domain()
+
+    assert [performance.reference for performance in query.performances] == [True, False]
+    assert "`referència`" in INTERPRETATION_PROMPT

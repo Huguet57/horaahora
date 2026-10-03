@@ -1,5 +1,5 @@
 {
-  "description": "Edit misreadings seen in shared calculator conversations (2026-09-30/10-01), paraphrased: adding versus replacing a castell, a verb carried over a list or to a second colla, «els dos de 10», and a glued c for carregat (2026-10-01: «3d9c», «2d9fc»). Totals come from the scoring engine.",
+  "description": "Edit misreadings seen in shared calculator conversations (2026-09-30/10-01), paraphrased: adding versus replacing a castell, a verb carried over a list or to a second colla, «els dos de 10», and a glued c for carregat (2026-10-01: «3d9c», «2d9fc»). Variants measured against a rival performance (2026-10-02: «what can stay loaded and still win?»). Totals come from the scoring engine.",
   "scenarios": [
     {
       "id": "shared_add_castell_keeps_the_rest",
@@ -578,6 +578,62 @@
               "Vella": 14780,
               "Joves": 12545
             }
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_variants_against_a_rival_performance",
+      "category": "shared_regressions",
+      "steps": [
+        {
+          "message": "La rival fa 7d8, td8f i 4d8a carregat. Nosaltres portem 5d8, 7d8 i td8f: quins podem deixar carregats i guanyar igualment?",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "reference_total": 3610,
+            "reply_contains_any": [
+              [
+                "per superar"
+              ],
+              [
+                "3.685"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared_variants_after_a_clarification",
+      "category": "shared_regressions",
+      "history": [
+        {
+          "role": "user",
+          "content": "Si ells fan 7d8, td8f i 4d8a, quins dels nostres 5d8, 7d8 i td8f poden quedar carregats per guanyar-los?"
+        },
+        {
+          "role": "assistant",
+          "content": "Els seus 7d8, td8f i 4d8a, van descarregats? I vols provar els teus carregats un a un, per parelles o tots alhora?"
+        }
+      ],
+      "steps": [
+        {
+          "message": "El 4d8a el carreguen. Prova-ho amb les actuacions senceres",
+          "expected": {
+            "intents": [
+              "comparison"
+            ],
+            "reference_total": 3610,
+            "reply_contains_any": [
+              [
+                "per superar"
+              ],
+              [
+                "3.685"
+              ]
+            ]
           }
         }
       ]
